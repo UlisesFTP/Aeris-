@@ -1,0 +1,6 @@
+Flask
+python-dotenv
+pymongo
+redis
+requests
+Flask-Cors

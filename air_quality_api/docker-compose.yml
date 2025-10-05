@@ -1,0 +1,21 @@
+services:
+  # El servicio de nuestra API de Flask
+  api:
+    build: . # Construye la imagen a partir del Dockerfile en la misma carpeta
+    ports:
+      - "5000:5000" # Mapea el puerto 5000 del contenedor al 5000 de tu máquina
+    volumes:
+      - .:/app # Monta el directorio actual para ver cambios en vivo sin reconstruir
+    environment:
+      # Flask necesita saber qué archivo correr
+      - FLASK_APP=main.py
+    # El archivo .env se leerá automáticamente para las demás variables
+    depends_on:
+      - redis # Asegura que Redis se inicie antes que la API
+
+  # El servicio de Redis para el caché
+  redis:
+    image: "redis:alpine" # Usa la imagen oficial de Redis
+    ports:
+      - "6379:6379" # Mapea el puerto de Redis
+

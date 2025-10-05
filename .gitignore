@@ -1,0 +1,34 @@
+# Archivos de entorno
+.env
+
+# Dependencias y archivos generados por Python
+air_quality_api/.venv/
+air_quality_api/__pycache__/
+air_quality_api/*.pyc
+
+# Dependencias y archivos generados por Flutter
+air_quality_flutter/.dart_tool/
+air_quality_flutter/build/
+air_quality_flutter/.flutter-plugins
+air_quality_flutter/.flutter-plugins-dependencies
+air_quality_flutter/.packages
+air_quality_flutter/app/ios/Flutter/flutter_export_environment.sh
+air_quality_flutter/app/ios/Runner/GeneratedPluginRegistrant.*
+air_quality_flutter/app/ios/Flutter/App.framework
+air_quality_flutter/app/ios/Flutter/engine
+air_quality_flutter/app/ios/Flutter/podfile
+air_quality_flutter/app/ios/Flutter/Generated.xcconfig
+air_quality_flutter/app/ios/Flutter/Debug.xcconfig
+air_quality_flutter/app/ios/Flutter/Release.xcconfig
+air_quality_flutter/app/ios/Podfile
+air_quality_flutter/app/ios/Podfile.lock
+air_quality_flutter/app/ios/Pods/
+air_quality_flutter/app/ios/.symlinks/
+air_quality_flutter/app/android/.gradle/
+air_quality_flutter/app/android/local.properties
+air_quality_flutter/app/android/app/google-services.json
+
+# Archivos de IDE
+.idea/
+.vscode/
+*.iml
