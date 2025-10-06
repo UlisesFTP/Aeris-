@@ -1,33 +1,53 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
-import 'package:firebase_core/firebase_core.dart'; // 1. Importar Firebase Core
-import 'firebase_options.dart'; // 2. Importar el archivo generado por FlutterFire
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'firebase_options.dart';
+import 'screens/welcome_screen.dart';
+import 'screens/main_shell.dart';
 import 'theme.dart';
+import 'core/app_state.dart';
 
-// 3. Convertir main en una función asíncrona
 Future<void> main() async {
-  // 4. Asegurarse de que los bindings de Flutter estén listos antes de cualquier cosa
+  // Asegurarse de que Flutter esté listo
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 5. Inicializar Firebase usando las opciones de tu proyecto
+  // Inicializar Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // 6. Ahora, con Firebase listo, corremos la aplicación
-  runApp(const MyApp());
+  // Comprobar si se debe mostrar la pantalla de bienvenida
+  final prefs = await SharedPreferences.getInstance();
+  final bool showWelcome = prefs.getBool('showWelcome') ?? true;
+
+  // Correr la app con un proveedor de estado para manejar el tema
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AppState(),
+      child: MyApp(showWelcome: showWelcome),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool showWelcome;
+
+  const MyApp({super.key, required this.showWelcome});
 
   @override
   Widget build(BuildContext context) {
+    // Escuchar los cambios de tema desde AppState
+    final appState = Provider.of<AppState>(context);
+
     return MaterialApp(
-      title: 'Monitor de Calidad del Aire',
-      theme: darkTheme, // Aplicar el tema personalizado
-      home: const HomeScreen(),
+      title: 'Air Quality Monitor',
+      // Cambiar dinámicamente entre el tema claro y oscuro
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: appState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       debugShowCheckedModeBanner: false,
+      home: showWelcome ? const WelcomeScreen() : const MainShell(),
     );
   }
 }

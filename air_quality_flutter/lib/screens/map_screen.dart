@@ -3,18 +3,19 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:air_quality_flutter/api/api_service.dart';
-import 'package:air_quality_flutter/api/models.dart';
+// CORRECCIÓN DEFINITIVA: Apuntamos a la única fuente de verdad.
+import 'package:air_quality_flutter/models/models.dart';
 import 'package:air_quality_flutter/api/notifications_service.dart';
 import 'package:geolocator/geolocator.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class MapScreen extends StatefulWidget {
+  const MapScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<MapScreen> createState() => _MapScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _MapScreenState extends State<MapScreen> {
   final ApiService _apiService = ApiService();
   final NotificationService _notificationService = NotificationService();
   final MapController _mapController = MapController();
@@ -24,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<LocationSearchResult> _searchResults = [];
   bool _isLoading = false;
   Marker? _currentMarker;
+  String _currentLocationName = "Selecciona una ubicación";
 
   @override
   void initState() {
@@ -99,6 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _isLoading = true;
       _searchResults.clear();
       _searchController.clear();
+      _currentLocationName = location.displayName;
     });
     FocusScope.of(context).unfocus();
     try {
@@ -117,12 +120,10 @@ class _HomeScreenState extends State<HomeScreen> {
       });
       _mapController.move(newPoint, 13.0);
 
-      // --- CAMBIO PRINCIPAL AQUÍ ---
-      // Ahora la notificación usa una recomendación inteligente
       if (data.aqi >= 4) {
         _notificationService.showNotification(
           title: 'Alerta de Calidad del Aire',
-          body: _getAqiRecommendation(data.aqi), // <-- Se usa la nueva función
+          body: _getAqiRecommendation(data.aqi),
         );
       }
     } catch (e) {
@@ -135,14 +136,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // --- NUEVA FUNCIÓN PARA LAS RECOMENDACIONES ---
   String _getAqiRecommendation(int aqi) {
     switch (aqi) {
       case 4:
         return 'Calidad del aire MALA. Se recomienda a los grupos sensibles reducir la actividad al aire libre.';
       case 5:
         return 'Calidad del aire MUY MALA. Evita las actividades al aire libre y considera usar cubrebocas si sales.';
-      case 6: // Suponiendo que el AQI puede llegar a 6
+      case 6:
         return 'PELIGROSO. Permanece en interiores y mantén las ventanas cerradas.';
       default:
         return 'Los niveles de contaminación son altos. Considera limitar la actividad al aire libre.';
@@ -153,110 +153,164 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Monitor de Calidad del Aire'),
+        title: Text(_currentLocationName),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none),
+            onPressed: () {
+              // TODO: Navegar a la pantalla de Alertas
+            },
+          ),
+        ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return (constraints.maxWidth > 700)
-              ? _buildWideLayout()
-              : _buildNarrowLayout();
-        },
+      body: Stack(
+        children: [
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: const LatLng(23.6345, -102.5528),
+              initialZoom: 5.0,
+              onTap: (_, point) => _onLocationSelected(LocationSearchResult(
+                  displayName: "Ubicación en mapa",
+                  latitude: point.latitude,
+                  longitude: point.longitude)),
+            ),
+            children: [
+              TileLayer(
+                urlTemplate:
+                    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                subdomains: const ['a', 'b', 'c'],
+              ),
+              if (_currentMarker != null)
+                MarkerLayer(markers: [_currentMarker!]),
+              RichAttributionWidget(
+                attributions: [
+                  TextSourceAttribution(
+                    'OpenStreetMap contributors',
+                    onTap: () => launchUrl(
+                        Uri.parse('https://openstreetmap.org/copyright')),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          DraggableScrollableSheet(
+            initialChildSize: 0.4,
+            minChildSize: 0.1,
+            maxChildSize: 0.8,
+            builder: (BuildContext context, ScrollController scrollController) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 10.0,
+                      color: Colors.black.withOpacity(0.2),
+                    ),
+                  ],
+                ),
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: _buildInfoPanel(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildWideLayout() => Row(
+  Widget _buildInfoPanel() {
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 380, child: _buildControlsPanel()),
-          VerticalDivider(width: 1, color: Theme.of(context).dividerColor),
-          Expanded(child: _buildMap()),
-        ],
-      );
-
-  Widget _buildNarrowLayout() => Column(
-        children: [
-          SizedBox(height: 320, child: _buildControlsPanel()),
-          Divider(height: 1, color: Theme.of(context).dividerColor),
-          Expanded(child: _buildMap()),
-        ],
-      );
-
-  Widget _buildControlsPanel() => Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Buscar ubicación...',
-                suffixIcon: IconButton(
-                    icon: const Icon(Icons.search), onPressed: _searchLocation),
+          Center(
+            child: Container(
+              width: 40,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(12),
               ),
-              onSubmitted: (_) => _searchLocation(),
             ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _searchResults.isNotEmpty
-                      ? _buildSearchResults()
-                      : _buildAirQualityDisplay(),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Buscar ubicación...',
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30.0),
+                borderSide: BorderSide.none,
+              ),
+              filled: true,
+              fillColor: Theme.of(context).colorScheme.surface,
             ),
-          ],
+            onSubmitted: (_) => _searchLocation(),
+          ),
+          const SizedBox(height: 16),
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _searchResults.isNotEmpty
+                  ? _buildSearchResults()
+                  : _buildMainContent(textTheme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchResults() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _searchResults.length,
+      itemBuilder: (context, index) {
+        final location = _searchResults[index];
+        return ListTile(
+          title: Text(location.displayName),
+          onTap: () => _onLocationSelected(location),
+        );
+      },
+    );
+  }
+
+  Widget _buildMainContent(TextTheme textTheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Nivel de Contaminación", style: textTheme.titleLarge),
+        const SizedBox(height: 16),
+        _buildAirQualityDisplay(),
+        const SizedBox(height: 24),
+        Text("Tendencias Históricas", style: textTheme.titleLarge),
+        const SizedBox(height: 16),
+        Container(
+          height: 150,
+          decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(16)),
+          child:
+              const Center(child: Text("Gráfico de Historial (Próximamente)")),
         ),
-      );
-
-  Widget _buildMap() => FlutterMap(
-        mapController: _mapController,
-        options: MapOptions(
-            initialCenter: const LatLng(23.6345, -102.5528),
-            initialZoom: 5.0,
-            onTap: (_, point) => _onLocationSelected(LocationSearchResult(
-                displayName: "Ubicación seleccionada",
-                latitude: point.latitude,
-                longitude: point.longitude))),
-        children: [
-          TileLayer(
-            urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            subdomains: const ['a', 'b', 'c'],
-          ),
-          if (_currentMarker != null) MarkerLayer(markers: [_currentMarker!]),
-          RichAttributionWidget(
-            attributions: [
-              TextSourceAttribution(
-                'OpenStreetMap contributors',
-                onTap: () =>
-                    launchUrl(Uri.parse('https://openstreetmap.org/copyright')),
-              ),
-            ],
-          ),
-        ],
-      );
-
-  Widget _buildSearchResults() => ListView.builder(
-        itemCount: _searchResults.length,
-        itemBuilder: (context, index) {
-          final location = _searchResults[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 4.0),
-            child: ListTile(
-              title: Text(location.displayName),
-              onTap: () => _onLocationSelected(location),
-              dense: true,
-            ),
-          );
-        },
-      );
+      ],
+    );
+  }
 
   Widget _buildAirQualityDisplay() {
     if (_airQualityData == null) {
-      return Center(
-          child: Text(
-        'Selecciona una ubicación para ver los datos.',
-        style: Theme.of(context).textTheme.bodyLarge,
-      ));
+      return const Center(child: Text('Aún no hay datos para mostrar.'));
     }
+
     final data = _airQualityData!;
     final aqiColors = [
       Colors.green.shade300,
@@ -279,7 +333,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           aqiText[aqiValue],
@@ -288,13 +341,13 @@ class _HomeScreenState extends State<HomeScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 8),
         Text('PM2.5: ${data.components['pm2_5'] ?? 'N/A'} µg/m³',
-            style: textTheme.bodyLarge),
+            style: textTheme.bodyMedium),
         Text('CO: ${data.components['co'] ?? 'N/A'} µg/m³',
-            style: textTheme.bodyLarge),
+            style: textTheme.bodyMedium),
         Text('O3: ${data.components['o3'] ?? 'N/A'} µg/m³',
-            style: textTheme.bodyLarge),
+            style: textTheme.bodyMedium),
       ],
     );
   }
