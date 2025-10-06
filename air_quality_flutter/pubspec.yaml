@@ -24,6 +24,7 @@ dependencies:
   # --- NUEVAS DEPENDENCIAS ---
   shared_preferences: ^2.2.3 # Para recordar la pantalla de bienvenida
   provider: ^6.1.2             # Para la gestión de estado
+  permission_handler: ^11.0.0 # Para abrir la configuración de la app
 
 dev_dependencies:
   flutter_test:

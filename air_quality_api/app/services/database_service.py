@@ -1,55 +1,74 @@
-from pymongo import MongoClient, GEOSPHERE, DESCENDING
-from config import Config
-from datetime import datetime
-import json
-from bson import json_util
+from pymongo import MongoClient
+from datetime import datetime, timedelta
+from bson import ObjectId
 
 class DatabaseService:
     _instance = None
 
-    def __new__(cls):
+    def __new__(cls, *args, **kwargs):
         if not cls._instance:
             cls._instance = super(DatabaseService, cls).__new__(cls)
-            try:
-                cls.client = MongoClient(Config.MONGO_URI, serverSelectionTimeoutMS=5000)
-                cls.db = cls.client[Config.MONGO_DB_NAME]
-                # Crear índice geoespacial si no existe
-                cls.db.air_readings.create_index([("location", GEOSPHERE)])
-                print("Conexión a MongoDB establecida.")
-            except Exception as e:
-                print(f"Error al conectar con MongoDB: {e}")
-                cls._instance = None
         return cls._instance
 
+    def __init__(self, db_uri, db_name):
+        if not hasattr(self, 'client'):
+            self.client = MongoClient(db_uri)
+            self.db = self.client[db_name]
+            print("Conexión a MongoDB establecida.")
+
     def save_reading(self, reading_data):
-        if not self._instance: return None
+        # CORRECCIÓN: Hacemos una copia para no modificar el diccionario original.
+        # Esto evita el error de serialización de datetime en la caché.
         data_to_save = reading_data.copy()
-        data_to_save['location'] = {
-            'type': 'Point',
-            'coordinates': [data_to_save['coordinates']['lon'], data_to_save['coordinates']['lat']]
-        }
         data_to_save['saved_at'] = datetime.utcnow()
-        try:
-            return self.db.air_readings.insert_one(data_to_save)
-        except Exception as e:
-            print(f"Error al guardar en la DB: {e}")
-            return None
-    
-    def get_readings_near(self, lat, lon, max_dist_meters=1000):
-        """Busca lecturas históricas cerca de una coordenada."""
-        if not self._instance: return []
-        try:
-            readings = self.db.air_readings.find({
-                "location": {
-                    "$near": {
-                        "$geometry": {"type": "Point", "coordinates": [lon, lat]},
-                        "$maxDistance": max_dist_meters
-                    }
+        self.db.air_readings.insert_one(data_to_save)
+
+    def get_history(self, lat, lon, days=7):
+        """Busca en un radio pequeño y agrupa los resultados por día."""
+        start_date = datetime.utcnow() - timedelta(days=days)
+        
+        # CORRECCIÓN: Usamos $geoWithin, que es compatible con aggregation.
+        # Esto requiere un índice '2dsphere' en el campo 'location'.
+        query = {
+            "location": {
+                "$geoWithin": {
+                    # Radio de 1km (1 / 6378.1)
+                    "$centerSphere": [[lon, lat], 1 / 6378.1]  
                 }
-            }).limit(50).sort("saved_at", DESCENDING)
-            
-            # Convertir cursor de BSON a una lista JSON-safe
-            return json.loads(json_util.dumps(readings))
-        except Exception as e:
-            print(f"Error al buscar historial en la DB: {e}")
-            return []
+            },
+            "saved_at": {"$gte": start_date}
+        }
+        
+        pipeline = [
+            {'$match': query},
+            {'$group': {
+                '_id': {'$dateToString': {'format': '%Y-%m-%d', 'date': '$saved_at'}},
+                'avg_aqi': {'$avg': '$aqi'}
+            }},
+            {'$sort': {'_id': -1}},
+            {'$limit': days}
+        ]
+        
+        results = list(self.db.air_readings.aggregate(pipeline))
+        
+        formatted_results = [
+            {
+                "date": item['_id'],
+                "aqi": round(item['avg_aqi'])
+            } for item in results
+        ]
+        return formatted_results
+
+    def get_saved_locations(self):
+        locations = list(self.db.saved_locations.find({}))
+        for loc in locations:
+            loc['_id'] = str(loc['_id'])
+        return locations
+
+    def add_saved_location(self, location_data):
+        query = {"name": location_data["name"]}
+        self.db.saved_locations.update_one(query, {"$set": location_data}, upsert=True)
+
+    def delete_saved_location(self, location_id):
+        self.db.saved_locations.delete_one({"_id": ObjectId(location_id)})
+

@@ -3,25 +3,31 @@ import 'map_screen.dart';
 import 'alerts_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
+import '../models/models.dart';
 
-// Este es el widget principal que contiene la barra de navegación.
+// Este widget es el esqueleto de la app, con la barra de navegación.
 class MainShell extends StatefulWidget {
+  // Le pasamos una clave global para que otras pantallas puedan encontrarlo y llamar a sus métodos.
   const MainShell({super.key});
 
   @override
-  State<MainShell> createState() => _MainShellState();
+  State<MainShell> createState() => MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
-  int _selectedIndex =
-      0; // Controla qué pestaña está activa. Empieza en el mapa.
+// Hacemos la clase de estado pública (sin '_') para que sea accesible desde history_screen
+class MainShellState extends State<MainShell> {
+  int _selectedIndex = 0;
 
-  // Lista de las pantallas principales de la aplicación.
-  static const List<Widget> _widgetOptions = <Widget>[
-    MapScreen(),
-    AlertsScreen(),
-    HistoryScreen(),
-    SettingsScreen(),
+  // Creamos una clave global para poder acceder a los métodos de MapScreenState
+  final GlobalKey<MapScreenState> _mapScreenKey = GlobalKey<MapScreenState>();
+
+  // Lista de las pantallas que se mostrarán.
+  // Ahora pasamos la clave a nuestra MapScreen.
+  late final List<Widget> _pages = <Widget>[
+    MapScreen(key: _mapScreenKey), // Pasamos la clave aquí
+    const AlertsScreen(),
+    const HistoryScreen(),
+    const SettingsScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -30,15 +36,33 @@ class _MainShellState extends State<MainShell> {
     });
   }
 
+  // --- NUEVA FUNCIÓN ---
+  // Este método será llamado desde la pantalla de historial.
+  void navigateToMapAndLoadLocation(LocationSearchResult location) {
+    // 1. Cambia a la pestaña del mapa.
+    setState(() {
+      _selectedIndex = 0;
+    });
+    // 2. Llama al método público en MapScreenState para cargar los datos.
+    // Usamos un pequeño retraso para asegurar que la pantalla del mapa esté visible
+    // antes de intentar cargar los datos.
+    Future.delayed(const Duration(milliseconds: 50), () {
+      _mapScreenKey.currentState?.loadLocation(location);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        // Muestra la pantalla correspondiente al índice seleccionado.
-        child: _widgetOptions.elementAt(_selectedIndex),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
       ),
-      // La barra de navegación inferior.
       bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        // Usamos el color del tema y mantenemos los íconos visibles
+        type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.map_outlined),
@@ -51,7 +75,7 @@ class _MainShellState extends State<MainShell> {
             label: 'Alertas',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.history_outlined),
+            icon: Icon(Icons.history),
             activeIcon: Icon(Icons.history),
             label: 'Historial',
           ),
@@ -61,13 +85,6 @@ class _MainShellState extends State<MainShell> {
             label: 'Ajustes',
           ),
         ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        // Estos estilos son importantes para que la barra se vea bien en tema oscuro.
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        unselectedItemColor: Colors.grey,
       ),
     );
   }
