@@ -1,6 +1,8 @@
 Flask
 python-dotenv
-pymongo
+pymongo[srv]>=4.0.0
 redis
 requests
 Flask-Cors
+gunicorn
+certifi

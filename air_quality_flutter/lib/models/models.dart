@@ -1,29 +1,31 @@
-import 'dart:convert';
+// Este archivo define las estructuras de datos (modelos) que la aplicación utiliza.
 
-// --- MODELO PARA DATOS DE CALIDAD DEL AIRE (ACTUAL Y PREDICCIÓN) ---
+// Modelo para los datos de calidad del aire recibidos de nuestra API de Flask.
 class AirQualityData {
   final int aqi;
   final Map<String, dynamic> components;
 
-  AirQualityData({required this.aqi, required this.components});
+  const AirQualityData({required this.aqi, required this.components});
 
+  // Factory constructor para crear una instancia desde un mapa JSON.
+  // Este es el punto clave: espera la ESTRUCTURA SIMPLIFICADA de nuestro backend.
   factory AirQualityData.fromJson(Map<String, dynamic> json) {
-    // La API de OpenWeather anida los datos en una lista
-    final data = json['list'][0];
     return AirQualityData(
-      aqi: data['main']['aqi'],
-      components: Map<String, dynamic>.from(data['components']),
+      // Usamos '?? 0' para proveer un valor por defecto si 'aqi' es nulo.
+      aqi: json['aqi'] as int? ?? 0,
+      // Hacemos lo mismo para los componentes.
+      components: json['components'] as Map<String, dynamic>? ?? {},
     );
   }
 }
 
-// --- MODELO PARA RESULTADOS DE BÚSQUEDA DE UBICACIÓN ---
+// Modelo para un resultado de búsqueda de ubicación de la API de Nominatim.
 class LocationSearchResult {
   final String displayName;
   final double latitude;
   final double longitude;
 
-  LocationSearchResult({
+  const LocationSearchResult({
     required this.displayName,
     required this.latitude,
     required this.longitude,
@@ -31,61 +33,56 @@ class LocationSearchResult {
 
   factory LocationSearchResult.fromJson(Map<String, dynamic> json) {
     return LocationSearchResult(
-      displayName: json['display_name'],
-      latitude: double.parse(json['lat']),
-      longitude: double.parse(json['lon']),
+      displayName: json['display_name'] as String? ?? 'Ubicación Desconocida',
+      latitude: double.tryParse(json['lat'] as String? ?? '0.0') ?? 0.0,
+      longitude: double.tryParse(json['lon'] as String? ?? '0.0') ?? 0.0,
     );
   }
 }
 
-// --- MODELO PARA UBICACIONES GUARDADAS (FAVORITAS Y RECIENTES) ---
+// Modelo para un punto de datos en el historial.
+class HistoricalDataPoint {
+  final DateTime date;
+  final int aqi;
+
+  const HistoricalDataPoint({required this.date, required this.aqi});
+
+  factory HistoricalDataPoint.fromJson(Map<String, dynamic> json) {
+    return HistoricalDataPoint(
+      date: DateTime.tryParse(json['date'] as String? ?? '') ?? DateTime.now(),
+      aqi: json['aqi'] as int? ?? 0,
+    );
+  }
+}
+
+// Modelo para una ubicación guardada por el usuario.
 class SavedLocation {
   final String?
-      id; // El ID de MongoDB (opcional, puede ser nulo para nuevas ubicaciones)
+      id; // El ID de MongoDB, puede ser nulo si es una nueva ubicación
   final String name;
+  final String? displayName; // Puede ser nulo
   final double latitude;
   final double longitude;
-  final String? displayName; // Para ubicaciones recientes
 
-  SavedLocation({
+  const SavedLocation({
     this.id,
     required this.name,
+    this.displayName,
     required this.latitude,
     required this.longitude,
-    this.displayName,
   });
 
-  // Constructor para crear desde un resultado de búsqueda (para "recientes")
+  // Convierte un resultado de búsqueda en una ubicación guardable
   factory SavedLocation.fromSearchResult(LocationSearchResult result) {
     return SavedLocation(
-      name: result.displayName, // Usamos el displayName como nombre
+      name: result.displayName, // El nombre por defecto es el display name
+      displayName: result.displayName,
       latitude: result.latitude,
       longitude: result.longitude,
-      displayName: result.displayName,
     );
   }
 
-  // Constructor para decodificar desde JSON (usado para SharedPreferences)
-  factory SavedLocation.fromJson(Map<String, dynamic> json) {
-    return SavedLocation(
-      id: json['_id']?['\$oid'],
-      name: json['name'],
-      latitude: json['latitude'],
-      longitude: json['longitude'],
-      displayName: json['displayName'],
-    );
-  }
-
-  // Método para codificar a JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'latitude': latitude,
-      'longitude': longitude,
-      'displayName': displayName,
-    };
-  }
-
+  // Convierte un SavedLocation de vuelta a un LocationSearchResult para la navegación
   LocationSearchResult toLocationSearchResult() {
     return LocationSearchResult(
       displayName: displayName ?? name,
@@ -93,36 +90,24 @@ class SavedLocation {
       longitude: longitude,
     );
   }
-}
 
-// --- MODELO PARA DATOS DEL HISTORIAL ---
-class HistoricalDataPoint {
-  final DateTime date;
-  final int aqi;
-
-  HistoricalDataPoint({required this.date, required this.aqi});
-
-  factory HistoricalDataPoint.fromJson(Map<String, dynamic> json) {
-    return HistoricalDataPoint(
-      date: DateTime.parse(json['date']),
-      aqi: json['aqi'],
+  factory SavedLocation.fromJson(Map<String, dynamic> json) {
+    return SavedLocation(
+      id: json['_id'] as String?,
+      name: json['name'] as String? ?? 'Sin Nombre',
+      displayName: json['displayName'] as String?,
+      latitude: json['latitude'] as double? ?? 0.0,
+      longitude: json['longitude'] as double? ?? 0.0,
     );
   }
-}
 
-// --- MODELO PARA DATOS DE PREDICCIÓN ---
-class ForecastDataPoint {
-  final DateTime timestamp;
-  final int aqi;
-
-  ForecastDataPoint({required this.timestamp, required this.aqi});
-
-  factory ForecastDataPoint.fromJson(Map<String, dynamic> json) {
-    return ForecastDataPoint(
-      timestamp:
-          DateTime.fromMillisecondsSinceEpoch(json['dt'] * 1000, isUtc: true)
-              .toLocal(),
-      aqi: json['main']['aqi'],
-    );
+  Map<String, dynamic> toJson() {
+    return {
+      if (id != null) '_id': id,
+      'name': name,
+      'displayName': displayName ?? name,
+      'latitude': latitude,
+      'longitude': longitude,
+    };
   }
 }

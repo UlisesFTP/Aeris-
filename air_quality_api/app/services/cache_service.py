@@ -9,16 +9,15 @@ class CacheService:
             cls._instance = super(CacheService, cls).__new__(cls)
         return cls._instance
 
-    # El constructor debe aceptar 'host' y 'port'.
-    def __init__(self, host='redis', port=6379):
+    # Modificamos el constructor para que acepte una URL completa
+    def __init__(self, redis_url='redis://redis:6379'):
         if not hasattr(self, 'client'):
             try:
-                self.client = redis.Redis(
-                    host=host, 
-                    port=port, 
-                    db=0, 
+                # Usamos .from_url() que es la forma moderna de conectarse.
+                self.client = redis.from_url(
+                    redis_url, 
                     decode_responses=True,
-                    socket_connect_timeout=5 # Añadimos un timeout
+                    socket_connect_timeout=5
                 )
                 # Hacemos ping para verificar la conexión al iniciar.
                 self.client.ping()
@@ -35,3 +34,4 @@ class CacheService:
     def set(self, key, value, ttl_seconds):
         if self.client:
             self.client.setex(key, ttl_seconds, value)
+

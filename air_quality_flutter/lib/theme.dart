@@ -8,7 +8,7 @@ final ThemeData lightTheme = ThemeData(
   fontFamily: 'ProductSans', // Aplicamos tu nueva fuente
   colorScheme: const ColorScheme.light(
     primary: Colors.black,
-    secondary: Colors.blueAccent,
+    secondary: Color.fromARGB(255, 23, 23, 24),
     surface: Colors.white,
     onPrimary: Colors.white,
     onSecondary: Colors.white,
@@ -45,7 +45,7 @@ final ThemeData darkTheme = ThemeData(
   fontFamily: 'ProductSans', // Aplicamos tu nueva fuente
   colorScheme: const ColorScheme.dark(
     primary: Colors.white,
-    secondary: Color(0xFFBB86FC),
+    secondary: Color.fromARGB(255, 255, 255, 255),
     surface: Color(0xFF000A11), // Tu color personalizado para las cards
     onPrimary: Colors.black,
     onSecondary: Colors.black,
