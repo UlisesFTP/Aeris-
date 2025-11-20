@@ -59,14 +59,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             end: Alignment.bottomRight,
             colors: isDarkMode
                 ? [
-                    const Color(0xFF1A1C1E),
-                    const Color(0xFF2C2F33),
-                    colorScheme.primary.withOpacity(0.2),
+                    const Color(0xFF000000), // Pure black
+                    const Color(0xFF1A1A1A), // Very dark gray
+                    const Color(0xFF0A0A0A), // Near-black
                   ]
                 : [
-                    colorScheme.primary.withOpacity(0.05),
-                    colorScheme.tertiary.withOpacity(0.08),
-                    Colors.white,
+                    const Color(0xFFFFFFFF), // Pure white
+                    const Color(0xFFF5F5F5), // Very light gray
+                    const Color(0xFFFAFAFA), // Off-white
                   ],
           ),
         ),
@@ -83,13 +83,21 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: colorScheme.primary.withOpacity(0.1),
+                          color: isDarkMode
+                              ? const Color(0xFF252525)
+                              : const Color(0xFFF5F5F5),
                           shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDarkMode
+                                ? const Color(0xFF333333)
+                                : const Color(0xFFE5E5E5),
+                            width: 2,
+                          ),
                         ),
                         child: Icon(
-                          Icons.air,
+                          Icons.air_rounded,
                           size: 80,
                           color: colorScheme.primary,
                         ),
@@ -172,27 +180,38 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: colorScheme.surface.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(16),
+        color: isDarkMode ? const Color(0xFF1A1A1A) : const Color(0xFFFFFFFF),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: colorScheme.primary.withOpacity(0.1),
+          color: isDarkMode ? const Color(0xFF333333) : const Color(0xFFE5E5E5),
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDarkMode ? 0.2 : 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: colorScheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: isDarkMode
+                  ? const Color(0xFF252525)
+                  : const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
               icon,
-              size: 28,
+              size: 30,
               color: colorScheme.primary,
             ),
           ),

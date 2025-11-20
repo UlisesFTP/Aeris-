@@ -148,8 +148,7 @@ class MapScreenState extends State<MapScreen> {
           point: newPoint,
           width: 80,
           height: 80,
-          child: Icon(Icons.location_pin,
-              color: Theme.of(context).colorScheme.error, size: 45),
+          child: const Icon(Icons.location_pin, color: Colors.red, size: 45),
         );
       });
       _mapController.move(newPoint, 13.0);
@@ -500,12 +499,12 @@ class MapScreenState extends State<MapScreen> {
 
     final data = _airQualityData!;
     final aqiColors = [
-      Colors.green,
-      Colors.yellow,
-      Colors.orange,
-      Colors.red,
-      Colors.purple,
-      Colors.brown
+      const Color(0xFF4CAF50), // Good - Green
+      const Color(0xFFFFEB3B), // Fair - Yellow
+      const Color(0xFFFF9800), // Moderate - Orange
+      const Color(0xFFFF5722), // Poor - Deep Orange/Red
+      const Color(0xFF9C27B0), // Very Poor - Purple
+      const Color(0xFF795548), // Dangerous - Brown
     ];
     final aqiText = [
       "Bueno",
@@ -545,11 +544,40 @@ class MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildComponentText(String name, double? value) {
+    IconData icon;
+    switch (name) {
+      case 'PM2.5':
+        icon = Icons.grain;
+        break;
+      case 'PM10':
+        icon = Icons.cloud;
+        break;
+      case 'CO':
+        icon = Icons.local_fire_department;
+        break;
+      case 'O3':
+        icon = Icons.air;
+        break;
+      case 'NO2':
+        icon = Icons.warning_amber;
+        break;
+      case 'SO2':
+        icon = Icons.science;
+        break;
+      default:
+        icon = Icons.analytics;
+    }
+
     return Column(
       children: [
-        Text(name, style: Theme.of(context).textTheme.titleMedium),
+        Icon(icon, size: 32, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(height: 4),
+        Text(name, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 2),
         Text(value?.toStringAsFixed(2) ?? 'N/A',
-            style: Theme.of(context).textTheme.bodyLarge),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                )),
       ],
     );
   }
