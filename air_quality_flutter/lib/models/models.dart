@@ -111,3 +111,61 @@ class SavedLocation {
     };
   }
 }
+
+class WeatherData {
+  final double temp;
+  final String condition;
+  final String icon;
+
+  const WeatherData({
+    required this.temp,
+    required this.condition,
+    required this.icon,
+  });
+
+  factory WeatherData.fromJson(Map<String, dynamic> json) {
+    return WeatherData(
+      temp: (json['temp'] as num?)?.toDouble() ?? 0.0,
+      condition: json['condition'] as String? ?? '',
+      icon: json['icon'] as String? ?? '',
+    );
+  }
+}
+
+class ForecastItem {
+  final String date;
+  final double minTemp;
+  final double maxTemp;
+  final String icon;
+  final String condition;
+
+  const ForecastItem({
+    required this.date,
+    required this.minTemp,
+    required this.maxTemp,
+    required this.icon,
+    required this.condition,
+  });
+
+  factory ForecastItem.fromJson(Map<String, dynamic> json) {
+    return ForecastItem(
+      date: json['date'] as String? ?? '',
+      minTemp: (json['min_temp'] as num?)?.toDouble() ?? 0.0,
+      maxTemp: (json['max_temp'] as num?)?.toDouble() ?? 0.0,
+      icon: json['icon'] as String? ?? '',
+      condition: json['condition'] as String? ?? '',
+    );
+  }
+}
+
+class HealthAdvice {
+  final String advice;
+
+  const HealthAdvice({required this.advice});
+
+  factory HealthAdvice.fromJson(Map<String, dynamic> json) {
+    return HealthAdvice(
+      advice: json['advice'] as String? ?? 'No hay consejos disponibles.',
+    );
+  }
+}

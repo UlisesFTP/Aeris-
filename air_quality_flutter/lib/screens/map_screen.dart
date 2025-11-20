@@ -29,6 +29,9 @@ class MapScreenState extends State<MapScreen> {
 
   // Estado local de la pantalla
   AirQualityData? _airQualityData;
+  WeatherData? _currentWeather;
+  HealthAdvice? _healthAdvice;
+  List<ForecastItem> _forecast = [];
   List<LocationSearchResult> _searchResults = [];
   List<HistoricalDataPoint> _historyData = [];
   bool _isLoading = false;
@@ -110,6 +113,7 @@ class MapScreenState extends State<MapScreen> {
       _searchResults.clear();
       _searchController.clear();
       _currentLocation = location;
+      _healthAdvice = null; // Limpiar consejo anterior
     });
     FocusScope.of(context).unfocus();
 
@@ -119,15 +123,27 @@ class MapScreenState extends State<MapScreen> {
       final responses = await Future.wait([
         _apiService.getAirQuality(location.latitude, location.longitude),
         _apiService.getHistory(location.latitude, location.longitude),
+        _apiService.getWeather(location.latitude, location.longitude),
       ]);
 
       final airData = responses[0] as AirQualityData;
       final history = responses[1] as List<HistoricalDataPoint>;
+      final weatherData = responses[2] as Map<String, dynamic>;
       final newPoint = LatLng(location.latitude, location.longitude);
+
+      // Obtener consejo de Gemini
+      final advice = await _apiService.getAdvice(
+        weatherCondition: weatherData['current'].condition,
+        aqi: airData.aqi,
+        components: airData.components,
+      );
 
       setState(() {
         _airQualityData = airData;
         _historyData = history;
+        _currentWeather = weatherData['current'];
+        _forecast = weatherData['forecast'];
+        _healthAdvice = advice;
         _currentMarker = Marker(
           point: newPoint,
           width: 80,
@@ -138,13 +154,12 @@ class MapScreenState extends State<MapScreen> {
       });
       _mapController.move(newPoint, 13.0);
 
-// Mostrar notificación si la calidad del aire es mala o peor
-      if (airData.aqi >= 4 &&
-          (defaultTargetPlatform == TargetPlatform.android ||
-              defaultTargetPlatform == TargetPlatform.iOS)) {
+      // Mostrar notificación con el consejo
+      if (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS) {
         _notificationService.showNotification(
-          title: 'Alerta de Calidad del Aire',
-          body: _getAqiRecommendation(airData.aqi),
+          title: 'Consejo de Salud (IA)',
+          body: advice.advice,
         );
       }
     } catch (e) {
@@ -154,19 +169,6 @@ class MapScreenState extends State<MapScreen> {
       }
     } finally {
       setState(() => _isLoading = false);
-    }
-  }
-
-  String _getAqiRecommendation(int aqi) {
-    switch (aqi) {
-      case 4:
-        return 'Calidad del aire MALA. Grupos sensibles deben reducir la actividad al aire libre.';
-      case 5:
-        return 'Calidad del aire MUY MALA. Evita las actividades al aire libre.';
-      case 6:
-        return 'PELIGROSO. Permanece en interiores y mantén las ventanas cerradas.';
-      default:
-        return 'Niveles de contaminación altos. Limita la actividad al aire libre.';
     }
   }
 
@@ -362,7 +364,7 @@ class MapScreenState extends State<MapScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Nivel de Contaminación", style: textTheme.titleLarge),
+            Text("Clima Actual", style: textTheme.titleLarge),
             if (_currentLocation != null)
               IconButton(
                 icon: const Icon(Icons.bookmark_add_outlined),
@@ -372,12 +374,122 @@ class MapScreenState extends State<MapScreen> {
           ],
         ),
         const SizedBox(height: 16),
+        _buildWeatherDisplay(),
+        const SizedBox(height: 24),
+        Text("Recomendación (IA)", style: textTheme.titleLarge),
+        const SizedBox(height: 16),
+        _buildAdviceDisplay(),
+        const SizedBox(height: 24),
+        Text("Nivel de Contaminación", style: textTheme.titleLarge),
+        const SizedBox(height: 16),
         _buildAirQualityDisplay(),
+        const SizedBox(height: 24),
+        Text("Pronóstico Semanal", style: textTheme.titleLarge),
+        const SizedBox(height: 16),
+        _buildForecastDisplay(),
         const SizedBox(height: 24),
         Text("Tendencias Históricas", style: textTheme.titleLarge),
         const SizedBox(height: 16),
         SizedBox(height: 150, child: HistoryChart(history: _historyData)),
       ],
+    );
+  }
+
+  Widget _buildAdviceDisplay() {
+    if (_healthAdvice == null) {
+      return const SizedBox.shrink();
+    }
+    return Card(
+      color: Theme.of(context).colorScheme.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Icon(Icons.health_and_safety,
+                size: 40,
+                color: Theme.of(context).colorScheme.onPrimaryContainer),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                _healthAdvice!.advice,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWeatherDisplay() {
+    if (_currentWeather == null) {
+      return const SizedBox.shrink();
+    }
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Image.network(
+              'https://openweathermap.org/img/wn/${_currentWeather!.icon}@2x.png',
+              width: 64,
+              height: 64,
+              errorBuilder: (_, __, ___) => const Icon(Icons.cloud, size: 64),
+            ),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${_currentWeather!.temp.toStringAsFixed(1)}°C',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                Text(
+                  _currentWeather!.condition,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForecastDisplay() {
+    if (_forecast.isEmpty) {
+      return const Text("No hay pronóstico disponible.");
+    }
+    return SizedBox(
+      height: 140,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _forecast.length,
+        itemBuilder: (context, index) {
+          final item = _forecast[index];
+          return Card(
+            margin: const EdgeInsets.only(right: 8.0),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(item.date),
+                  Image.network(
+                    'https://openweathermap.org/img/wn/${item.icon}.png',
+                    width: 40,
+                    height: 40,
+                  ),
+                  Text('${item.maxTemp.round()}° / ${item.minTemp.round()}°'),
+                  Text(item.condition, style: const TextStyle(fontSize: 10)),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 

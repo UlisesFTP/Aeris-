@@ -6,6 +6,7 @@ load_dotenv()
 class Config:
     OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
     MONGO_URI = os.getenv("MONGO_URI")
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
     
     # Le decimos que busque la variable REDIS_URL que Render nos da.
     # Si no la encuentra (en local), usa la URL por defecto para docker-compose.

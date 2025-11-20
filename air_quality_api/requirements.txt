@@ -6,3 +6,4 @@ requests
 Flask-Cors
 gunicorn
 certifi
+google-generativeai

@@ -2,14 +2,19 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:air_quality_flutter/models/models.dart';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 // --- URL PARA DEPURACIÓN LOCAL ---
+// Detecta automáticamente si estamos en Web o en Android Emulator
+String get flaskBackendUrl {
+  if (kIsWeb) {
+    return "http://127.0.0.1:5000/api";
+  } else {
+    return "http://10.0.2.2:5000/api";
+  }
+}
 
-// Opción A: Si estás corriendo tu app de Flutter en la WEB (Chrome).
-//const String flaskBackendUrl = "http://127.0.0.1:5000/api";
-const String flaskBackendUrl = "https://air-quality-api-2b88.onrender.com/api";
-
-// Opción B: Si estás corriendo en un EMULADOR DE ANDROID, descomenta esta línea:
-// const String flaskBackendUrl = "http://10.0.2.2:5000/api";
+// const String flaskBackendUrl = "https://air-quality-api-2b88.onrender.com/api";
 
 class ApiService {
   // --- OBTENER DATOS ACTUALES ---
@@ -85,6 +90,53 @@ class ApiService {
         await http.delete(Uri.parse('$flaskBackendUrl/locations/$id'));
     if (response.statusCode != 200) {
       throw Exception('Failed to delete location');
+    }
+  }
+
+  // --- OBTENER CLIMA Y PRONÓSTICO ---
+  Future<Map<String, dynamic>> getWeather(
+      double latitude, double longitude) async {
+    final response = await http.get(
+      Uri.parse('$flaskBackendUrl/weather?lat=$latitude&lon=$longitude'),
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return {
+        "current": WeatherData.fromJson(data['current']),
+        "forecast": (data['forecast'] as List)
+            .map((item) => ForecastItem.fromJson(item))
+            .toList(),
+      };
+    } else {
+      throw Exception(
+          'Failed to load weather data. Status: ${response.statusCode}');
+    }
+  }
+
+  // --- OBTENER CONSEJO PERSONALIZADO (GEMINI) ---
+  Future<HealthAdvice> getAdvice({
+    required String weatherCondition,
+    required int aqi,
+    required Map<String, dynamic> components,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$flaskBackendUrl/advice'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'weather': weatherCondition,
+        'aqi': {
+          'aqi': aqi,
+          'components': components,
+        }
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return HealthAdvice.fromJson(json.decode(response.body));
+    } else {
+      print('Error getting advice: ${response.body}');
+      return const HealthAdvice(
+          advice: "No se pudo obtener el consejo en este momento.");
     }
   }
 }

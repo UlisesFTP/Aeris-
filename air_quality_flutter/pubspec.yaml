@@ -9,6 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
   
   # Dependencias existentes
   http: ^1.2.1
@@ -46,4 +49,3 @@ flutter:
         - asset: assets/fonts/Product Sans Regular.ttf
         - asset: assets/fonts/Product Sans Bold.ttf
           weight: 700
-    
