@@ -1,18 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'main_shell.dart'; // Aún no existe, pero lo crearemos en el siguiente paso
+import 'main_shell.dart';
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
-  // Método que se ejecuta al presionar el botón
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeIn,
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   Future<void> _onGetStarted(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-    // Guardamos que la bienvenida ya fue mostrada
     await prefs.setBool('showWelcome', false);
 
-    // Navegamos a la pantalla principal de la app, reemplazando esta.
-    // Esto evita que el usuario pueda "volver atrás" a la pantalla de bienvenida.
     if (context.mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const MainShell()),
@@ -22,97 +47,173 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Usamos el tema definido para asegurar consistencia
+    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Icon(Icons.air, size: 64),
-              const SizedBox(height: 24),
-              Text(
-                "Respira Fácil, Vive Sano",
-                style: textTheme.headlineLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDarkMode
+                ? [
+                    const Color(0xFF1A1C1E),
+                    const Color(0xFF2C2F33),
+                    colorScheme.primary.withOpacity(0.2),
+                  ]
+                : [
+                    colorScheme.primary.withOpacity(0.05),
+                    colorScheme.tertiary.withOpacity(0.08),
+                    Colors.white,
+                  ],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(height: 40),
+                  // Header Section
+                  Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.air,
+                          size: 80,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Text(
+                        "Respira Fácil,\nVive Sano",
+                        style: textTheme.displaySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          height: 1.2,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        "Monitorea la calidad del aire en tiempo real, recibe alertas y visualiza los datos en un mapa.",
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurface.withOpacity(0.7),
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                  // Features Section
+                  Column(
+                    children: [
+                      _buildFeature(
+                        context,
+                        icon: Icons.timer_outlined,
+                        title: "Monitoreo en Tiempo Real",
+                        subtitle:
+                            "Datos actualizados de calidad del aire para tu ubicación.",
+                      ),
+                      const SizedBox(height: 20),
+                      _buildFeature(
+                        context,
+                        icon: Icons.notifications_active_outlined,
+                        title: "Alertas Inteligentes",
+                        subtitle:
+                            "Notificaciones cuando la calidad del aire cambie.",
+                      ),
+                      const SizedBox(height: 20),
+                      _buildFeature(
+                        context,
+                        icon: Icons.map_outlined,
+                        title: "Mapa Interactivo",
+                        subtitle: "Visualiza información detallada en el mapa.",
+                      ),
+                    ],
+                  ),
+                  // Button Section
+                  Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => _onGetStarted(context),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 56),
+                          elevation: 0,
+                        ),
+                        child: const Text("Comenzar"),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                "Monitorea la calidad del aire en tiempo real, recibe alertas y visualiza los datos en un mapa. Mantente informado y protege tu salud.",
-                style: textTheme.bodyLarge?.copyWith(
-                    color: isDarkMode ? Colors.white70 : Colors.black54),
-                textAlign: TextAlign.center,
-              ),
-              const Spacer(),
-              _buildFeature(
-                context,
-                icon: Icons.timer_outlined,
-                title: "Monitoreo en Tiempo Real",
-                subtitle:
-                    "Obtén datos de calidad del aire actualizados para tu ubicación.",
-              ),
-              _buildFeature(
-                context,
-                icon: Icons.notifications_active_outlined,
-                title: "Alertas Inteligentes",
-                subtitle:
-                    "Recibe notificaciones cuando la calidad del aire cambie en tu área.",
-              ),
-              _buildFeature(
-                context,
-                icon: Icons.map_outlined,
-                title: "Mapa Interactivo",
-                subtitle:
-                    "Visualiza la información en un mapa detallado y fácil de usar.",
-              ),
-              const Spacer(),
-              ElevatedButton(
-                onPressed: () => _onGetStarted(context),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  textStyle: textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                child: const Text("Comenzar"),
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  // Widget auxiliar para no repetir código
-  Widget _buildFeature(BuildContext context,
-      {required IconData icon,
-      required String title,
-      required String subtitle}) {
+  Widget _buildFeature(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.primary.withOpacity(0.1),
+        ),
+      ),
       child: Row(
         children: [
-          Icon(icon, size: 32, color: Theme.of(context).colorScheme.secondary),
-          const SizedBox(width: 24),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              size: 28,
+              color: colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  title,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(subtitle,
-                    style: textTheme.bodyMedium?.copyWith(
-                        color: isDarkMode ? Colors.white60 : Colors.black54)),
+                Text(
+                  subtitle,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
               ],
             ),
           ),

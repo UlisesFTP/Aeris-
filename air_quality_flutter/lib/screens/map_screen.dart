@@ -138,6 +138,7 @@ class MapScreenState extends State<MapScreen> {
       });
       _mapController.move(newPoint, 13.0);
 
+// Mostrar notificación si la calidad del aire es mala o peor
       if (airData.aqi >= 4 &&
           (defaultTargetPlatform == TargetPlatform.android ||
               defaultTargetPlatform == TargetPlatform.iOS)) {
