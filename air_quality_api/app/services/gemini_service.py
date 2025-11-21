@@ -14,15 +14,19 @@ class GeminiService:
         """
         try:
             prompt = f"""
-            Actúa como un experto en salud ambiental. Genera un consejo breve y personalizado , se serio y directo (máximo 2 frases) basado en las siguientes condiciones:
+            Actúa como un experto en salud ambiental. Genera un consejo personalizado y directo (máximo 3 renglones).
             
+            Formato obligatorio:
+            [Nivel de Riesgo]: [Consejo]
+            
+            Ejemplos:
+            Bajo: Disfruta del aire libre sin preocupaciones.
+            Alto: Usa mascarilla y evita salir.
+            
+            Datos actuales:
             Clima: {weather_summary}
-            Calidad del Aire (AQI): {aqi_data.get('aqi')}
+            AQI: {aqi_data.get('aqi')}
             Componentes: {aqi_data.get('components')}
-            
-            El consejo debe ser práctico y directo. Usa un tono directo, serio y facil de entender pero informativo.
-            Si la calidad del aire es mala, enfatiza la protección.
-            Si es buena, anima a disfrutar el aire libre.
             """
             
             response = self.model.generate_content(prompt)

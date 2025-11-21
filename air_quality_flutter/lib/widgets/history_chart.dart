@@ -20,7 +20,17 @@ class HistoryChart extends StatelessWidget {
 
     return LineChart(
       LineChartData(
-        gridData: const FlGridData(show: false),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: 1,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: theme.dividerColor.withOpacity(0.1),
+              strokeWidth: 1,
+            );
+          },
+        ),
         titlesData: FlTitlesData(
           leftTitles: const AxisTitles(
             sideTitles:
@@ -34,9 +44,7 @@ class HistoryChart extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
-              interval: (reversedHistory.length / 5)
-                  .ceil()
-                  .toDouble(), // Muestra unas 5 etiquetas
+              interval: (reversedHistory.length / 5).ceil().toDouble(),
               getTitlesWidget: (value, meta) {
                 if (value.toInt() >= 0 &&
                     value.toInt() < reversedHistory.length) {
@@ -52,27 +60,68 @@ class HistoryChart extends StatelessWidget {
             ),
           ),
         ),
-        borderData: FlBorderData(
-            show: true, border: Border.all(color: theme.dividerColor)),
+        borderData: FlBorderData(show: false),
         lineBarsData: [
           LineChartBarData(
             spots: reversedHistory.asMap().entries.map((entry) {
-              // El eje X es el índice y el eje Y es el valor de AQI
               return FlSpot(entry.key.toDouble(), entry.value.aqi.toDouble());
             }).toList(),
             isCurved: true,
-            color: theme.colorScheme.secondary,
-            barWidth: 3,
+            color: theme.colorScheme.primary,
+            barWidth: 4,
             isStrokeCapRound: true,
-            dotData: const FlDotData(show: false),
+            dotData: FlDotData(
+              show: true,
+              getDotPainter: (spot, percent, barData, index) {
+                return FlDotCirclePainter(
+                  radius: 4,
+                  color: theme.colorScheme.surface,
+                  strokeWidth: 2,
+                  strokeColor: theme.colorScheme.primary,
+                );
+              },
+            ),
             belowBarData: BarAreaData(
               show: true,
-              color: theme.colorScheme.secondary.withOpacity(0.3),
+              gradient: LinearGradient(
+                colors: [
+                  theme.colorScheme.primary.withOpacity(0.3),
+                  theme.colorScheme.primary.withOpacity(0.0),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
             ),
           ),
         ],
-        minY: 0, // El AQI no puede ser menor que 0
-        maxY: 6, // El AQI máximo es 5, damos un poco de margen
+        lineTouchData: LineTouchData(
+          touchTooltipData: LineTouchTooltipData(
+            getTooltipColor: (touchedSpot) => theme.cardColor,
+            tooltipRoundedRadius: 8,
+            getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+              return touchedBarSpots.map((barSpot) {
+                final flSpot = barSpot;
+                final date = reversedHistory[flSpot.x.toInt()].date;
+                return LineTooltipItem(
+                  '${date.day}/${date.month}\n',
+                  theme.textTheme.bodySmall!
+                      .copyWith(fontWeight: FontWeight.bold),
+                  children: [
+                    TextSpan(
+                      text: 'AQI: ${flSpot.y.toInt()}',
+                      style: theme.textTheme.bodyMedium!.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                );
+              }).toList();
+            },
+          ),
+        ),
+        minY: 0,
+        maxY: 6,
       ),
     );
   }

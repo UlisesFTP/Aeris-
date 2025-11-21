@@ -529,12 +529,33 @@ class MapScreenState extends State<MapScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Text(
-              aqiText[aqiValue],
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: aqiColors[aqiValue],
-                    fontWeight: FontWeight.bold,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              decoration: BoxDecoration(
+                color: aqiColors[aqiValue],
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: aqiColors[aqiValue].withOpacity(0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
+                ],
+              ),
+              child: Text(
+                aqiText[aqiValue],
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: Colors.white, // Always white for contrast
+                  fontWeight: FontWeight.bold,
+                  shadows: [
+                    const Shadow(
+                      offset: Offset(0, 1),
+                      blurRadius: 2,
+                      color: Colors.black26,
+                    ),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             Row(
