@@ -4,28 +4,31 @@ import 'package:permission_handler/permission_handler.dart';
 import '../core/app_state.dart';
 import '../widgets/option_tile.dart';
 import 'legal_screen.dart';
+import 'package:air_quality_flutter/l10n/app_localizations.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Ajustes'),
+            title: Text(l10n.settingsTitle),
             automaticallyImplyLeading: false,
           ),
           body: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
               // --- SECCIÓN GENERAL ---
-              _buildSectionHeader(context, 'General'),
+              _buildSectionHeader(context, l10n.settingsSectionGeneral),
               OptionTile(
                 icon: Icons.brightness_6_outlined,
-                title: 'Tema Oscuro',
-                subtitle: 'Cambiar apariencia de la aplicación',
+                title: l10n.settingsThemeDark,
+                subtitle: l10n.settingsThemeDarkSubtitle,
                 value: appState.isDarkMode,
                 onChanged: (value) => appState.toggleTheme(),
               ),
@@ -33,20 +36,20 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // --- SECCIÓN SISTEMA ---
-              _buildSectionHeader(context, 'Sistema'),
+              _buildSectionHeader(context, l10n.settingsSectionSystem),
               ListTile(
                 leading: Icon(Icons.notifications_none_outlined,
                     color: Theme.of(context).colorScheme.primary),
-                title: const Text('Notificaciones'),
-                subtitle: const Text('Gestionar permisos en el sistema'),
+                title: Text(l10n.settingsNotifications),
+                subtitle: Text(l10n.settingsNotificationsSubtitle),
                 trailing: const Icon(Icons.open_in_new, size: 20),
                 onTap: () => openAppSettings(),
               ),
               ListTile(
                 leading: Icon(Icons.location_on_outlined,
                     color: Theme.of(context).colorScheme.primary),
-                title: const Text('Ubicación'),
-                subtitle: const Text('Gestionar permisos de ubicación'),
+                title: Text(l10n.settingsLocation),
+                subtitle: Text(l10n.settingsLocationSubtitle),
                 trailing: const Icon(Icons.open_in_new, size: 20),
                 onTap: () => openAppSettings(),
               ),
@@ -54,23 +57,24 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // --- SECCIÓN INFORMACIÓN ---
-              _buildSectionHeader(context, 'Información'),
+              _buildSectionHeader(context, l10n.settingsSectionInfo),
               ListTile(
                 leading: const Icon(Icons.info_outline),
-                title: const Text('Versión'),
+                title: Text(l10n.settingsVersion),
                 subtitle: const Text('1.0.0'),
               ),
               ListTile(
                 leading: const Icon(Icons.privacy_tip_outlined),
-                title: const Text('Política de Privacidad'),
+                title: Text(l10n.settingsPrivacyPolicy),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const LegalScreen(
-                        title: 'Política de Privacidad',
-                        content: _privacyPolicyText,
+                      builder: (context) => LegalScreen(
+                        title: l10n.legalPrivacyTitle,
+                        content:
+                            _privacyPolicyText, // TODO: Translate long text
                       ),
                     ),
                   );
@@ -78,15 +82,16 @@ class SettingsScreen extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.description_outlined),
-                title: const Text('Términos de Servicio'),
+                title: Text(l10n.settingsTermsOfService),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const LegalScreen(
-                        title: 'Términos de Servicio',
-                        content: _termsOfServiceText,
+                      builder: (context) => LegalScreen(
+                        title: l10n.legalTermsTitle,
+                        content:
+                            _termsOfServiceText, // TODO: Translate long text
                       ),
                     ),
                   );
@@ -96,7 +101,7 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(height: 48),
               Center(
                 child: Text(
-                  'Aeris v1.0.0',
+                  l10n.settingsFooter,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context)
                             .colorScheme

@@ -4,6 +4,8 @@ import 'package:air_quality_flutter/models/models.dart';
 import '../core/app_state.dart';
 import 'main_shell.dart';
 
+import 'package:air_quality_flutter/l10n/app_localizations.dart';
+
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
@@ -54,18 +56,20 @@ class _HistoryScreenState extends State<HistoryScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Historial'),
+            title: Text(l10n.historyTitle),
             automaticallyImplyLeading: false,
             bottom: TabBar(
               controller: _tabController,
-              tabs: const [
-                Tab(text: 'Día'),
-                Tab(text: 'Semana'),
-                Tab(text: 'Mes'),
+              tabs: [
+                Tab(text: l10n.historyTabDay),
+                Tab(text: l10n.historyTabWeek),
+                Tab(text: l10n.historyTabMonth),
               ],
             ),
           ),
@@ -77,10 +81,10 @@ class _HistoryScreenState extends State<HistoryScreen>
                     padding: const EdgeInsets.all(16.0),
                     children: [
                       // SECCIÓN 1: Ubicaciones Guardadas
-                      _buildSectionHeader(context, 'Ubicaciones Guardadas'),
+                      _buildSectionHeader(context, l10n.historySectionSaved),
                       if (appState.savedLocations.isEmpty)
                         _buildEmptySection(
-                            context, 'No hay ubicaciones guardadas')
+                            context, l10n.historyNoSavedLocations)
                       else
                         ...appState.savedLocations.values.map(
                             (loc) => _buildSavedLocationItem(context, loc)),
@@ -88,9 +92,9 @@ class _HistoryScreenState extends State<HistoryScreen>
                       const SizedBox(height: 24),
 
                       // SECCIÓN 2: Historial de Visitas
-                      _buildSectionHeader(context, 'Historial de Visitas'),
+                      _buildSectionHeader(context, l10n.historySectionVisits),
                       if (appState.locationHistory.isEmpty)
-                        _buildEmptySection(context, 'No hay historial reciente')
+                        _buildEmptySection(context, l10n.historyNoRecentHistory)
                       else
                         ...appState.locationHistory
                             .map((visit) => _buildHistoryItem(context, visit)),
@@ -216,25 +220,26 @@ class _HistoryScreenState extends State<HistoryScreen>
   }
 
   void _confirmDelete(BuildContext context, SavedLocation location) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar ubicación'),
-        content: Text('¿Seguro que quieres eliminar "${location.name}"?'),
+        title: Text(l10n.historyDeleteTitle),
+        content: Text(l10n.historyDeleteConfirmation(location.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               context.read<AppState>().removeSavedLocation(location.id!);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('"${location.name}" eliminada')),
+                SnackBar(content: Text(l10n.historyDeleted(location.name))),
               );
             },
-            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+            child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),

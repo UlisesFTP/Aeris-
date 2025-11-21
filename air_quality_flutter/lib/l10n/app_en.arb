@@ -1,0 +1,139 @@
+{
+  "appTitle": "Aeris",
+  "welcomeTitle": "Welcome to Aeris",
+  "welcomeSubtitle": "Your clean air companion",
+  "welcomeFeature1Title": "Real-Time Monitoring",
+  "welcomeFeature1Desc": "Check air quality and weather instantly.",
+  "welcomeFeature2Title": "Smart Alerts",
+  "welcomeFeature2Desc": "Get notified when air quality worsens.",
+  "welcomeFeature3Title": "Detailed History",
+  "welcomeFeature3Desc": "Analyze historical pollution trends.",
+  "welcomeButton": "Get Started",
+  
+  "navMap": "Map",
+  "navHistory": "History",
+  "navAlerts": "Alerts",
+  "navSettings": "Settings",
+
+  "mapSearchPlaceholder": "Search city...",
+  "mapCurrentWeather": "Current Weather",
+  "mapWeatherAdvice": "Weather Advice",
+  "mapHealthAdvice": "Recommendation (AI)",
+  "mapAirQuality": "Air Quality",
+  "mapPollutants": "Pollutants",
+  "mapHistoryChart": "History (Last 24h)",
+  "mapViewFullHistory": "View full history",
+
+  "historyTitle": "Air Quality History",
+  "historyLast7Days": "Last 7 days",
+  "historyChartTitle": "AQI Trend",
+  "historyNoData": "No historical data available.",
+
+  "alertsTitle": "Alert Settings",
+  "alertsSubtitle": "Manage your notifications",
+  "alertsSectionPollutants": "Pollutant Types",
+  "alertsSwitchAirQuality": "Air Quality (AQI)",
+  "alertsSwitchAirQualitySubtitle": "Notify when air is poor or dangerous",
+  "alertsSwitchWeather": "Weather Status",
+  "alertsSwitchWeatherSubtitle": "Daily notifications like Google",
+  "alertsSectionLocations": "Saved Locations",
+  "alertsAddLocation": "Add Location",
+  "alertsCurrentLocation": "Current Location",
+  "alertsSavedLocation": "Saved Location",
+
+  "settingsTitle": "Settings",
+  "settingsSectionGeneral": "General",
+  "settingsThemeDark": "Dark Mode",
+  "settingsThemeDarkSubtitle": "Change app appearance",
+  "settingsSectionSystem": "System",
+  "settingsNotifications": "Notifications",
+  "settingsNotificationsSubtitle": "Manage system permissions",
+  "settingsLocation": "Location",
+  "settingsLocationSubtitle": "Manage location permissions",
+  "settingsSectionInfo": "Info",
+  "settingsVersion": "Version",
+  "settingsPrivacyPolicy": "Privacy Policy",
+  "settingsTermsOfService": "Terms of Service",
+  "settingsFooter": "Aeris v1.0.0",
+
+  "legalPrivacyTitle": "Privacy Policy",
+  "legalTermsTitle": "Terms of Service",
+  "legalFooter": "Aeris - Free App",
+
+  "aqiGood": "Good",
+  "aqiFair": "Fair",
+  "aqiModerate": "Moderate",
+  "aqiPoor": "Poor",
+  "aqiVeryPoor": "Very Poor",
+  "aqiDangerous": "Dangerous",
+
+  "errorLoading": "Error loading data",
+  "retry": "Retry",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "next": "Next",
+  "historyTabDay": "Day",
+  "historyTabWeek": "Week",
+  "historyTabMonth": "Month",
+  "historySectionSaved": "Saved Locations",
+  "historyNoSavedLocations": "No saved locations",
+  "historySectionVisits": "Recent Visits",
+  "historyNoRecentHistory": "No recent history",
+  "historyDeleteTitle": "Delete Location",
+  "historyDeleteConfirmation": "Are you sure you want to delete {name}?",
+  "@historyDeleteConfirmation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "historyDeleted": "Location {name} deleted",
+  "@historyDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alertsNewLocation": "New Location",
+  "alertsNewLocationHint": "City name",
+  "alertsSelectLocation": "Select Location for {name}",
+  "@alertsSelectLocation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alertsVerifying": "Verifying...",
+  "alertsVerified": "Verified ({count})",
+  "@alertsVerified": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alertsCheckNow": "Check Now",
+  "alertsCurrentLocationSubtitle": "Use device location",
+  "alertsPollutantWeather": "Weather",
+  "alertsPollutantWeatherSubtitle": "Weather status",
+  "alertsPollutantPM25": "PM2.5",
+  "alertsPollutantPM25Subtitle": "Fine particles",
+  "alertsPollutantPM10": "PM10",
+  "alertsPollutantPM10Subtitle": "Respirable particles",
+  "alertsPollutantO3": "Ozone (O3)",
+  "alertsPollutantO3Subtitle": "Ground-level ozone",
+  "alertsLocationHome": "Home",
+  "alertsLocationWork": "Work",
+  "alertsTapToConfigure": "Tap to configure",
+  "alertsLocationOf": "Location of {name}",
+  "@alertsLocationOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
+}

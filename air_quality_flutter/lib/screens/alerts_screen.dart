@@ -4,6 +4,8 @@ import 'package:latlong2/latlong.dart';
 import '../core/app_state.dart';
 import '../widgets/location_picker_dialog.dart';
 
+import 'package:air_quality_flutter/l10n/app_localizations.dart';
+
 class AlertsScreen extends StatelessWidget {
   const AlertsScreen({super.key});
 
@@ -37,23 +39,24 @@ class AlertsScreen extends StatelessWidget {
 
   Future<void> _addCustomLocation(BuildContext context) async {
     final controller = TextEditingController();
+    final l10n = AppLocalizations.of(context)!;
 
     final name = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Nueva Ubicación'),
+        title: Text(l10n.alertsNewLocation),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Nombre (ej: Gimnasio, Escuela)',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            hintText: l10n.alertsNewLocationHint,
+            border: const OutlineInputBorder(),
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -61,7 +64,7 @@ class AlertsScreen extends StatelessWidget {
                 Navigator.pop(context, controller.text.trim());
               }
             },
-            child: const Text('Siguiente'),
+            child: Text(l10n.next),
           ),
         ],
       ),
@@ -72,7 +75,7 @@ class AlertsScreen extends StatelessWidget {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => LocationPickerDialog(
-        title: 'Selecciona ubicación de $name',
+        title: l10n.alertsSelectLocation(name),
       ),
     );
 
@@ -89,45 +92,47 @@ class AlertsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Alertas'),
+            title: Text(l10n.alertsTitle),
             automaticallyImplyLeading: false,
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () async {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Verificando calidad del aire...'),
-                  duration: Duration(seconds: 2),
+                SnackBar(
+                  content: Text(l10n.alertsVerifying),
+                  duration: const Duration(seconds: 2),
                 ),
               );
               final count = await appState.forceCheckAlertLocations();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('✓ Verificadas $count ubicaciones'),
+                    content: Text(l10n.alertsVerified(count)),
                     backgroundColor: Colors.green,
                   ),
                 );
               }
             },
             icon: const Icon(Icons.refresh),
-            label: const Text('Verificar ahora'),
+            label: Text(l10n.alertsCheckNow),
           ),
           body: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
-              _buildSectionHeader(context, 'Mis Lugares'),
+              _buildSectionHeader(context, l10n.alertsSectionLocations),
 
               // Current Location
               _buildLocationTile(
                 context,
                 icon: Icons.my_location,
-                title: 'Mi ubicación actual',
-                subtitle: 'Alertas donde quiera que estés',
+                title: l10n.alertsCurrentLocation,
+                subtitle: l10n.alertsCurrentLocationSubtitle,
                 enabled: appState.notificationSettings['miUbicacion'] ?? true,
                 onChanged: (value) {
                   appState.updateNotificationSetting('miUbicacion', value);
@@ -153,7 +158,7 @@ class AlertsScreen extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () => _addCustomLocation(context),
                   icon: const Icon(Icons.add_location_alt),
-                  label: const Text('Agregar nueva ubicación'),
+                  label: Text(l10n.alertsAddLocation),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.all(16),
                     shape: RoundedRectangleBorder(
@@ -163,13 +168,13 @@ class AlertsScreen extends StatelessWidget {
                 ),
               ),
 
-              _buildSectionHeader(context, 'Tipos de Contaminantes'),
+              _buildSectionHeader(context, l10n.alertsSectionPollutants),
 
               _buildLocationTile(
                 context,
                 icon: Icons.wb_sunny_outlined,
-                title: 'Estado del Clima',
-                subtitle: 'Notificaciones diarias como en Google',
+                title: l10n.alertsPollutantWeather,
+                subtitle: l10n.alertsPollutantWeatherSubtitle,
                 enabled: appState.notificationSettings['weather'] ?? true,
                 onChanged: (value) =>
                     appState.updateNotificationSetting('weather', value),
@@ -178,8 +183,8 @@ class AlertsScreen extends StatelessWidget {
               _buildLocationTile(
                 context,
                 icon: Icons.cloud_outlined,
-                title: 'PM2.5 (Partículas Finas)',
-                subtitle: 'Humo, polvo, emisiones vehiculares',
+                title: l10n.alertsPollutantPM25,
+                subtitle: l10n.alertsPollutantPM25Subtitle,
                 enabled: appState.notificationSettings['pm25'] ?? true,
                 onChanged: (value) =>
                     appState.updateNotificationSetting('pm25', value),
@@ -188,8 +193,8 @@ class AlertsScreen extends StatelessWidget {
               _buildLocationTile(
                 context,
                 icon: Icons.cloud_queue,
-                title: 'PM10 (Partículas Gruesas)',
-                subtitle: 'Polvo, polen, moho',
+                title: l10n.alertsPollutantPM10,
+                subtitle: l10n.alertsPollutantPM10Subtitle,
                 enabled: appState.notificationSettings['pm10'] ?? false,
                 onChanged: (value) =>
                     appState.updateNotificationSetting('pm10', value),
@@ -198,8 +203,8 @@ class AlertsScreen extends StatelessWidget {
               _buildLocationTile(
                 context,
                 icon: Icons.wb_sunny_outlined,
-                title: 'Ozono (O₃)',
-                subtitle: 'Smog fotoquímico',
+                title: l10n.alertsPollutantO3,
+                subtitle: l10n.alertsPollutantO3Subtitle,
                 enabled: appState.notificationSettings['ozono'] ?? true,
                 onChanged: (value) =>
                     appState.updateNotificationSetting('ozono', value),
@@ -218,29 +223,35 @@ class AlertsScreen extends StatelessWidget {
     AppState appState,
     String locationId,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final location = appState.alertLocations[locationId];
     if (location == null) return const SizedBox.shrink();
 
     IconData icon;
+    String title;
+
     switch (locationId) {
       case 'home':
         icon = Icons.home_filled;
+        title = l10n.alertsLocationHome;
         break;
       case 'work':
         icon = Icons.work;
+        title = l10n.alertsLocationWork;
         break;
       default:
         icon = Icons.place;
+        title = location.name;
     }
 
     final subtitle = location.isConfigured
         ? location.displayName!
-        : 'Toca para configurar ubicación';
+        : l10n.alertsTapToConfigure;
 
     return _buildLocationTile(
       context,
       icon: icon,
-      title: location.name,
+      title: title,
       subtitle: subtitle,
       enabled: location.enabled,
       onChanged: location.isConfigured
@@ -249,7 +260,7 @@ class AlertsScreen extends StatelessWidget {
       onTap: () => _showLocationPicker(
         context,
         locationId,
-        'Ubicación de ${location.name}',
+        l10n.alertsLocationOf(title),
       ),
       onDelete: locationId.startsWith('custom_')
           ? () => appState.removeAlertLocation(locationId)

@@ -42,6 +42,7 @@ rename_app:
 
 flutter:
   uses-material-design: true
+  generate: true
 
   
   fonts:

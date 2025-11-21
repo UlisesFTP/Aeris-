@@ -1,0 +1,139 @@
+{
+  "appTitle": "Aeris",
+  "welcomeTitle": "Bienvenido a Aeris",
+  "welcomeSubtitle": "Tu compañero de aire limpio",
+  "welcomeFeature1Title": "Monitoreo en Tiempo Real",
+  "welcomeFeature1Desc": "Consulta la calidad del aire y el clima al instante.",
+  "welcomeFeature2Title": "Alertas Inteligentes",
+  "welcomeFeature2Desc": "Recibe notificaciones cuando la calidad del aire empeore.",
+  "welcomeFeature3Title": "Historial Detallado",
+  "welcomeFeature3Desc": "Analiza tendencias históricas de contaminación.",
+  "welcomeButton": "Comenzar",
+  
+  "navMap": "Mapa",
+  "navHistory": "Historial",
+  "navAlerts": "Alertas",
+  "navSettings": "Ajustes",
+
+  "mapSearchPlaceholder": "Buscar ciudad...",
+  "mapCurrentWeather": "Clima Actual",
+  "mapWeatherAdvice": "Consejo del Clima",
+  "mapHealthAdvice": "Recomendación (IA)",
+  "mapAirQuality": "Calidad del Aire",
+  "mapPollutants": "Contaminantes",
+  "mapHistoryChart": "Historial (Últimas 24h)",
+  "mapViewFullHistory": "Ver historial completo",
+
+  "historyTitle": "Historial de Calidad del Aire",
+  "historyLast7Days": "Últimos 7 días",
+  "historyChartTitle": "Tendencia de AQI",
+  "historyNoData": "No hay datos históricos disponibles.",
+
+  "alertsTitle": "Configuración de Alertas",
+  "alertsSubtitle": "Gestiona tus notificaciones",
+  "alertsSectionPollutants": "Tipos de Contaminantes",
+  "alertsSwitchAirQuality": "Calidad del Aire (AQI)",
+  "alertsSwitchAirQualitySubtitle": "Notificar cuando el aire sea malo o peligroso",
+  "alertsSwitchWeather": "Estado del Clima",
+  "alertsSwitchWeatherSubtitle": "Notificaciones diarias como en Google",
+  "alertsSectionLocations": "Ubicaciones Guardadas",
+  "alertsAddLocation": "Agregar Ubicación",
+  "alertsCurrentLocation": "Ubicación Actual",
+  "alertsSavedLocation": "Ubicación Guardada",
+
+  "settingsTitle": "Ajustes",
+  "settingsSectionGeneral": "General",
+  "settingsThemeDark": "Tema Oscuro",
+  "settingsThemeDarkSubtitle": "Cambiar apariencia de la aplicación",
+  "settingsSectionSystem": "Sistema",
+  "settingsNotifications": "Notificaciones",
+  "settingsNotificationsSubtitle": "Gestionar permisos en el sistema",
+  "settingsLocation": "Ubicación",
+  "settingsLocationSubtitle": "Gestionar permisos de ubicación",
+  "settingsSectionInfo": "Información",
+  "settingsVersion": "Versión",
+  "settingsPrivacyPolicy": "Política de Privacidad",
+  "settingsTermsOfService": "Términos de Servicio",
+  "settingsFooter": "Aeris v1.0.0",
+
+  "legalPrivacyTitle": "Política de Privacidad",
+  "legalTermsTitle": "Términos de Servicio",
+  "legalFooter": "Aeris - App Gratuita",
+
+  "aqiGood": "Bueno",
+  "aqiFair": "Regular",
+  "aqiModerate": "Moderado",
+  "aqiPoor": "Malo",
+  "aqiVeryPoor": "Muy Malo",
+  "aqiDangerous": "Peligroso",
+
+  "errorLoading": "Error cargando datos",
+  "retry": "Reintentar",
+  "cancel": "Cancelar",
+  "delete": "Eliminar",
+  "next": "Siguiente",
+  "historyTabDay": "Día",
+  "historyTabWeek": "Semana",
+  "historyTabMonth": "Mes",
+  "historySectionSaved": "Ubicaciones Guardadas",
+  "historyNoSavedLocations": "No hay ubicaciones guardadas",
+  "historySectionVisits": "Visitas Recientes",
+  "historyNoRecentHistory": "No hay historial reciente",
+  "historyDeleteTitle": "Eliminar Ubicación",
+  "historyDeleteConfirmation": "¿Estás seguro de que quieres eliminar {name}?",
+  "@historyDeleteConfirmation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "historyDeleted": "Ubicación {name} eliminada",
+  "@historyDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alertsNewLocation": "Nueva Ubicación",
+  "alertsNewLocationHint": "Nombre de la ciudad",
+  "alertsSelectLocation": "Seleccionar Ubicación para {name}",
+  "@alertsSelectLocation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alertsVerifying": "Verificando...",
+  "alertsVerified": "Verificado ({count})",
+  "@alertsVerified": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alertsCheckNow": "Comprobar Ahora",
+  "alertsCurrentLocationSubtitle": "Usar ubicación del dispositivo",
+  "alertsPollutantWeather": "Clima",
+  "alertsPollutantWeatherSubtitle": "Estado del tiempo",
+  "alertsPollutantPM25": "PM2.5",
+  "alertsPollutantPM25Subtitle": "Partículas finas",
+  "alertsPollutantPM10": "PM10",
+  "alertsPollutantPM10Subtitle": "Partículas respirables",
+  "alertsPollutantO3": "Ozono (O3)",
+  "alertsPollutantO3Subtitle": "Ozono troposférico",
+  "alertsLocationHome": "Casa",
+  "alertsLocationWork": "Trabajo",
+  "alertsTapToConfigure": "Toca para configurar",
+  "alertsLocationOf": "Ubicación de {name}",
+  "@alertsLocationOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
+}

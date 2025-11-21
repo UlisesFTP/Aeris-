@@ -100,207 +100,567 @@ abstract class AppLocalizations {
 
   /// No description provided for @appTitle.
   ///
-  /// In en, this message translates to:
-  /// **'Air Quality Monitor'**
+  /// In es, this message translates to:
+  /// **'Aeris'**
   String get appTitle;
 
-  /// No description provided for @searchHint.
+  /// No description provided for @welcomeTitle.
   ///
-  /// In en, this message translates to:
-  /// **'Search location...'**
-  String get searchHint;
+  /// In es, this message translates to:
+  /// **'Bienvenido a Aeris'**
+  String get welcomeTitle;
 
-  /// No description provided for @searchResults.
+  /// No description provided for @welcomeSubtitle.
   ///
-  /// In en, this message translates to:
-  /// **'Search Results'**
-  String get searchResults;
+  /// In es, this message translates to:
+  /// **'Tu compañero de aire limpio'**
+  String get welcomeSubtitle;
 
-  /// No description provided for @currentWeather.
+  /// No description provided for @welcomeFeature1Title.
   ///
-  /// In en, this message translates to:
-  /// **'Current Weather'**
-  String get currentWeather;
+  /// In es, this message translates to:
+  /// **'Monitoreo en Tiempo Real'**
+  String get welcomeFeature1Title;
 
-  /// No description provided for @pollutionLevel.
+  /// No description provided for @welcomeFeature1Desc.
   ///
-  /// In en, this message translates to:
-  /// **'Pollution Level'**
-  String get pollutionLevel;
+  /// In es, this message translates to:
+  /// **'Consulta la calidad del aire y el clima al instante.'**
+  String get welcomeFeature1Desc;
 
-  /// No description provided for @weeklyForecast.
+  /// No description provided for @welcomeFeature2Title.
   ///
-  /// In en, this message translates to:
-  /// **'Weekly Forecast'**
-  String get weeklyForecast;
+  /// In es, this message translates to:
+  /// **'Alertas Inteligentes'**
+  String get welcomeFeature2Title;
 
-  /// No description provided for @historicalTrends.
+  /// No description provided for @welcomeFeature2Desc.
   ///
-  /// In en, this message translates to:
-  /// **'Historical Trends'**
-  String get historicalTrends;
+  /// In es, this message translates to:
+  /// **'Recibe notificaciones cuando la calidad del aire empeore.'**
+  String get welcomeFeature2Desc;
 
-  /// No description provided for @saveLocation.
+  /// No description provided for @welcomeFeature3Title.
   ///
-  /// In en, this message translates to:
-  /// **'Save Location'**
-  String get saveLocation;
+  /// In es, this message translates to:
+  /// **'Historial Detallado'**
+  String get welcomeFeature3Title;
 
-  /// No description provided for @saveLocationHint.
+  /// No description provided for @welcomeFeature3Desc.
   ///
-  /// In en, this message translates to:
-  /// **'Ex: Home, Office...'**
-  String get saveLocationHint;
+  /// In es, this message translates to:
+  /// **'Analiza tendencias históricas de contaminación.'**
+  String get welcomeFeature3Desc;
 
-  /// No description provided for @cancel.
+  /// No description provided for @welcomeButton.
   ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get cancel;
+  /// In es, this message translates to:
+  /// **'Comenzar'**
+  String get welcomeButton;
 
-  /// No description provided for @save.
+  /// No description provided for @navMap.
   ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get save;
+  /// In es, this message translates to:
+  /// **'Mapa'**
+  String get navMap;
 
-  /// No description provided for @saved.
+  /// No description provided for @navHistory.
   ///
-  /// In en, this message translates to:
-  /// **'saved.'**
-  String get saved;
+  /// In es, this message translates to:
+  /// **'Historial'**
+  String get navHistory;
 
-  /// No description provided for @locationSaved.
+  /// No description provided for @navAlerts.
   ///
-  /// In en, this message translates to:
-  /// **'Location saved'**
-  String get locationSaved;
+  /// In es, this message translates to:
+  /// **'Alertas'**
+  String get navAlerts;
 
-  /// No description provided for @selectLocation.
+  /// No description provided for @navSettings.
   ///
-  /// In en, this message translates to:
-  /// **'Select a location'**
-  String get selectLocation;
+  /// In es, this message translates to:
+  /// **'Ajustes'**
+  String get navSettings;
 
-  /// No description provided for @currentLocation.
+  /// No description provided for @mapSearchPlaceholder.
   ///
-  /// In en, this message translates to:
-  /// **'Current Location'**
-  String get currentLocation;
+  /// In es, this message translates to:
+  /// **'Buscar ciudad...'**
+  String get mapSearchPlaceholder;
 
-  /// No description provided for @locationInMap.
+  /// No description provided for @mapCurrentWeather.
   ///
-  /// In en, this message translates to:
-  /// **'Location on map'**
-  String get locationInMap;
+  /// In es, this message translates to:
+  /// **'Clima Actual'**
+  String get mapCurrentWeather;
 
-  /// No description provided for @errorGeolocation.
+  /// No description provided for @mapWeatherAdvice.
   ///
-  /// In en, this message translates to:
-  /// **'Geolocation Error'**
-  String get errorGeolocation;
+  /// In es, this message translates to:
+  /// **'Consejo del Clima'**
+  String get mapWeatherAdvice;
 
-  /// No description provided for @errorSearch.
+  /// No description provided for @mapHealthAdvice.
   ///
-  /// In en, this message translates to:
-  /// **'Search Error'**
-  String get errorSearch;
+  /// In es, this message translates to:
+  /// **'Recomendación (IA)'**
+  String get mapHealthAdvice;
 
-  /// No description provided for @errorData.
+  /// No description provided for @mapAirQuality.
   ///
-  /// In en, this message translates to:
-  /// **'Error fetching data'**
-  String get errorData;
+  /// In es, this message translates to:
+  /// **'Calidad del Aire'**
+  String get mapAirQuality;
 
-  /// No description provided for @noForecast.
+  /// No description provided for @mapPollutants.
   ///
-  /// In en, this message translates to:
-  /// **'No forecast available'**
-  String get noForecast;
+  /// In es, this message translates to:
+  /// **'Contaminantes'**
+  String get mapPollutants;
 
-  /// No description provided for @selectLocationMessage.
+  /// No description provided for @mapHistoryChart.
   ///
-  /// In en, this message translates to:
-  /// **'Select a location.'**
-  String get selectLocationMessage;
+  /// In es, this message translates to:
+  /// **'Historial (Últimas 24h)'**
+  String get mapHistoryChart;
 
-  /// No description provided for @healthAdvice.
+  /// No description provided for @mapViewFullHistory.
   ///
-  /// In en, this message translates to:
-  /// **'Health Advice (AI)'**
-  String get healthAdvice;
+  /// In es, this message translates to:
+  /// **'Ver historial completo'**
+  String get mapViewFullHistory;
+
+  /// No description provided for @historyTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Historial de Calidad del Aire'**
+  String get historyTitle;
+
+  /// No description provided for @historyLast7Days.
+  ///
+  /// In es, this message translates to:
+  /// **'Últimos 7 días'**
+  String get historyLast7Days;
+
+  /// No description provided for @historyChartTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tendencia de AQI'**
+  String get historyChartTitle;
+
+  /// No description provided for @historyNoData.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay datos históricos disponibles.'**
+  String get historyNoData;
+
+  /// No description provided for @alertsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Configuración de Alertas'**
+  String get alertsTitle;
+
+  /// No description provided for @alertsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Gestiona tus notificaciones'**
+  String get alertsSubtitle;
+
+  /// No description provided for @alertsSectionPollutants.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipos de Contaminantes'**
+  String get alertsSectionPollutants;
+
+  /// No description provided for @alertsSwitchAirQuality.
+  ///
+  /// In es, this message translates to:
+  /// **'Calidad del Aire (AQI)'**
+  String get alertsSwitchAirQuality;
+
+  /// No description provided for @alertsSwitchAirQualitySubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Notificar cuando el aire sea malo o peligroso'**
+  String get alertsSwitchAirQualitySubtitle;
+
+  /// No description provided for @alertsSwitchWeather.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado del Clima'**
+  String get alertsSwitchWeather;
+
+  /// No description provided for @alertsSwitchWeatherSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Notificaciones diarias como en Google'**
+  String get alertsSwitchWeatherSubtitle;
+
+  /// No description provided for @alertsSectionLocations.
+  ///
+  /// In es, this message translates to:
+  /// **'Ubicaciones Guardadas'**
+  String get alertsSectionLocations;
+
+  /// No description provided for @alertsAddLocation.
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar Ubicación'**
+  String get alertsAddLocation;
+
+  /// No description provided for @alertsCurrentLocation.
+  ///
+  /// In es, this message translates to:
+  /// **'Ubicación Actual'**
+  String get alertsCurrentLocation;
+
+  /// No description provided for @alertsSavedLocation.
+  ///
+  /// In es, this message translates to:
+  /// **'Ubicación Guardada'**
+  String get alertsSavedLocation;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ajustes'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsSectionGeneral.
+  ///
+  /// In es, this message translates to:
+  /// **'General'**
+  String get settingsSectionGeneral;
+
+  /// No description provided for @settingsThemeDark.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema Oscuro'**
+  String get settingsThemeDark;
+
+  /// No description provided for @settingsThemeDarkSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar apariencia de la aplicación'**
+  String get settingsThemeDarkSubtitle;
+
+  /// No description provided for @settingsSectionSystem.
+  ///
+  /// In es, this message translates to:
+  /// **'Sistema'**
+  String get settingsSectionSystem;
+
+  /// No description provided for @settingsNotifications.
+  ///
+  /// In es, this message translates to:
+  /// **'Notificaciones'**
+  String get settingsNotifications;
+
+  /// No description provided for @settingsNotificationsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Gestionar permisos en el sistema'**
+  String get settingsNotificationsSubtitle;
+
+  /// No description provided for @settingsLocation.
+  ///
+  /// In es, this message translates to:
+  /// **'Ubicación'**
+  String get settingsLocation;
+
+  /// No description provided for @settingsLocationSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Gestionar permisos de ubicación'**
+  String get settingsLocationSubtitle;
+
+  /// No description provided for @settingsSectionInfo.
+  ///
+  /// In es, this message translates to:
+  /// **'Información'**
+  String get settingsSectionInfo;
+
+  /// No description provided for @settingsVersion.
+  ///
+  /// In es, this message translates to:
+  /// **'Versión'**
+  String get settingsVersion;
+
+  /// No description provided for @settingsPrivacyPolicy.
+  ///
+  /// In es, this message translates to:
+  /// **'Política de Privacidad'**
+  String get settingsPrivacyPolicy;
+
+  /// No description provided for @settingsTermsOfService.
+  ///
+  /// In es, this message translates to:
+  /// **'Términos de Servicio'**
+  String get settingsTermsOfService;
+
+  /// No description provided for @settingsFooter.
+  ///
+  /// In es, this message translates to:
+  /// **'Aeris v1.0.0'**
+  String get settingsFooter;
+
+  /// No description provided for @legalPrivacyTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Política de Privacidad'**
+  String get legalPrivacyTitle;
+
+  /// No description provided for @legalTermsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Términos de Servicio'**
+  String get legalTermsTitle;
+
+  /// No description provided for @legalFooter.
+  ///
+  /// In es, this message translates to:
+  /// **'Aeris - App Gratuita'**
+  String get legalFooter;
 
   /// No description provided for @aqiGood.
   ///
-  /// In en, this message translates to:
-  /// **'Good'**
+  /// In es, this message translates to:
+  /// **'Bueno'**
   String get aqiGood;
 
   /// No description provided for @aqiFair.
   ///
-  /// In en, this message translates to:
-  /// **'Fair'**
+  /// In es, this message translates to:
+  /// **'Regular'**
   String get aqiFair;
 
   /// No description provided for @aqiModerate.
   ///
-  /// In en, this message translates to:
-  /// **'Moderate'**
+  /// In es, this message translates to:
+  /// **'Moderado'**
   String get aqiModerate;
 
   /// No description provided for @aqiPoor.
   ///
-  /// In en, this message translates to:
-  /// **'Poor'**
+  /// In es, this message translates to:
+  /// **'Malo'**
   String get aqiPoor;
 
   /// No description provided for @aqiVeryPoor.
   ///
-  /// In en, this message translates to:
-  /// **'Very Poor'**
+  /// In es, this message translates to:
+  /// **'Muy Malo'**
   String get aqiVeryPoor;
 
   /// No description provided for @aqiDangerous.
   ///
-  /// In en, this message translates to:
-  /// **'Dangerous'**
+  /// In es, this message translates to:
+  /// **'Peligroso'**
   String get aqiDangerous;
 
-  /// No description provided for @aqiRecommendationGood.
+  /// No description provided for @errorLoading.
   ///
-  /// In en, this message translates to:
-  /// **'Air quality is considered satisfactory, and air pollution poses little or no risk.'**
-  String get aqiRecommendationGood;
+  /// In es, this message translates to:
+  /// **'Error cargando datos'**
+  String get errorLoading;
 
-  /// No description provided for @aqiRecommendationFair.
+  /// No description provided for @retry.
   ///
-  /// In en, this message translates to:
-  /// **'Air quality is acceptable; however, for some pollutants there may be a moderate health concern for a very small number of people who are unusually sensitive to air pollution.'**
-  String get aqiRecommendationFair;
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get retry;
 
-  /// No description provided for @aqiRecommendationModerate.
+  /// No description provided for @cancel.
   ///
-  /// In en, this message translates to:
-  /// **'Members of sensitive groups may experience health effects. The general public is not likely to be affected.'**
-  String get aqiRecommendationModerate;
+  /// In es, this message translates to:
+  /// **'Cancelar'**
+  String get cancel;
 
-  /// No description provided for @aqiRecommendationPoor.
+  /// No description provided for @delete.
   ///
-  /// In en, this message translates to:
-  /// **'Everyone may begin to experience health effects; members of sensitive groups may experience more serious health effects.'**
-  String get aqiRecommendationPoor;
+  /// In es, this message translates to:
+  /// **'Eliminar'**
+  String get delete;
 
-  /// No description provided for @aqiRecommendationVeryPoor.
+  /// No description provided for @next.
   ///
-  /// In en, this message translates to:
-  /// **'Health warnings of emergency conditions. The entire population is more likely to be affected.'**
-  String get aqiRecommendationVeryPoor;
+  /// In es, this message translates to:
+  /// **'Siguiente'**
+  String get next;
 
-  /// No description provided for @aqiRecommendationDangerous.
+  /// No description provided for @historyTabDay.
   ///
-  /// In en, this message translates to:
-  /// **'Health alert: everyone may experience more serious health effects.'**
-  String get aqiRecommendationDangerous;
+  /// In es, this message translates to:
+  /// **'Día'**
+  String get historyTabDay;
+
+  /// No description provided for @historyTabWeek.
+  ///
+  /// In es, this message translates to:
+  /// **'Semana'**
+  String get historyTabWeek;
+
+  /// No description provided for @historyTabMonth.
+  ///
+  /// In es, this message translates to:
+  /// **'Mes'**
+  String get historyTabMonth;
+
+  /// No description provided for @historySectionSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Ubicaciones Guardadas'**
+  String get historySectionSaved;
+
+  /// No description provided for @historyNoSavedLocations.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay ubicaciones guardadas'**
+  String get historyNoSavedLocations;
+
+  /// No description provided for @historySectionVisits.
+  ///
+  /// In es, this message translates to:
+  /// **'Visitas Recientes'**
+  String get historySectionVisits;
+
+  /// No description provided for @historyNoRecentHistory.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay historial reciente'**
+  String get historyNoRecentHistory;
+
+  /// No description provided for @historyDeleteTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Eliminar Ubicación'**
+  String get historyDeleteTitle;
+
+  /// No description provided for @historyDeleteConfirmation.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Estás seguro de que quieres eliminar {name}?'**
+  String historyDeleteConfirmation(String name);
+
+  /// No description provided for @historyDeleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Ubicación {name} eliminada'**
+  String historyDeleted(String name);
+
+  /// No description provided for @alertsNewLocation.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva Ubicación'**
+  String get alertsNewLocation;
+
+  /// No description provided for @alertsNewLocationHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre de la ciudad'**
+  String get alertsNewLocationHint;
+
+  /// No description provided for @alertsSelectLocation.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccionar Ubicación para {name}'**
+  String alertsSelectLocation(String name);
+
+  /// No description provided for @alertsVerifying.
+  ///
+  /// In es, this message translates to:
+  /// **'Verificando...'**
+  String get alertsVerifying;
+
+  /// No description provided for @alertsVerified.
+  ///
+  /// In es, this message translates to:
+  /// **'Verificado ({count})'**
+  String alertsVerified(int count);
+
+  /// No description provided for @alertsCheckNow.
+  ///
+  /// In es, this message translates to:
+  /// **'Comprobar Ahora'**
+  String get alertsCheckNow;
+
+  /// No description provided for @alertsCurrentLocationSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Usar ubicación del dispositivo'**
+  String get alertsCurrentLocationSubtitle;
+
+  /// No description provided for @alertsPollutantWeather.
+  ///
+  /// In es, this message translates to:
+  /// **'Clima'**
+  String get alertsPollutantWeather;
+
+  /// No description provided for @alertsPollutantWeatherSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado del tiempo'**
+  String get alertsPollutantWeatherSubtitle;
+
+  /// No description provided for @alertsPollutantPM25.
+  ///
+  /// In es, this message translates to:
+  /// **'PM2.5'**
+  String get alertsPollutantPM25;
+
+  /// No description provided for @alertsPollutantPM25Subtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Partículas finas'**
+  String get alertsPollutantPM25Subtitle;
+
+  /// No description provided for @alertsPollutantPM10.
+  ///
+  /// In es, this message translates to:
+  /// **'PM10'**
+  String get alertsPollutantPM10;
+
+  /// No description provided for @alertsPollutantPM10Subtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Partículas respirables'**
+  String get alertsPollutantPM10Subtitle;
+
+  /// No description provided for @alertsPollutantO3.
+  ///
+  /// In es, this message translates to:
+  /// **'Ozono (O3)'**
+  String get alertsPollutantO3;
+
+  /// No description provided for @alertsPollutantO3Subtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ozono troposférico'**
+  String get alertsPollutantO3Subtitle;
+
+  /// No description provided for @alertsLocationHome.
+  ///
+  /// In es, this message translates to:
+  /// **'Casa'**
+  String get alertsLocationHome;
+
+  /// No description provided for @alertsLocationWork.
+  ///
+  /// In es, this message translates to:
+  /// **'Trabajo'**
+  String get alertsLocationWork;
+
+  /// No description provided for @alertsTapToConfigure.
+  ///
+  /// In es, this message translates to:
+  /// **'Toca para configurar'**
+  String get alertsTapToConfigure;
+
+  /// No description provided for @alertsLocationOf.
+  ///
+  /// In es, this message translates to:
+  /// **'Ubicación de {name}'**
+  String alertsLocationOf(String name);
 }
 
 class _AppLocalizationsDelegate

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:air_quality_flutter/l10n/app_localizations.dart';
 import 'main_shell.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -50,6 +51,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: Container(
@@ -113,7 +115,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   ),
                                   const SizedBox(height: 32),
                                   Text(
-                                    "Respira Fácil,\nVive Sano",
+                                    l10n.welcomeTitle,
                                     style: textTheme.displaySmall?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       height: 1.2,
@@ -122,7 +124,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
-                                    "Monitorea la calidad del aire en tiempo real, recibe alertas y visualiza los datos en un mapa.",
+                                    l10n.welcomeSubtitle,
                                     style: textTheme.bodyLarge?.copyWith(
                                       color: colorScheme.onSurface
                                           .withOpacity(0.7),
@@ -139,25 +141,22 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   _buildFeature(
                                     context,
                                     icon: Icons.timer_outlined,
-                                    title: "Monitoreo en Tiempo Real",
-                                    subtitle:
-                                        "Datos actualizados de calidad del aire para tu ubicación.",
+                                    title: l10n.welcomeFeature1Title,
+                                    subtitle: l10n.welcomeFeature1Desc,
                                   ),
                                   const SizedBox(height: 20),
                                   _buildFeature(
                                     context,
                                     icon: Icons.notifications_active_outlined,
-                                    title: "Alertas Inteligentes",
-                                    subtitle:
-                                        "Notificaciones cuando la calidad del aire cambie.",
+                                    title: l10n.welcomeFeature2Title,
+                                    subtitle: l10n.welcomeFeature2Desc,
                                   ),
                                   const SizedBox(height: 20),
                                   _buildFeature(
                                     context,
                                     icon: Icons.map_outlined,
-                                    title: "Mapa Interactivo",
-                                    subtitle:
-                                        "Visualiza información detallada en el mapa.",
+                                    title: l10n.welcomeFeature3Title,
+                                    subtitle: l10n.welcomeFeature3Desc,
                                   ),
                                 ],
                               ),
@@ -172,7 +171,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                           const Size(double.infinity, 56),
                                       elevation: 0,
                                     ),
-                                    child: const Text("Comenzar"),
+                                    child: Text(l10n.welcomeButton),
                                   ),
                                   const SizedBox(height: 16),
                                 ],

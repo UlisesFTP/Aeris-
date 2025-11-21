@@ -5,6 +5,8 @@ import 'history_screen.dart';
 import 'settings_screen.dart';
 import '../models/models.dart';
 
+import 'package:air_quality_flutter/l10n/app_localizations.dart';
+
 // Este widget es el esqueleto de la app, con la barra de navegación.
 class MainShell extends StatefulWidget {
   // Le pasamos una clave global para que otras pantallas puedan encontrarlo y llamar a sus métodos.
@@ -54,6 +56,7 @@ class MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: IndexedStack(
@@ -86,26 +89,26 @@ class MainShellState extends State<MainShell> {
               selectedFontSize: 12,
               unselectedFontSize: 11,
               selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-              items: const <BottomNavigationBarItem>[
+              items: <BottomNavigationBarItem>[
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.map_outlined),
-                  activeIcon: Icon(Icons.map),
-                  label: 'Mapa',
+                  icon: const Icon(Icons.map_outlined),
+                  activeIcon: const Icon(Icons.map),
+                  label: l10n.navMap,
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.notifications_outlined),
-                  activeIcon: Icon(Icons.notifications),
-                  label: 'Alertas',
+                  icon: const Icon(Icons.notifications_outlined),
+                  activeIcon: const Icon(Icons.notifications),
+                  label: l10n.navAlerts,
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.history),
-                  activeIcon: Icon(Icons.history),
-                  label: 'Historial',
+                  icon: const Icon(Icons.history),
+                  activeIcon: const Icon(Icons.history),
+                  label: l10n.navHistory,
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.settings_outlined),
-                  activeIcon: Icon(Icons.settings),
-                  label: 'Ajustes',
+                  icon: const Icon(Icons.settings_outlined),
+                  activeIcon: const Icon(Icons.settings),
+                  label: l10n.navSettings,
                 ),
               ],
             ),

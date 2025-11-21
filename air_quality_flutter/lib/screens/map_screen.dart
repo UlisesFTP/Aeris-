@@ -13,6 +13,7 @@ import '../core/app_state.dart';
 import '../api/notifications_service.dart';
 import '../widgets/history_chart.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:air_quality_flutter/l10n/app_localizations.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -76,8 +77,14 @@ class MapScreenState extends State<MapScreen> {
       }
 
       Position position = await Geolocator.getCurrentPosition();
+      // Use localized string if context is available, otherwise fallback
+      String currentLocName = 'Ubicación Actual';
+      if (mounted) {
+        currentLocName = AppLocalizations.of(context)!.alertsCurrentLocation;
+      }
+
       _onLocationSelected(LocationSearchResult(
-          displayName: 'Ubicación Actual',
+          displayName: currentLocName,
           latitude: position.latitude,
           longitude: position.longitude));
     } catch (e) {
@@ -201,11 +208,14 @@ class MapScreenState extends State<MapScreen> {
     if (_currentLocation == null) return;
 
     final nameController = TextEditingController();
+    final l10n = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Guardar Ubicación'),
+          title:
+              Text(l10n.alertsAddLocation), // Reusing "Add Location" or similar
           content: TextField(
             controller: nameController,
             decoration: const InputDecoration(hintText: "Ej: Casa, Oficina..."),
@@ -241,6 +251,8 @@ class MapScreenState extends State<MapScreen> {
   // --- INTERFAZ DE USUARIO ---
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
         title:
@@ -302,7 +314,7 @@ class MapScreenState extends State<MapScreen> {
                 ),
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  child: _buildInfoPanel(),
+                  child: _buildInfoPanel(l10n),
                 ),
               );
             },
@@ -312,7 +324,7 @@ class MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _buildInfoPanel() {
+  Widget _buildInfoPanel(AppLocalizations l10n) {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -333,7 +345,7 @@ class MapScreenState extends State<MapScreen> {
           TextField(
             controller: _searchController,
             decoration: InputDecoration(
-              hintText: 'Buscar ubicación...',
+              hintText: l10n.mapSearchPlaceholder,
               prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30.0),
@@ -351,7 +363,7 @@ class MapScreenState extends State<MapScreen> {
                       child: CircularProgressIndicator()))
               : _searchResults.isNotEmpty
                   ? _buildSearchResults()
-                  : _buildDataDisplay(textTheme),
+                  : _buildDataDisplay(textTheme, l10n),
         ],
       ),
     );
@@ -382,14 +394,14 @@ class MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _buildDataDisplay(TextTheme textTheme) {
+  Widget _buildDataDisplay(TextTheme textTheme, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Clima Actual", style: textTheme.titleLarge),
+            Text(l10n.mapCurrentWeather, style: textTheme.titleLarge),
             if (_currentLocation != null)
               IconButton(
                 icon: const Icon(Icons.bookmark_add_outlined),
@@ -402,22 +414,23 @@ class MapScreenState extends State<MapScreen> {
         _buildWeatherDisplay(),
         if (_weatherAdvice != null) ...[
           const SizedBox(height: 16),
-          _buildWeatherAdviceDisplay(),
+          _buildWeatherAdviceDisplay(l10n),
         ],
         const SizedBox(height: 24),
-        Text("Recomendación (IA)", style: textTheme.titleLarge),
+        Text(l10n.mapHealthAdvice, style: textTheme.titleLarge),
         const SizedBox(height: 16),
         _buildAdviceDisplay(),
         const SizedBox(height: 24),
-        Text("Nivel de Contaminación", style: textTheme.titleLarge),
+        Text(l10n.mapAirQuality, style: textTheme.titleLarge),
         const SizedBox(height: 16),
-        _buildAirQualityDisplay(),
+        _buildAirQualityDisplay(l10n),
         const SizedBox(height: 24),
-        Text("Pronóstico Semanal", style: textTheme.titleLarge),
+        Text("Pronóstico Semanal",
+            style: textTheme.titleLarge), // TODO: Add to ARB
         const SizedBox(height: 16),
         _buildForecastDisplay(),
         const SizedBox(height: 24),
-        Text("Tendencias Históricas", style: textTheme.titleLarge),
+        Text(l10n.historyChartTitle, style: textTheme.titleLarge),
         const SizedBox(height: 16),
         SizedBox(height: 150, child: HistoryChart(history: _historyData)),
       ],
@@ -522,7 +535,7 @@ class MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _buildAirQualityDisplay() {
+  Widget _buildAirQualityDisplay(AppLocalizations l10n) {
     if (_airQualityData == null) {
       return const Center(child: Text("Selecciona una ubicación."));
     }
@@ -537,12 +550,12 @@ class MapScreenState extends State<MapScreen> {
       const Color(0xFF795548), // Dangerous - Brown
     ];
     final aqiText = [
-      "Bueno",
-      "Regular",
-      "Moderado",
-      "Malo",
-      "Muy Malo",
-      "Peligroso"
+      l10n.aqiGood,
+      l10n.aqiFair,
+      l10n.aqiModerate,
+      l10n.aqiPoor,
+      l10n.aqiVeryPoor,
+      l10n.aqiDangerous
     ];
     final aqiValue = data.aqi - 1;
 
@@ -633,7 +646,7 @@ class MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _buildWeatherAdviceDisplay() {
+  Widget _buildWeatherAdviceDisplay(AppLocalizations l10n) {
     if (_weatherAdvice == null) {
       return const SizedBox.shrink();
     }
@@ -652,7 +665,7 @@ class MapScreenState extends State<MapScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Consejo del Clima',
+                    l10n.mapWeatherAdvice,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: Theme.of(context)
                               .colorScheme

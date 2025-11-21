@@ -9,70 +9,167 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Air Quality Monitor';
+  String get appTitle => 'Aeris';
 
   @override
-  String get searchHint => 'Search location...';
+  String get welcomeTitle => 'Welcome to Aeris';
 
   @override
-  String get searchResults => 'Search Results';
+  String get welcomeSubtitle => 'Your clean air companion';
 
   @override
-  String get currentWeather => 'Current Weather';
+  String get welcomeFeature1Title => 'Real-Time Monitoring';
 
   @override
-  String get pollutionLevel => 'Pollution Level';
+  String get welcomeFeature1Desc => 'Check air quality and weather instantly.';
 
   @override
-  String get weeklyForecast => 'Weekly Forecast';
+  String get welcomeFeature2Title => 'Smart Alerts';
 
   @override
-  String get historicalTrends => 'Historical Trends';
+  String get welcomeFeature2Desc => 'Get notified when air quality worsens.';
 
   @override
-  String get saveLocation => 'Save Location';
+  String get welcomeFeature3Title => 'Detailed History';
 
   @override
-  String get saveLocationHint => 'Ex: Home, Office...';
+  String get welcomeFeature3Desc => 'Analyze historical pollution trends.';
 
   @override
-  String get cancel => 'Cancel';
+  String get welcomeButton => 'Get Started';
 
   @override
-  String get save => 'Save';
+  String get navMap => 'Map';
 
   @override
-  String get saved => 'saved.';
+  String get navHistory => 'History';
 
   @override
-  String get locationSaved => 'Location saved';
+  String get navAlerts => 'Alerts';
 
   @override
-  String get selectLocation => 'Select a location';
+  String get navSettings => 'Settings';
 
   @override
-  String get currentLocation => 'Current Location';
+  String get mapSearchPlaceholder => 'Search city...';
 
   @override
-  String get locationInMap => 'Location on map';
+  String get mapCurrentWeather => 'Current Weather';
 
   @override
-  String get errorGeolocation => 'Geolocation Error';
+  String get mapWeatherAdvice => 'Weather Advice';
 
   @override
-  String get errorSearch => 'Search Error';
+  String get mapHealthAdvice => 'Recommendation (AI)';
 
   @override
-  String get errorData => 'Error fetching data';
+  String get mapAirQuality => 'Air Quality';
 
   @override
-  String get noForecast => 'No forecast available';
+  String get mapPollutants => 'Pollutants';
 
   @override
-  String get selectLocationMessage => 'Select a location.';
+  String get mapHistoryChart => 'History (Last 24h)';
 
   @override
-  String get healthAdvice => 'Health Advice (AI)';
+  String get mapViewFullHistory => 'View full history';
+
+  @override
+  String get historyTitle => 'Air Quality History';
+
+  @override
+  String get historyLast7Days => 'Last 7 days';
+
+  @override
+  String get historyChartTitle => 'AQI Trend';
+
+  @override
+  String get historyNoData => 'No historical data available.';
+
+  @override
+  String get alertsTitle => 'Alert Settings';
+
+  @override
+  String get alertsSubtitle => 'Manage your notifications';
+
+  @override
+  String get alertsSectionPollutants => 'Pollutant Types';
+
+  @override
+  String get alertsSwitchAirQuality => 'Air Quality (AQI)';
+
+  @override
+  String get alertsSwitchAirQualitySubtitle =>
+      'Notify when air is poor or dangerous';
+
+  @override
+  String get alertsSwitchWeather => 'Weather Status';
+
+  @override
+  String get alertsSwitchWeatherSubtitle => 'Daily notifications like Google';
+
+  @override
+  String get alertsSectionLocations => 'Saved Locations';
+
+  @override
+  String get alertsAddLocation => 'Add Location';
+
+  @override
+  String get alertsCurrentLocation => 'Current Location';
+
+  @override
+  String get alertsSavedLocation => 'Saved Location';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsSectionGeneral => 'General';
+
+  @override
+  String get settingsThemeDark => 'Dark Mode';
+
+  @override
+  String get settingsThemeDarkSubtitle => 'Change app appearance';
+
+  @override
+  String get settingsSectionSystem => 'System';
+
+  @override
+  String get settingsNotifications => 'Notifications';
+
+  @override
+  String get settingsNotificationsSubtitle => 'Manage system permissions';
+
+  @override
+  String get settingsLocation => 'Location';
+
+  @override
+  String get settingsLocationSubtitle => 'Manage location permissions';
+
+  @override
+  String get settingsSectionInfo => 'Info';
+
+  @override
+  String get settingsVersion => 'Version';
+
+  @override
+  String get settingsPrivacyPolicy => 'Privacy Policy';
+
+  @override
+  String get settingsTermsOfService => 'Terms of Service';
+
+  @override
+  String get settingsFooter => 'Aeris v1.0.0';
+
+  @override
+  String get legalPrivacyTitle => 'Privacy Policy';
+
+  @override
+  String get legalTermsTitle => 'Terms of Service';
+
+  @override
+  String get legalFooter => 'Aeris - Free App';
 
   @override
   String get aqiGood => 'Good';
@@ -93,26 +190,114 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aqiDangerous => 'Dangerous';
 
   @override
-  String get aqiRecommendationGood =>
-      'Air quality is considered satisfactory, and air pollution poses little or no risk.';
+  String get errorLoading => 'Error loading data';
 
   @override
-  String get aqiRecommendationFair =>
-      'Air quality is acceptable; however, for some pollutants there may be a moderate health concern for a very small number of people who are unusually sensitive to air pollution.';
+  String get retry => 'Retry';
 
   @override
-  String get aqiRecommendationModerate =>
-      'Members of sensitive groups may experience health effects. The general public is not likely to be affected.';
+  String get cancel => 'Cancel';
 
   @override
-  String get aqiRecommendationPoor =>
-      'Everyone may begin to experience health effects; members of sensitive groups may experience more serious health effects.';
+  String get delete => 'Delete';
 
   @override
-  String get aqiRecommendationVeryPoor =>
-      'Health warnings of emergency conditions. The entire population is more likely to be affected.';
+  String get next => 'Next';
 
   @override
-  String get aqiRecommendationDangerous =>
-      'Health alert: everyone may experience more serious health effects.';
+  String get historyTabDay => 'Day';
+
+  @override
+  String get historyTabWeek => 'Week';
+
+  @override
+  String get historyTabMonth => 'Month';
+
+  @override
+  String get historySectionSaved => 'Saved Locations';
+
+  @override
+  String get historyNoSavedLocations => 'No saved locations';
+
+  @override
+  String get historySectionVisits => 'Recent Visits';
+
+  @override
+  String get historyNoRecentHistory => 'No recent history';
+
+  @override
+  String get historyDeleteTitle => 'Delete Location';
+
+  @override
+  String historyDeleteConfirmation(String name) {
+    return 'Are you sure you want to delete $name?';
+  }
+
+  @override
+  String historyDeleted(String name) {
+    return 'Location $name deleted';
+  }
+
+  @override
+  String get alertsNewLocation => 'New Location';
+
+  @override
+  String get alertsNewLocationHint => 'City name';
+
+  @override
+  String alertsSelectLocation(String name) {
+    return 'Select Location for $name';
+  }
+
+  @override
+  String get alertsVerifying => 'Verifying...';
+
+  @override
+  String alertsVerified(int count) {
+    return 'Verified ($count)';
+  }
+
+  @override
+  String get alertsCheckNow => 'Check Now';
+
+  @override
+  String get alertsCurrentLocationSubtitle => 'Use device location';
+
+  @override
+  String get alertsPollutantWeather => 'Weather';
+
+  @override
+  String get alertsPollutantWeatherSubtitle => 'Weather status';
+
+  @override
+  String get alertsPollutantPM25 => 'PM2.5';
+
+  @override
+  String get alertsPollutantPM25Subtitle => 'Fine particles';
+
+  @override
+  String get alertsPollutantPM10 => 'PM10';
+
+  @override
+  String get alertsPollutantPM10Subtitle => 'Respirable particles';
+
+  @override
+  String get alertsPollutantO3 => 'Ozone (O3)';
+
+  @override
+  String get alertsPollutantO3Subtitle => 'Ground-level ozone';
+
+  @override
+  String get alertsLocationHome => 'Home';
+
+  @override
+  String get alertsLocationWork => 'Work';
+
+  @override
+  String get alertsTapToConfigure => 'Tap to configure';
+
+  @override
+  String alertsLocationOf(String name) {
+    return 'Location of $name';
+  }
 }

@@ -9,6 +9,8 @@ import 'screens/main_shell.dart';
 import 'theme.dart';
 import 'core/app_state.dart';
 import 'api/notifications_service.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:air_quality_flutter/l10n/app_localizations.dart';
 
 Future<void> main() async {
   // Asegurarse de que Flutter esté listo
@@ -56,6 +58,16 @@ class MyApp extends StatelessWidget {
       darkTheme: darkTheme,
       themeMode: appState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es'), // Español
+        Locale('en'), // English
+      ],
       home: showWelcome ? const WelcomeScreen() : const MainShell(),
     );
   }
