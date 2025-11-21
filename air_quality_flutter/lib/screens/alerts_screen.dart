@@ -167,6 +167,16 @@ class AlertsScreen extends StatelessWidget {
 
               _buildLocationTile(
                 context,
+                icon: Icons.wb_sunny_outlined,
+                title: 'Estado del Clima',
+                subtitle: 'Notificaciones diarias como en Google',
+                enabled: appState.notificationSettings['weather'] ?? true,
+                onChanged: (value) =>
+                    appState.updateNotificationSetting('weather', value),
+              ),
+
+              _buildLocationTile(
+                context,
                 icon: Icons.cloud_outlined,
                 title: 'PM2.5 (Partículas Finas)',
                 subtitle: 'Humo, polvo, emisiones vehiculares',

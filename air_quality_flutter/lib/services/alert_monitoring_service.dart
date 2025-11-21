@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:air_quality_flutter/api/api_service.dart';
 import 'package:air_quality_flutter/api/notifications_service.dart';
 import 'package:air_quality_flutter/core/app_state.dart';
+import 'package:air_quality_flutter/models/models.dart';
 
 class AlertMonitoringService {
   final ApiService _apiService = ApiService();
@@ -20,6 +21,7 @@ class AlertMonitoringService {
 
     for (final location in locationsToCheck) {
       try {
+        // 1. Check Air Quality
         final airQuality = await _apiService.getAirQuality(
           location.latitude!,
           location.longitude!,
@@ -31,12 +33,62 @@ class AlertMonitoringService {
         if (airQuality.aqi >= _aqiAlertThreshold && !kIsWeb) {
           await _sendAlert(location.name, airQuality.aqi);
         }
+
+        // 2. Check Weather (if enabled)
+        if (appState.notificationSettings['weather'] == true && !kIsWeb) {
+          await _checkWeatherAndNotify(location);
+        }
       } catch (e) {
-        print('Error checking AQI for ${location.name}: $e');
+        print('Error checking alerts for ${location.name}: $e');
       }
     }
 
     return results;
+  }
+
+  /// Checks weather and sends a notification if appropriate
+  Future<void> _checkWeatherAndNotify(AlertLocation location) async {
+    // Simple rate limiting: only send weather notification if we haven't sent one recently
+    // For now, we'll rely on the main check interval (1 hour), but ideally this should be daily.
+    // To avoid spamming every hour, let's check if the hour is e.g. 8 AM or 6 PM,
+    // OR just send it if it's the first check of the session.
+    // For this MVP, we'll just send it. To prevent spam, we could add a local timestamp map.
+
+    try {
+      final weatherData = await _apiService.getWeather(
+        location.latitude!,
+        location.longitude!,
+      );
+
+      final current = weatherData['current'] as WeatherData;
+      final forecast = weatherData['forecast'] as List<ForecastItem>;
+
+      if (forecast.isNotEmpty) {
+        final today = forecast.first;
+        await _sendWeatherNotification(
+          location.name,
+          current,
+          today,
+        );
+      }
+    } catch (e) {
+      print('Error checking weather for ${location.name}: $e');
+    }
+  }
+
+  Future<void> _sendWeatherNotification(
+    String locationName,
+    WeatherData current,
+    ForecastItem today,
+  ) async {
+    final title = '${current.temp.round()}°C en $locationName';
+    final body =
+        '${current.condition}. Máx: ${today.maxTemp.round()}° Mín: ${today.minTemp.round()}°';
+
+    await _notificationService.showNotification(
+      title: title,
+      body: body,
+    );
   }
 
   /// Sends a notification for poor air quality

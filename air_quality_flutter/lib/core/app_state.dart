@@ -22,6 +22,7 @@ class AppState extends ChangeNotifier {
     'pm25': true,
     'pm10': false,
     'ozono': true,
+    'weather': true,
   };
   Map<String, bool> get notificationSettings => _notificationSettings;
 
