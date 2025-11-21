@@ -29,14 +29,12 @@ class DatabaseService:
                 self.db = None
                 
     def save_reading(self, reading_data):
-        # CORRECCIÓN: Comparamos con 'is None'
         if self.db is None: return
         data_to_save = reading_data.copy()
         data_to_save['saved_at'] = datetime.utcnow()
         self.db.air_readings.insert_one(data_to_save)
 
     def get_history(self, lat, lon, days=7):
-        # CORRECCIÓN: Comparamos con 'is None'
         if self.db is None: return []
         start_date = datetime.utcnow() - timedelta(days=days)
         query = { "location": { "$geoWithin": { "$centerSphere": [[lon, lat], 1 / 6378.1] } }, "saved_at": {"$gte": start_date} }
@@ -45,22 +43,86 @@ class DatabaseService:
         formatted_results = [ {"date": item['_id'], "aqi": round(item['avg_aqi'])} for item in results ]
         return formatted_results
 
-    def get_saved_locations(self):
-        # CORRECCIÓN: Comparamos con 'is None'
+    def get_saved_locations(self, user_id):
+        """Get saved locations for a specific user"""
         if self.db is None: return []
-        locations = list(self.db.saved_locations.find({}))
+        query = {"user_id": user_id}
+        locations = list(self.db.saved_locations.find(query))
         for loc in locations:
             loc['_id'] = str(loc['_id'])
         return locations
 
-    def add_saved_location(self, location_data):
-        # CORRECCIÓN: Comparamos con 'is None'
+    def add_saved_location(self, location_data, user_id):
+        """Add or update a saved location with user ownership"""
         if self.db is None: return
-        query = {"name": location_data["name"]}
+        location_data['user_id'] = user_id
+        location_data['updated_at'] = datetime.utcnow()
+        # Query by name AND user_id to prevent overwriting other users' locations
+        query = {"name": location_data["name"], "user_id": user_id}
         self.db.saved_locations.update_one(query, {"$set": location_data}, upsert=True)
 
-    def delete_saved_location(self, location_id):
-        # CORRECCIÓN: Comparamos con 'is None'
-        if self.db is None: return
-        self.db.saved_locations.delete_one({"_id": ObjectId(location_id)})
+    def delete_saved_location(self, location_id, user_id):
+        """Delete a saved location only if it belongs to the user"""
+        if self.db is None: return False
+        # Verify ownership before deleting
+        query = {"_id": ObjectId(location_id), "user_id": user_id}
+        result = self.db.saved_locations.delete_one(query)
+        return result.deleted_count > 0
 
+    def record_location_visit(self, user_id, lat, lon, location_name):
+        """Record a location visit/search by the user"""
+        if self.db is None: return
+        visit_data = {
+            "user_id": user_id,
+            "latitude": lat,
+            "longitude": lon,
+            "location_name": location_name,
+            "visited_at": datetime.utcnow()
+        }
+        self.db.location_visits.insert_one(visit_data)
+
+    def get_location_history(self, user_id, days=7):
+        """Get location visit history for user, grouped by location"""
+        if self.db is None: return []
+        
+        start_date = datetime.utcnow() - timedelta(days=days)
+        pipeline = [
+            {
+                "$match": {
+                    "user_id": user_id,
+                    "visited_at": {"$gte": start_date}
+                }
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "name": "$location_name",
+                        "lat": "$latitude",
+                        "lon": "$longitude"
+                    },
+                    "last_visit": {"$max": "$visited_at"},
+                    "visit_count": {"$sum": 1}
+                }
+            },
+            {
+                "$sort": {"last_visit": -1}
+            },
+            {
+                "$limit": 50
+            }
+        ]
+        
+        results = list(self.db.location_visits.aggregate(pipeline))
+        
+        formatted_results = [
+            {
+                "location_name": item['_id']['name'],
+                "latitude": item['_id']['lat'],
+                "longitude": item['_id']['lon'],
+                "visited_at": item['last_visit'].isoformat(),
+                "search_count": item['visit_count']
+            }
+            for item in results
+        ]
+        
+        return formatted_results

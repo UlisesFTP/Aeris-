@@ -229,3 +229,100 @@ class AlertLocation {
     );
   }
 }
+
+// Enum para filtros de tiempo en historial
+enum TimeFilter {
+  day,
+  week,
+  month;
+
+  int get days {
+    switch (this) {
+      case TimeFilter.day:
+        return 1;
+      case TimeFilter.week:
+        return 7;
+      case TimeFilter.month:
+        return 30;
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case TimeFilter.day:
+        return 'Día';
+      case TimeFilter.week:
+        return 'Semana';
+      case TimeFilter.month:
+        return 'Mes';
+    }
+  }
+}
+
+// Modelo para visitas a ubicaciones (historial de búsquedas)
+class LocationVisit {
+  final String locationName;
+  final double latitude;
+  final double longitude;
+  final DateTime visitedAt;
+  final int searchCount; // Número de veces visitada en el período
+
+  const LocationVisit({
+    required this.locationName,
+    required this.latitude,
+    required this.longitude,
+    required this.visitedAt,
+    this.searchCount = 1,
+  });
+
+  factory LocationVisit.fromJson(Map<String, dynamic> json) {
+    return LocationVisit(
+      locationName: json['location_name'] as String,
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
+      visitedAt: DateTime.parse(json['visited_at'] as String),
+      searchCount: json['search_count'] as int? ?? 1,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'location_name': locationName,
+      'latitude': latitude,
+      'longitude': longitude,
+      'visited_at': visitedAt.toIso8601String(),
+      'search_count': searchCount,
+    };
+  }
+
+  // Convert to LocationSearchResult for navigation
+  LocationSearchResult toLocationSearchResult() {
+    return LocationSearchResult(
+      displayName: locationName,
+      latitude: latitude,
+      longitude: longitude,
+    );
+  }
+
+  // Get relative time string (e.g., "hace 2 horas")
+  String getRelativeTime() {
+    final now = DateTime.now();
+    final difference = now.difference(visitedAt);
+
+    if (difference.inMinutes < 1) {
+      return 'Ahora mismo';
+    } else if (difference.inMinutes < 60) {
+      return 'Hace ${difference.inMinutes} min';
+    } else if (difference.inHours < 24) {
+      return 'Hace ${difference.inHours} hora${difference.inHours > 1 ? 's' : ''}';
+    } else if (difference.inDays < 7) {
+      return 'Hace ${difference.inDays} día${difference.inDays > 1 ? 's' : ''}';
+    } else if (difference.inDays < 30) {
+      final weeks = (difference.inDays / 7).floor();
+      return 'Hace $weeks semana${weeks > 1 ? 's' : ''}';
+    } else {
+      final months = (difference.inDays / 30).floor();
+      return 'Hace $months mes${months > 1 ? 'es' : ''}';
+    }
+  }
+}

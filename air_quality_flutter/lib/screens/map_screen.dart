@@ -119,6 +119,13 @@ class MapScreenState extends State<MapScreen> {
 
     Provider.of<AppState>(context, listen: false).addRecentLocation(location);
 
+    // Record visit for private history tracking
+    Provider.of<AppState>(context, listen: false).recordLocationVisit(
+      location.latitude,
+      location.longitude,
+      location.displayName,
+    );
+
     try {
       final responses = await Future.wait([
         _apiService.getAirQuality(location.latitude, location.longitude),

@@ -39,6 +39,12 @@ class AppState extends ChangeNotifier {
   };
   Map<String, AlertLocation> get alertLocations => _alertLocations;
 
+  // --- LOCATION HISTORY ---
+  List<LocationVisit> _locationHistory = [];
+  List<LocationVisit> get locationHistory => _locationHistory;
+  TimeFilter _currentHistoryFilter = TimeFilter.week;
+  TimeFilter get currentHistoryFilter => _currentHistoryFilter;
+
   AppState() {
     _loadPreferences();
   }
@@ -232,5 +238,41 @@ class AppState extends ChangeNotifier {
   Future<int> forceCheckAlertLocations() async {
     _alertMonitoring.resetCheckTimer();
     return await checkAlertLocationsNow();
+  }
+
+  // --- LOCATION HISTORY METHODS ---
+
+  /// Load location history with specified time filter
+  Future<void> loadLocationHistory(TimeFilter filter) async {
+    try {
+      _currentHistoryFilter = filter;
+      final history = await _apiService.getLocationHistory(filter);
+      _locationHistory = history;
+      notifyListeners();
+    } catch (e) {
+      print('Error loading location history: $e');
+      _locationHistory = [];
+      notifyListeners();
+    }
+  }
+
+  /// Record a location visit when user searches or views a location
+  Future<void> recordLocationVisit(
+      double lat, double lon, String locationName) async {
+    try {
+      await _apiService.recordLocationVisit(lat, lon, locationName);
+      // Optionally reload history to reflect the new visit
+      await loadLocationHistory(_currentHistoryFilter);
+    } catch (e) {
+      print('Error recording location visit: $e');
+      // Don't interrupt user flow if tracking fails
+    }
+  }
+
+  /// Change the time filter and reload history
+  Future<void> setHistoryFilter(TimeFilter filter) async {
+    if (_currentHistoryFilter != filter) {
+      await loadLocationHistory(filter);
+    }
   }
 }

@@ -85,8 +85,12 @@ def get_history_data():
 
 @quality_bp.route('/locations', methods=['GET'])
 def get_saved_locations():
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({"error": "user_id required"}), 400
+    
     try:
-        locations = db_service.get_saved_locations()
+        locations = db_service.get_saved_locations(user_id)
         return jsonify(locations), 200
     except Exception as e:
         log_and_flush(f"ERROR en GET /locations: {e}")
@@ -94,11 +98,17 @@ def get_saved_locations():
 
 @quality_bp.route('/locations', methods=['POST'])
 def add_saved_location():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    
+    if not user_id:
+        return jsonify({"error": "user_id required"}), 400
+    
+    if not data or 'name' not in data or 'latitude' not in data or 'longitude' not in data:
+        return jsonify({"error": "Datos incompletos"}), 400
+    
     try:
-        data = request.get_json()
-        if not data or 'name' not in data or 'latitude' not in data or 'longitude' not in data:
-            return jsonify({"error": "Datos incompletos"}), 400
-        db_service.add_saved_location(data)
+        db_service.add_saved_location(data, user_id)
         return jsonify({"status": "success"}), 201
     except Exception as e:
         log_and_flush(f"ERROR en POST /locations: {e}")
@@ -106,9 +116,16 @@ def add_saved_location():
 
 @quality_bp.route('/locations/<location_id>', methods=['DELETE'])
 def delete_saved_location(location_id):
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({"error": "user_id required"}), 400
+    
     try:
-        db_service.delete_saved_location(location_id)
-        return jsonify({"status": "success"}), 200
+        success = db_service.delete_saved_location(location_id, user_id)
+        if success:
+            return jsonify({"status": "success"}), 200
+        else:
+            return jsonify({"error": "Location not found or unauthorized"}), 404
     except Exception as e:
         log_and_flush(f"ERROR en DELETE /locations/{location_id}: {e}")
         return jsonify({"error": "Error interno del servidor"}), 500
@@ -144,4 +161,44 @@ def get_health_advice():
         return jsonify({"advice": advice}), 200
     except Exception as e:
         log_and_flush(f"ERROR en /advice: {e}")
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+# --- LOCATION VISIT TRACKING ---
+@quality_bp.route('/locations/visit', methods=['POST'])
+def record_location_visit():
+    """Record when a user searches/visits a location"""
+    data = request.get_json()
+    user_id = data.get('user_id')
+    
+    if not user_id:
+        return jsonify({"error": "user_id required"}), 400
+    
+    lat = data.get('latitude')
+    lon = data.get('longitude')
+    location_name = data.get('location_name')
+    
+    if lat is None or lon is None or not location_name:
+        return jsonify({"error": "Missing required fields"}), 400
+    
+    try:
+        db_service.record_location_visit(user_id, lat, lon, location_name)
+        return jsonify({"status": "success"}), 201
+    except Exception as e:
+        log_and_flush(f"ERROR en POST /locations/visit: {e}")
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+@quality_bp.route('/locations/history', methods=['GET'])
+def get_location_history():
+    """Get user's location visit history with time filter"""
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({"error": "user_id required"}), 400
+    
+    days = request.args.get('days', default=7, type=int)
+    
+    try:
+        history = db_service.get_location_history(user_id, days)
+        return jsonify(history), 200
+    except Exception as e:
+        log_and_flush(f"ERROR en GET /locations/history: {e}")
         return jsonify({"error": "Error interno del servidor"}), 500

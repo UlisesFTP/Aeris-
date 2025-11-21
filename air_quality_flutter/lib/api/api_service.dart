@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:air_quality_flutter/models/models.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 
@@ -14,9 +16,31 @@ String get flaskBackendUrl {
   }
 }
 
-// const String flaskBackendUrl = "https://air-quality-api-2b88.onrender.com/api";
+//const String flaskBackendUrl = "https://air-quality-api-2b88.onrender.com/api";
 
 class ApiService {
+  String? _userId;
+
+  // Obtiene o genera un ID de usuario único para este dispositivo
+  Future<String> _getUserId() async {
+    if (_userId != null) return _userId!;
+
+    final prefs = await SharedPreferences.getInstance();
+    _userId = prefs.getString('user_id');
+
+    if (_userId == null) {
+      // Generar un nuevo ID único
+      _userId =
+          'user_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(9999)}';
+      await prefs.setString('user_id', _userId!);
+      print('Generated new user ID: $_userId');
+    } else {
+      print('Loaded existing user ID: $_userId');
+    }
+
+    return _userId!;
+  }
+
   // --- OBTENER DATOS ACTUALES ---
   Future<AirQualityData> getAirQuality(
       double latitude, double longitude) async {
@@ -60,9 +84,11 @@ class ApiService {
     }
   }
 
-  // --- OBTENER UBICACIONES GUARDADAS ---
+  // --- GESTIÓN DE UBICACIONES GUARDADAS ---
   Future<List<SavedLocation>> getSavedLocations() async {
-    final response = await http.get(Uri.parse('$flaskBackendUrl/locations'));
+    final userId = await _getUserId();
+    final response =
+        await http.get(Uri.parse('$flaskBackendUrl/locations?user_id=$userId'));
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       return data.map((json) => SavedLocation.fromJson(json)).toList();
@@ -74,10 +100,14 @@ class ApiService {
 
   // --- AÑADIR/ACTUALIZAR UBICACIÓN GUARDADA ---
   Future<void> addSavedLocation(SavedLocation location) async {
+    final userId = await _getUserId();
+    final locationData = location.toJson();
+    locationData['user_id'] = userId;
+
     final response = await http.post(
       Uri.parse('$flaskBackendUrl/locations'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode(location.toJson()),
+      body: json.encode(locationData),
     );
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('Failed to save location');
@@ -86,8 +116,9 @@ class ApiService {
 
   // --- ELIMINAR UBICACIÓN GUARDADA ---
   Future<void> deleteSavedLocation(String id) async {
-    final response =
-        await http.delete(Uri.parse('$flaskBackendUrl/locations/$id'));
+    final userId = await _getUserId();
+    final response = await http
+        .delete(Uri.parse('$flaskBackendUrl/locations/$id?user_id=$userId'));
     if (response.statusCode != 200) {
       throw Exception('Failed to delete location');
     }
@@ -137,6 +168,46 @@ class ApiService {
       print('Error getting advice: ${response.body}');
       return const HealthAdvice(
           advice: "No se pudo obtener el consejo en este momento.");
+    }
+  }
+
+  // --- HISTORIAL DE VISITAS A UBICACIONES ---
+  Future<List<LocationVisit>> getLocationHistory(TimeFilter filter) async {
+    final userId = await _getUserId();
+    final days = filter.days;
+
+    final response = await http.get(
+      Uri.parse(
+          '$flaskBackendUrl/locations/history?user_id=$userId&days=$days'),
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((json) => LocationVisit.fromJson(json)).toList();
+    } else {
+      throw Exception(
+          'Failed to load location history. Status: ${response.statusCode}');
+    }
+  }
+
+  Future<void> recordLocationVisit(
+      double lat, double lon, String locationName) async {
+    final userId = await _getUserId();
+
+    final response = await http.post(
+      Uri.parse('$flaskBackendUrl/locations/visit'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'user_id': userId,
+        'latitude': lat,
+        'longitude': lon,
+        'location_name': locationName,
+      }),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      print('Failed to record location visit: ${response.statusCode}');
+      // No lanzamos excepción para no interrumpir la experiencia del usuario
     }
   }
 }
