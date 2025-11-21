@@ -38,7 +38,11 @@ class _HistoryScreenState extends State<HistoryScreen>
   Future<void> _loadHistory(TimeFilter filter) async {
     setState(() => _isLoading = true);
     final appState = context.read<AppState>();
-    await appState.loadLocationHistory(filter);
+    // Cargar historial y asegurar que las ubicaciones guardadas estén actualizadas
+    await Future.wait([
+      appState.loadLocationHistory(filter),
+      appState.loadSavedLocationsFromApi(),
+    ]);
     setState(() => _isLoading = false);
   }
 
@@ -69,95 +73,171 @@ class _HistoryScreenState extends State<HistoryScreen>
             onRefresh: () => _loadHistory(appState.currentHistoryFilter),
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : appState.locationHistory.isEmpty
-                    ? _buildEmptyState(context)
-                    : _buildHistoryList(context, appState.locationHistory),
+                : ListView(
+                    padding: const EdgeInsets.all(16.0),
+                    children: [
+                      // SECCIÓN 1: Ubicaciones Guardadas
+                      _buildSectionHeader(context, 'Ubicaciones Guardadas'),
+                      if (appState.savedLocations.isEmpty)
+                        _buildEmptySection(
+                            context, 'No hay ubicaciones guardadas')
+                      else
+                        ...appState.savedLocations.values.map(
+                            (loc) => _buildSavedLocationItem(context, loc)),
+
+                      const SizedBox(height: 24),
+
+                      // SECCIÓN 2: Historial de Visitas
+                      _buildSectionHeader(context, 'Historial de Visitas'),
+                      if (appState.locationHistory.isEmpty)
+                        _buildEmptySection(context, 'No hay historial reciente')
+                      else
+                        ...appState.locationHistory
+                            .map((visit) => _buildHistoryItem(context, visit)),
+
+                      // Espacio extra al final
+                      const SizedBox(height: 48),
+                    ],
+                  ),
           ),
         );
       },
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(24.0),
-      children: [
-        const SizedBox(height: 48),
-        Icon(
-          Icons.history,
-          size: 64,
-          color: Theme.of(context).colorScheme.secondary.withOpacity(0.5),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'No hay historial',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Busca ubicaciones en el mapa para ver tu historial aquí',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-              ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHistoryList(BuildContext context, List<LocationVisit> history) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: history.length,
-      itemBuilder: (context, index) {
-        final visit = history[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Text(
-                '${visit.searchCount}',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0, top: 4.0),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 18,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptySection(BuildContext context, String message) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Center(
+        child: Text(
+          message,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                fontStyle: FontStyle.italic,
+              ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSavedLocationItem(BuildContext context, SavedLocation location) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: Icon(
+          Icons.bookmark,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        title: Text(location.displayName ?? location.name),
+        subtitle: Text(
+          '${location.latitude.toStringAsFixed(2)}, ${location.longitude.toStringAsFixed(2)}',
+        ),
+        trailing: IconButton(
+          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+          onPressed: () {
+            _confirmDelete(context, location);
+          },
+        ),
+        onTap: () {
+          context
+              .findAncestorStateOfType<MainShellState>()
+              ?.navigateToMapAndLoadLocation(location.toLocationSearchResult());
+        },
+      ),
+    );
+  }
+
+  Widget _buildHistoryItem(BuildContext context, LocationVisit visit) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor:
+              Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: Text(
+            '${visit.searchCount}',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ),
+        title: Text(visit.locationName),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${visit.latitude.toStringAsFixed(2)}, ${visit.longitude.toStringAsFixed(2)}',
+              style: const TextStyle(fontSize: 12),
+            ),
+            Text(
+              visit.getRelativeTime(),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.secondary,
+                fontSize: 11,
               ),
             ),
-            title: Text(visit.locationName),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${visit.latitude.toStringAsFixed(2)}, ${visit.longitude.toStringAsFixed(2)}',
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  visit.getRelativeTime(),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .secondary
-                            .withOpacity(0.8),
-                      ),
-                ),
-              ],
-            ),
-            trailing: Icon(
-              Icons.chevron_right,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
-            onTap: () {
-              // Navigate to map with this location
-              context
-                  .findAncestorStateOfType<MainShellState>()
-                  ?.navigateToMapAndLoadLocation(
-                      visit.toLocationSearchResult());
-            },
+          ],
+        ),
+        trailing: const Icon(Icons.chevron_right, size: 20),
+        onTap: () {
+          context
+              .findAncestorStateOfType<MainShellState>()
+              ?.navigateToMapAndLoadLocation(visit.toLocationSearchResult());
+        },
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, SavedLocation location) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Eliminar ubicación'),
+        content: Text('¿Seguro que quieres eliminar "${location.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
           ),
-        );
-      },
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.read<AppState>().removeSavedLocation(location.id!);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('"${location.name}" eliminada')),
+              );
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
   }
 }
