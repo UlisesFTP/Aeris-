@@ -49,10 +49,36 @@ def get_history_data():
     try:
         lat = request.args.get('lat', type=float)
         lon = request.args.get('lon', type=float)
+        days = request.args.get('days', default=7, type=int)
+        
         if lat is None or lon is None:
             return jsonify({"error": "Faltan los parámetros 'lat' y 'lon'"}), 400
-        history = db_service.get_history(lat, lon)
-        return jsonify(history), 200
+        
+        # Round coordinates to 2 decimal places for better cache hit rate (~1km precision)
+        lat_rounded = round(lat, 2)
+        lon_rounded = round(lon, 2)
+        
+        # Try cache first
+        cache_key = f"history:{lat_rounded}:{lon_rounded}:{days}"
+        cached_data = cache_service.get(cache_key)
+        if cached_data:
+            log_and_flush(f"Cache HIT for history: {cache_key}")
+            return jsonify(json.loads(cached_data)), 200
+        
+        log_and_flush(f"Cache MISS for history: {cache_key}, fetching from API...")
+        
+        # Fetch from OpenWeather API
+        history = weather_service.get_air_quality_history(lat_rounded, lon_rounded, days)
+        
+        if history:
+            # Cache for 6 hours (historical data doesn't change)
+            cache_service.set(cache_key, json.dumps(history), ttl_seconds=21600)
+            log_and_flush(f"Cached {len(history)} historical data points")
+            return jsonify(history), 200
+        else:
+            # Return empty array if no data available
+            return jsonify([]), 200
+            
     except Exception as e:
         log_and_flush(f"ERROR en /history: {e}")
         return jsonify({"error": "Error interno del servidor"}), 500

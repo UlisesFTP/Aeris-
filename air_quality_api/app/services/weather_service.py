@@ -110,3 +110,47 @@ class WeatherService:
         except Exception as e:
             print(f"Error getting forecast: {e}")
             return []
+
+    def get_air_quality_history(self, lat, lon, days=7):
+        """
+        Fetches historical air quality data for the past N days.
+        OpenWeather API provides historical data using Unix timestamps.
+        """
+        import time
+        from datetime import datetime, timedelta
+        
+        # Calculate timestamps for the past N days
+        end_time = int(time.time())
+        start_time = int((datetime.now() - timedelta(days=days)).timestamp())
+        
+        params = {
+            'lat': lat,
+            'lon': lon,
+            'start': start_time,
+            'end': end_time,
+            'appid': self.api_key
+        }
+        
+        try:
+            response = requests.get(
+                f"{self.base_url}/air_pollution/history",
+                params=params,
+                timeout=10
+            )
+            response.raise_for_status()
+            data = response.json()
+            
+            # Process and format the historical data
+            history = []
+            for item in data.get('list', []):
+                history.append({
+                    'date': datetime.fromtimestamp(item['dt']).isoformat(),
+                    'aqi': item['main']['aqi'],
+                    'components': item['components']
+                })
+            
+            return history
+            
+        except Exception as e:
+            print(f"Error fetching air quality history: {e}")
+            return []
