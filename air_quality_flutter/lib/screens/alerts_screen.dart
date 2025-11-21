@@ -120,92 +120,82 @@ class AlertsScreen extends StatelessWidget {
           body: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
-              _buildSectionHeader(context, 'Alertas de Ubicación'),
+              _buildSectionHeader(context, 'Mis Lugares'),
 
-              // Current Location (always enabled)
+              // Current Location
               _buildLocationTile(
                 context,
                 icon: Icons.my_location,
-                title: 'Mi ubicación',
-                subtitle: 'Ubicación actual del dispositivo',
+                title: 'Mi ubicación actual',
+                subtitle: 'Alertas donde quiera que estés',
                 enabled: appState.notificationSettings['miUbicacion'] ?? true,
                 onChanged: (value) {
                   appState.updateNotificationSetting('miUbicacion', value);
                 },
-                onTap: null, // Not configurable
+                isSystem: true,
               ),
 
               // Home Location
-              _buildAlertLocationTile(
-                context,
-                appState,
-                'home',
-              ),
+              _buildAlertLocationTile(context, appState, 'home'),
 
               // Work Location
-              _buildAlertLocationTile(
-                context,
-                appState,
-                'work',
-              ),
+              _buildAlertLocationTile(context, appState, 'work'),
 
               // Custom Locations
               ...appState.alertLocations.entries
                   .where((e) => e.key.startsWith('custom_'))
-                  .map((e) => _buildAlertLocationTile(
-                        context,
-                        appState,
-                        e.key,
-                      )),
+                  .map(
+                      (e) => _buildAlertLocationTile(context, appState, e.key)),
 
               // Add Custom Location Button
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.only(top: 8.0, bottom: 24.0),
                 child: OutlinedButton.icon(
                   onPressed: () => _addCustomLocation(context),
                   icon: const Icon(Icons.add_location_alt),
-                  label: const Text('Agregar ubicación personalizada'),
+                  label: const Text('Agregar nueva ubicación'),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.all(16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 24),
-              _buildSectionHeader(context, 'Alertas de Contaminación'),
+              _buildSectionHeader(context, 'Tipos de Contaminantes'),
 
               _buildLocationTile(
                 context,
                 icon: Icons.cloud_outlined,
-                title: 'PM2.5',
-                subtitle: 'Partículas finas',
+                title: 'PM2.5 (Partículas Finas)',
+                subtitle: 'Humo, polvo, emisiones vehiculares',
                 enabled: appState.notificationSettings['pm25'] ?? true,
-                onChanged: (value) {
-                  appState.updateNotificationSetting('pm25', value);
-                },
+                onChanged: (value) =>
+                    appState.updateNotificationSetting('pm25', value),
               ),
 
               _buildLocationTile(
                 context,
                 icon: Icons.cloud_queue,
-                title: 'PM10',
-                subtitle: 'Partículas gruesas',
+                title: 'PM10 (Partículas Gruesas)',
+                subtitle: 'Polvo, polen, moho',
                 enabled: appState.notificationSettings['pm10'] ?? false,
-                onChanged: (value) {
-                  appState.updateNotificationSetting('pm10', value);
-                },
+                onChanged: (value) =>
+                    appState.updateNotificationSetting('pm10', value),
               ),
 
               _buildLocationTile(
                 context,
-                icon: Icons.grain,
-                title: 'Ozono',
-                subtitle: 'O₃',
+                icon: Icons.wb_sunny_outlined,
+                title: 'Ozono (O₃)',
+                subtitle: 'Smog fotoquímico',
                 enabled: appState.notificationSettings['ozono'] ?? true,
-                onChanged: (value) {
-                  appState.updateNotificationSetting('ozono', value);
-                },
+                onChanged: (value) =>
+                    appState.updateNotificationSetting('ozono', value),
               ),
+
+              const SizedBox(height: 80), // Space for FAB
             ],
           ),
         );
@@ -224,17 +214,18 @@ class AlertsScreen extends StatelessWidget {
     IconData icon;
     switch (locationId) {
       case 'home':
-        icon = Icons.home_outlined;
+        icon = Icons.home_filled;
         break;
       case 'work':
-        icon = Icons.work_outline;
+        icon = Icons.work;
         break;
       default:
-        icon = Icons.location_on;
+        icon = Icons.place;
     }
 
-    final subtitle =
-        location.isConfigured ? location.displayName! : 'Toca para configurar';
+    final subtitle = location.isConfigured
+        ? location.displayName!
+        : 'Toca para configurar ubicación';
 
     return _buildLocationTile(
       context,
@@ -248,11 +239,12 @@ class AlertsScreen extends StatelessWidget {
       onTap: () => _showLocationPicker(
         context,
         locationId,
-        'Selecciona ubicación de ${location.name}',
+        'Ubicación de ${location.name}',
       ),
       onDelete: locationId.startsWith('custom_')
           ? () => appState.removeAlertLocation(locationId)
           : null,
+      isConfigured: location.isConfigured,
     );
   }
 
@@ -265,42 +257,69 @@ class AlertsScreen extends StatelessWidget {
     required void Function(bool)? onChanged,
     VoidCallback? onTap,
     VoidCallback? onDelete,
+    bool isSystem = false,
+    bool isConfigured = true,
   }) {
     final theme = Theme.of(context);
     final isConfigurable = onTap != null;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Icon(icon, color: theme.colorScheme.primary),
-        title: Text(title),
-        subtitle: Text(
-          subtitle,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: subtitle == 'Toca para configurar'
-                ? theme.colorScheme.error.withOpacity(0.7)
-                : null,
+      elevation: 0,
+      color: theme.colorScheme.surfaceContainerLow,
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        onTap: isConfigurable ? onTap : null,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: theme.colorScheme.primary),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: !isConfigured
+                            ? theme.colorScheme.error
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (onDelete != null)
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: onDelete,
+                  color: theme.colorScheme.error,
+                ),
+              Switch(
+                value: enabled,
+                onChanged: onChanged,
+                activeColor: theme.colorScheme.primary,
+              ),
+            ],
           ),
         ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (onDelete != null)
-              IconButton(
-                icon: const Icon(Icons.delete_outline),
-                onPressed: onDelete,
-                tooltip: 'Eliminar',
-              ),
-            Switch(
-              value: enabled,
-              onChanged: onChanged,
-            ),
-          ],
-        ),
-        onTap: isConfigurable ? onTap : null,
-        enabled: true,
       ),
     );
   }
@@ -308,7 +327,7 @@ class AlertsScreen extends StatelessWidget {
   Widget _buildSectionHeader(BuildContext context, String title) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 4.0),
+      padding: const EdgeInsets.only(left: 4.0, bottom: 16.0, top: 8.0),
       child: Row(
         children: [
           Container(
@@ -324,7 +343,7 @@ class AlertsScreen extends StatelessWidget {
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.bold,
                 ),
           ),
         ],

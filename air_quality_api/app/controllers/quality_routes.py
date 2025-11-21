@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 import json
+import requests
 import sys # Importamos sys para forzar el flush de los logs
 from config import Config
 from ..services.weather_service import WeatherService
@@ -201,4 +202,29 @@ def get_location_history():
         return jsonify(history), 200
     except Exception as e:
         log_and_flush(f"ERROR en GET /locations/history: {e}")
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+@quality_bp.route('/search', methods=['GET'])
+def search_locations():
+    """Proxy for Nominatim search to avoid CORS issues on frontend"""
+    query = request.args.get('q')
+    if not query:
+        return jsonify({"error": "Query required"}), 400
+    
+    try:
+        # Call Nominatim API
+        headers = {'User-Agent': 'AuraClimaApp/1.0'}
+        response = requests.get(
+            f'https://nominatim.openstreetmap.org/search?format=json&q={query}&limit=5',
+            headers=headers,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            return jsonify(response.json()), 200
+        else:
+            return jsonify({"error": "Failed to fetch from Nominatim"}), 502
+            
+    except Exception as e:
+        log_and_flush(f"ERROR en /search: {e}")
         return jsonify({"error": "Error interno del servidor"}), 500

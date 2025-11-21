@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../core/app_state.dart';
 import '../widgets/option_tile.dart';
-import 'package:permission_handler/permission_handler.dart'; // Para abrir la configuración de la app
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Usamos Consumer para que la pantalla se actualice cuando cambie el estado.
     return Consumer<AppState>(
       builder: (context, appState, child) {
         return Scaffold(
@@ -20,37 +19,80 @@ class SettingsScreen extends StatelessWidget {
           body: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
+              // --- SECCIÓN GENERAL ---
               _buildSectionHeader(context, 'General'),
               OptionTile(
-                icon: Icons.location_on_outlined,
-                title: 'Permisos de ubicación',
-                subtitle: 'Activa el acceso a la ubicación',
-                value: true, // El permiso se maneja a nivel de sistema
-                onChanged: (value) {
-                  // Este botón ahora abre los ajustes del sistema para que el usuario gestione los permisos.
-                  openAppSettings();
-                },
-              ),
-              OptionTile(
                 icon: Icons.brightness_6_outlined,
-                title: 'Tema de la aplicación',
-                subtitle: 'Cambiar entre claro y oscuro',
-                // El valor del switch viene directamente de AppState.
+                title: 'Tema Oscuro',
+                subtitle: 'Cambiar apariencia de la aplicación',
                 value: appState.isDarkMode,
-                // Al cambiar, llamamos al método en AppState.
-                onChanged: (value) {
-                  appState.toggleTheme();
+                onChanged: (value) => appState.toggleTheme(),
+              ),
+
+              const SizedBox(height: 24),
+
+              // --- SECCIÓN SISTEMA ---
+              _buildSectionHeader(context, 'Sistema'),
+              ListTile(
+                leading: Icon(Icons.notifications_none_outlined,
+                    color: Theme.of(context).colorScheme.primary),
+                title: const Text('Notificaciones'),
+                subtitle: const Text('Gestionar permisos en el sistema'),
+                trailing: const Icon(Icons.open_in_new, size: 20),
+                onTap: () => openAppSettings(),
+              ),
+              ListTile(
+                leading: Icon(Icons.location_on_outlined,
+                    color: Theme.of(context).colorScheme.primary),
+                title: const Text('Ubicación'),
+                subtitle: const Text('Gestionar permisos de ubicación'),
+                trailing: const Icon(Icons.open_in_new, size: 20),
+                onTap: () => openAppSettings(),
+              ),
+
+              const SizedBox(height: 24),
+
+              // --- SECCIÓN INFORMACIÓN ---
+              _buildSectionHeader(context, 'Información'),
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: const Text('Versión'),
+                subtitle: const Text('1.0.0'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.privacy_tip_outlined),
+                title: const Text('Política de Privacidad'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Próximamente: Política de Privacidad')),
+                  );
                 },
               ),
-              OptionTile(
-                icon: Icons.notifications_none_outlined,
-                title: 'Notificaciones',
-                subtitle: 'Recibir alertas de calidad del aire',
-                value: true, // El permiso se maneja a nivel de sistema
-                onChanged: (value) {
-                  // Este botón abre los ajustes de notificaciones de la app.
-                  openAppSettings();
+              ListTile(
+                leading: const Icon(Icons.description_outlined),
+                title: const Text('Términos de Servicio'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Próximamente: Términos de Servicio')),
+                  );
                 },
+              ),
+
+              const SizedBox(height: 48),
+              Center(
+                child: Text(
+                  'Aeris v1.0.0',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.5),
+                      ),
+                ),
               ),
             ],
           ),
@@ -62,12 +104,12 @@ class SettingsScreen extends StatelessWidget {
   Widget _buildSectionHeader(BuildContext context, String title) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
       child: Row(
         children: [
           Container(
             width: 4,
-            height: 20,
+            height: 18,
             decoration: BoxDecoration(
               color: colorScheme.primary,
               borderRadius: BorderRadius.circular(2),
@@ -77,8 +119,8 @@ class SettingsScreen extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.bold,
                 ),
           ),
         ],

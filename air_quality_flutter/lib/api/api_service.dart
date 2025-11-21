@@ -55,12 +55,12 @@ class ApiService {
     }
   }
 
-  // --- BUSCAR UBICACIONES (Nominatim) ---
+  // --- BUSCAR UBICACIONES (Nominatim via Proxy) ---
   Future<List<LocationSearchResult>> searchLocation(String query) async {
-    final response = await http.get(
-        Uri.parse(
-            'https://nominatim.openstreetmap.org/search?format=json&q=$query&limit=5'),
-        headers: {'User-Agent': 'AuraClimaApp/1.0'});
+    // Usamos el proxy del backend para evitar problemas de CORS y User-Agent
+    final response =
+        await http.get(Uri.parse('$flaskBackendUrl/search?q=$query'));
+
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       return data.map((json) => LocationSearchResult.fromJson(json)).toList();
