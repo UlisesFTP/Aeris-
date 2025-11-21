@@ -32,6 +32,7 @@ class MapScreenState extends State<MapScreen> {
   AirQualityData? _airQualityData;
   WeatherData? _currentWeather;
   HealthAdvice? _healthAdvice;
+  HealthAdvice? _weatherAdvice;
   List<ForecastItem> _forecast = [];
   List<LocationSearchResult> _searchResults = [];
   List<HistoricalDataPoint> _historyData = [];
@@ -115,6 +116,7 @@ class MapScreenState extends State<MapScreen> {
       _searchController.clear();
       _currentLocation = location;
       _healthAdvice = null; // Limpiar consejo anterior
+      _weatherAdvice = null; // Limpiar consejo del clima anterior
     });
     FocusScope.of(context).unfocus();
 
@@ -139,12 +141,27 @@ class MapScreenState extends State<MapScreen> {
       final weatherData = responses[2] as Map<String, dynamic>;
       final newPoint = LatLng(location.latitude, location.longitude);
 
-      // Obtener consejo de Gemini
+      // Obtener consejo de Gemini (para calidad del aire)
       final advice = await _apiService.getAdvice(
         weatherCondition: weatherData['current'].condition,
         aqi: airData.aqi,
         components: airData.components,
       );
+
+      // Obtener consejo del clima
+      HealthAdvice? weatherAdviceResult;
+      try {
+        if (weatherData['forecast'].isNotEmpty) {
+          weatherAdviceResult = await _apiService.getWeatherAdvice(
+            temp: weatherData['current'].temp,
+            condition: weatherData['current'].condition,
+            minTemp: weatherData['forecast'][0].minTemp,
+            maxTemp: weatherData['forecast'][0].maxTemp,
+          );
+        }
+      } catch (e) {
+        print('Error getting weather advice: $e');
+      }
 
       setState(() {
         _airQualityData = airData;
@@ -152,6 +169,7 @@ class MapScreenState extends State<MapScreen> {
         _currentWeather = weatherData['current'];
         _forecast = weatherData['forecast'];
         _healthAdvice = advice;
+        _weatherAdvice = weatherAdviceResult;
         _currentMarker = Marker(
           point: newPoint,
           width: 80,
@@ -382,6 +400,10 @@ class MapScreenState extends State<MapScreen> {
         ),
         const SizedBox(height: 16),
         _buildWeatherDisplay(),
+        if (_weatherAdvice != null) ...[
+          const SizedBox(height: 16),
+          _buildWeatherAdviceDisplay(),
+        ],
         const SizedBox(height: 24),
         Text("Recomendación (IA)", style: textTheme.titleLarge),
         const SizedBox(height: 16),
@@ -608,6 +630,51 @@ class MapScreenState extends State<MapScreen> {
                   fontWeight: FontWeight.w600,
                 )),
       ],
+    );
+  }
+
+  Widget _buildWeatherAdviceDisplay() {
+    if (_weatherAdvice == null) {
+      return const SizedBox.shrink();
+    }
+    return Card(
+      color: Theme.of(context).colorScheme.secondaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Icon(Icons.wb_sunny,
+                size: 40,
+                color: Theme.of(context).colorScheme.onSecondaryContainer),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Consejo del Clima',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSecondaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _weatherAdvice!.advice,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSecondaryContainer,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

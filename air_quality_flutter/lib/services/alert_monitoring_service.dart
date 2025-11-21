@@ -81,14 +81,34 @@ class AlertMonitoringService {
     WeatherData current,
     ForecastItem today,
   ) async {
-    final title = '${current.temp.round()}°C en $locationName';
-    final body =
-        '${current.condition}. Máx: ${today.maxTemp.round()}° Mín: ${today.minTemp.round()}°';
+    try {
+      // Fetch AI-generated weather advice
+      final weatherAdvice = await _apiService.getWeatherAdvice(
+        temp: current.temp,
+        condition: current.condition,
+        minTemp: today.minTemp,
+        maxTemp: today.maxTemp,
+      );
 
-    await _notificationService.showNotification(
-      title: title,
-      body: body,
-    );
+      final title = '${current.temp.round()}°C en $locationName';
+      final body = '${weatherAdvice.advice}';
+
+      await _notificationService.showNotification(
+        title: title,
+        body: body,
+      );
+    } catch (e) {
+      print('Error sending weather notification: $e');
+      // Fallback to simple notification
+      final title = '${current.temp.round()}°C en $locationName';
+      final body =
+          '${current.condition}. Máx: ${today.maxTemp.round()}° Mín: ${today.minTemp.round()}°';
+
+      await _notificationService.showNotification(
+        title: title,
+        body: body,
+      );
+    }
   }
 
   /// Sends a notification for poor air quality

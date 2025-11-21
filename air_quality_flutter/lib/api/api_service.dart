@@ -171,6 +171,33 @@ class ApiService {
     }
   }
 
+  // --- OBTENER CONSEJO DEL CLIMA (GEMINI) ---
+  Future<HealthAdvice> getWeatherAdvice({
+    required double temp,
+    required String condition,
+    required double minTemp,
+    required double maxTemp,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$flaskBackendUrl/weather-advice'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'temp': temp,
+        'condition': condition,
+        'min_temp': minTemp,
+        'max_temp': maxTemp,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return HealthAdvice.fromJson(json.decode(response.body));
+    } else {
+      print('Error getting weather advice: ${response.body}');
+      return const HealthAdvice(
+          advice: "No se pudo obtener el consejo del clima en este momento.");
+    }
+  }
+
   // --- HISTORIAL DE VISITAS A UBICACIONES ---
   Future<List<LocationVisit>> getLocationHistory(TimeFilter filter) async {
     final userId = await _getUserId();

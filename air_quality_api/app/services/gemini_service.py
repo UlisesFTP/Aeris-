@@ -34,3 +34,36 @@ class GeminiService:
         except Exception as e:
             print(f"Error al llamar a Gemini: {e}")
             return "No se pudo generar un consejo personalizado en este momento. Mantente seguro."
+    
+    def get_weather_advice(self, weather_data):
+        """
+        Genera consejos personalizados para el clima usando Gemini.
+        """
+        try:
+            temp = weather_data.get('temp')
+            condition = weather_data.get('condition')
+            min_temp = weather_data.get('min_temp')
+            max_temp = weather_data.get('max_temp')
+            
+            prompt = f"""
+            Actúa como un experto en meteorología. Genera un consejo personalizado sobre el clima (máximo 3 renglones).
+            
+            Formato obligatorio:
+            🌡️ [Temperatura]: [Consejo]
+            
+            Ejemplos:
+            🌡️ Caluroso (32°C): Mantente hidratado y usa protector solar.
+            🌡️ Frío (5°C): Abrígate bien y lleva capas de ropa.
+            
+            Datos actuales:
+            Temperatura: {temp}°C
+            Condición: {condition}
+            Mínima: {min_temp}°C
+            Máxima: {max_temp}°C
+            """
+            
+            response = self.model.generate_content(prompt)
+            return response.text.strip()
+        except Exception as e:
+            print(f"Error al llamar a Gemini para consejo del clima: {e}")
+            return "No se pudo generar un consejo del clima en este momento."

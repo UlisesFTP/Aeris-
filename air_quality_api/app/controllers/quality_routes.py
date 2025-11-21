@@ -228,3 +228,30 @@ def search_locations():
     except Exception as e:
         log_and_flush(f"ERROR en /search: {e}")
         return jsonify({"error": "Error interno del servidor"}), 500
+
+
+@quality_bp.route('/weather-advice', methods=['POST'])
+def get_weather_advice():
+    """Generate weather-specific advice"""
+    try:
+        data = request.get_json()
+        temp = data.get('temp')
+        condition = data.get('condition')
+        min_temp = data.get('min_temp')
+        max_temp = data.get('max_temp')
+        
+        if temp is None or not condition:
+            return jsonify({"error": "Missing required fields"}), 400
+        
+        advice = gemini_service.get_weather_advice({
+            'temp': temp,
+            'condition': condition,
+            'min_temp': min_temp,
+            'max_temp': max_temp
+        })
+        
+        return jsonify({"advice": advice}), 200
+        
+    except Exception as e:
+        log_and_flush(f"ERROR en /weather-advice: {e}")
+        return jsonify({"error": "Error interno del servidor"}), 500
