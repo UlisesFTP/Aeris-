@@ -73,8 +73,7 @@ class SettingsScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) => LegalScreen(
                         title: l10n.legalPrivacyTitle,
-                        content:
-                            _privacyPolicyText, // TODO: Translate long text
+                        content: l10n.legalPrivacyContent,
                       ),
                     ),
                   );
@@ -90,8 +89,7 @@ class SettingsScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) => LegalScreen(
                         title: l10n.legalTermsTitle,
-                        content:
-                            _termsOfServiceText, // TODO: Translate long text
+                        content: l10n.legalTermsContent,
                       ),
                     ),
                   );
@@ -144,47 +142,3 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 }
-
-const String _privacyPolicyText = """
-**Política de Privacidad de Aeris**
-
-**Última actualización:** 21 de Noviembre de 2024
-
-**1. Introducción**
-Aeris es una aplicación gratuita desarrollada para informar sobre la calidad del aire y el clima. No mostramos anuncios ni vendemos tus datos.
-
-**2. Recopilación de Datos**
-Aeris NO recopila, almacena ni comparte información personal identificable. No requerimos registro ni inicio de sesión.
-
-**3. Datos de Ubicación**
-Para proporcionarte datos precisos del clima y calidad del aire, la aplicación necesita acceso a tu ubicación.
-- Las coordenadas se envían a nuestros proveedores de datos (OpenWeather) de forma anónima.
-- Si guardas una ubicación, las coordenadas se almacenan cifradas en nuestro servidor seguro.
-- No rastreamos tu historial de movimientos fuera de las consultas que realizas activamente.
-
-**4. Servicios de Terceros**
-Utilizamos servicios de confianza para obtener datos:
-- **OpenWeather:** Para datos meteorológicos y de calidad del aire.
-- **Google Gemini:** Para generar recomendaciones de salud y clima basadas en los datos actuales.
-
-**5. Contacto**
-Si tienes preguntas sobre esta política, contáctanos a través de la tienda de aplicaciones.
-""";
-
-const String _termsOfServiceText = """
-**Términos de Servicio de Aeris**
-
-**1. Aceptación**
-Al usar Aeris, aceptas estos términos. La aplicación es gratuita y se proporciona tal cual.
-
-**2. Uso de la Aplicación**
-Eres libre de usar la aplicación para fines personales e informativos. No está permitido realizar ingeniería inversa ni intentar dañar nuestros servicios.
-
-**3. Descargo de Responsabilidad**
-La información de salud y clima es generada por Inteligencia Artificial y proveedores externos.
-- **No es un consejo médico:** Las recomendaciones son solo informativas. Consulta siempre a un profesional de la salud.
-- **Precisión:** No garantizamos que los datos sean 100% exactos en todo momento.
-
-**4. Cambios**
-Podemos actualizar estos términos en cualquier momento. El uso continuo implica la aceptación de los cambios.
-""";

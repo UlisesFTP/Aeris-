@@ -148,11 +148,15 @@ class MapScreenState extends State<MapScreen> {
       final weatherData = responses[2] as Map<String, dynamic>;
       final newPoint = LatLng(location.latitude, location.longitude);
 
+      // Get current language code
+      final languageCode = Localizations.localeOf(context).languageCode;
+
       // Obtener consejo de Gemini (para calidad del aire)
       final advice = await _apiService.getAdvice(
         weatherCondition: weatherData['current'].condition,
         aqi: airData.aqi,
         components: airData.components,
+        language: languageCode,
       );
 
       // Obtener consejo del clima
@@ -164,6 +168,7 @@ class MapScreenState extends State<MapScreen> {
             condition: weatherData['current'].condition,
             minTemp: weatherData['forecast'][0].minTemp,
             maxTemp: weatherData['forecast'][0].maxTemp,
+            language: languageCode,
           );
         }
       } catch (e) {

@@ -157,8 +157,9 @@ def get_health_advice():
         data = request.get_json()
         if not data or 'weather' not in data or 'aqi' not in data:
             return jsonify({"error": "Datos incompletos"}), 400
-            
-        advice = gemini_service.get_health_advice(data['weather'], data['aqi'])
+        
+        language = data.get('language', 'es')  # Default to Spanish
+        advice = gemini_service.get_health_advice(data['weather'], data['aqi'], language)
         return jsonify({"advice": advice}), 200
     except Exception as e:
         log_and_flush(f"ERROR en /advice: {e}")
@@ -239,6 +240,7 @@ def get_weather_advice():
         condition = data.get('condition')
         min_temp = data.get('min_temp')
         max_temp = data.get('max_temp')
+        language = data.get('language', 'es')  # Default to Spanish
         
         if temp is None or not condition:
             return jsonify({"error": "Missing required fields"}), 400
@@ -248,7 +250,7 @@ def get_weather_advice():
             'condition': condition,
             'min_temp': min_temp,
             'max_temp': max_temp
-        })
+        }, language)
         
         return jsonify({"advice": advice}), 200
         

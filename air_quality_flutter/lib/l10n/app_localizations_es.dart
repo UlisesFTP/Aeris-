@@ -305,4 +305,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String alertsLocationOf(String name) {
     return 'Ubicación de $name';
   }
+
+  @override
+  String get legalPrivacyContent =>
+      '**Política de Privacidad de Aeris**\\n\\n**Última actualización:** 21 de Noviembre de 2024\\n\\n**1. Introducción**\\nAeris es una aplicación gratuita desarrollada para informar sobre la calidad del aire y el clima. No mostramos anuncios ni vendemos tus datos.\\n\\n**2. Recopilación de Datos**\\nAeris NO recopila, almacena ni comparte información personal identificable. No requerimos registro ni inicio de sesión.\\n\\n**3. Datos de Ubicación**\\nPara proporcionarte datos precisos del clima y calidad del aire, la aplicación necesita acceso a tu ubicación.\\n- Las coordenadas se envían a nuestros proveedores de datos (OpenWeather) de forma anónima.\\n- Si guardas una ubicación, las coordenadas se almacenan cifradas en nuestro servidor seguro.\\n- No rastreamos tu historial de movimientos fuera de las consultas que realizas activamente.\\n\\n**4. Servicios de Terceros**\\nUtilizamos servicios de confianza para obtener datos:\\n- **OpenWeather:** Para datos meteorológicos y de calidad del aire.\\n- **Google Gemini:** Para generar recomendaciones de salud y clima basadas en los datos actuales.\\n\\n**5. Contacto**\\nSi tienes preguntas sobre esta política, contáctanos a través de la tienda de aplicaciones.';
+
+  @override
+  String get legalTermsContent =>
+      '**Términos de Servicio de Aeris**\\n\\n**1. Aceptación**\\nAl usar Aeris, aceptas estos términos. La aplicación es gratuita y se proporciona tal cual.\\n\\n**2. Uso de la Aplicación**\\nEres libre de usar la aplicación para fines personales e informativos. No está permitido realizar ingeniería inversa ni intentar dañar nuestros servicios.\\n\\n**3. Descargo de Responsabilidad**\\nLa información de salud y clima es generada por Inteligencia Artificial y proveedores externos.\\n- **No es un consejo médico:** Las recomendaciones son solo informativas. Consulta siempre a un profesional de la salud.\\n- **Precisión:** No garantizamos que los datos sean 100% exactos en todo momento.\\n\\n**4. Cambios**\\nPodemos actualizar estos términos en cualquier momento. El uso continuo implica la aceptación de los cambios.';
 }

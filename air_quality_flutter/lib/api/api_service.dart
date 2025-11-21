@@ -149,6 +149,7 @@ class ApiService {
     required String weatherCondition,
     required int aqi,
     required Map<String, dynamic> components,
+    String language = 'es', // Default to Spanish
   }) async {
     final response = await http.post(
       Uri.parse('$flaskBackendUrl/advice'),
@@ -158,7 +159,8 @@ class ApiService {
         'aqi': {
           'aqi': aqi,
           'components': components,
-        }
+        },
+        'language': language,
       }),
     );
 
@@ -177,6 +179,7 @@ class ApiService {
     required String condition,
     required double minTemp,
     required double maxTemp,
+    String language = 'es', // Default to Spanish
   }) async {
     final response = await http.post(
       Uri.parse('$flaskBackendUrl/weather-advice'),
@@ -186,6 +189,7 @@ class ApiService {
         'condition': condition,
         'min_temp': minTemp,
         'max_temp': maxTemp,
+        'language': language,
       }),
     );
 
