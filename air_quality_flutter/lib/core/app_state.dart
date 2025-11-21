@@ -3,10 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:air_quality_flutter/models/models.dart';
 import '../api/api_service.dart';
+import '../services/alert_monitoring_service.dart';
 
-// Esta clase es el "cerebro" que gestiona el estado global de la aplicación.
 class AppState extends ChangeNotifier {
   final ApiService _apiService = ApiService();
+  final AlertMonitoringService _alertMonitoring = AlertMonitoringService();
   late SharedPreferences _prefs;
 
   // --- THEME STATE ---
@@ -30,6 +31,13 @@ class AppState extends ChangeNotifier {
 
   List<SavedLocation> _recentLocations = [];
   List<SavedLocation> get recentLocations => _recentLocations;
+
+  // --- ALERT LOCATIONS ---
+  Map<String, AlertLocation> _alertLocations = {
+    'home': const AlertLocation(id: 'home', name: 'Casa'),
+    'work': const AlertLocation(id: 'work', name: 'Trabajo'),
+  };
+  Map<String, AlertLocation> get alertLocations => _alertLocations;
 
   AppState() {
     _loadPreferences();
@@ -60,7 +68,21 @@ class AppState extends ChangeNotifier {
           recentJson.map((json) => SavedLocation.fromJson(json)).toList();
     }
 
+    // Cargar ubicaciones de alerta
+    final String? alertsString = _prefs.getString('alertLocations');
+    if (alertsString != null) {
+      final Map<String, dynamic> alertsJson = json.decode(alertsString);
+      _alertLocations = alertsJson.map(
+        (key, value) => MapEntry(key, AlertLocation.fromJson(value)),
+      );
+    }
+
     notifyListeners();
+
+    // Check alert locations after initial load (with delay to ensure everything is ready)
+    Future.delayed(const Duration(seconds: 2), () {
+      checkAlertLocationsNow();
+    });
   }
 
   // --- THEME METHODS ---
@@ -127,5 +149,88 @@ class AppState extends ChangeNotifier {
         _recentLocations.map((loc) => loc.toJson()).toList();
     _prefs.setString('recentLocations', json.encode(recentsJson));
     notifyListeners();
+  }
+
+  // --- ALERT LOCATION METHODS ---
+
+  Future<void> _saveAlertLocations() async {
+    final Map<String, dynamic> alertsJson =
+        _alertLocations.map((key, value) => MapEntry(key, value.toJson()));
+    await _prefs.setString('alertLocations', json.encode(alertsJson));
+  }
+
+  Future<void> updateAlertLocation(
+      String id, double lat, double lon, String displayName) async {
+    final existingLocation = _alertLocations[id];
+    if (existingLocation != null) {
+      _alertLocations[id] = existingLocation.copyWith(
+        latitude: lat,
+        longitude: lon,
+        displayName: displayName,
+        enabled: true,
+      );
+      await _saveAlertLocations();
+      notifyListeners();
+    }
+  }
+
+  void toggleAlertLocation(String id, bool enabled) {
+    final location = _alertLocations[id];
+    if (location != null && location.isConfigured) {
+      _alertLocations[id] = location.copyWith(enabled: enabled);
+      _saveAlertLocations();
+      notifyListeners();
+    }
+  }
+
+  Future<void> addCustomAlertLocation(
+      String name, double lat, double lon, String displayName) async {
+    final id = 'custom_${DateTime.now().millisecondsSinceEpoch}';
+    _alertLocations[id] = AlertLocation(
+      id: id,
+      name: name,
+      latitude: lat,
+      longitude: lon,
+      displayName: displayName,
+      enabled: true,
+    );
+    await _saveAlertLocations();
+    notifyListeners();
+  }
+
+  Future<void> removeAlertLocation(String id) async {
+    if (id.startsWith('custom_')) {
+      _alertLocations.remove(id);
+      await _saveAlertLocations();
+      notifyListeners();
+    }
+  }
+
+  // --- ALERT MONITORING METHODS ---
+
+  /// Checks all enabled alert locations and sends notifications if needed
+  /// Returns the number of locations checked
+  Future<int> checkAlertLocationsNow() async {
+    if (!_alertMonitoring.shouldCheckNow()) {
+      print('Skipping alert check - too soon since last check');
+      return 0;
+    }
+
+    try {
+      print('Checking alert locations for air quality...');
+      final results = await _alertMonitoring.checkAlertLocations(this);
+      _alertMonitoring.markCheckComplete();
+      print('Checked ${results.length} alert locations');
+      return results.length;
+    } catch (e) {
+      print('Error checking alert locations: $e');
+      return 0;
+    }
+  }
+
+  /// Forces an immediate check regardless of time interval
+  Future<int> forceCheckAlertLocations() async {
+    _alertMonitoring.resetCheckTimer();
+    return await checkAlertLocationsNow();
   }
 }

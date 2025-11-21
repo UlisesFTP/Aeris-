@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,7 @@ import 'screens/welcome_screen.dart';
 import 'screens/main_shell.dart';
 import 'theme.dart';
 import 'core/app_state.dart';
+import 'api/notifications_service.dart';
 
 Future<void> main() async {
   // Asegurarse de que Flutter esté listo
@@ -16,6 +18,13 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Inicializar servicio de notificaciones (solo en plataformas móviles)
+  // En web, las notificaciones locales no están soportadas completamente
+  if (!kIsWeb) {
+    final notificationService = NotificationService();
+    await notificationService.initNotifications();
+  }
 
   // Comprobar si se debe mostrar la pantalla de bienvenida
   final prefs = await SharedPreferences.getInstance();

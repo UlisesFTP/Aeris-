@@ -169,3 +169,63 @@ class HealthAdvice {
     );
   }
 }
+
+class AlertLocation {
+  final String id; // 'home', 'work', 'custom_123456'
+  final String name; // Display name
+  final double? latitude;
+  final double? longitude;
+  final String? displayName; // Full address from search
+  final bool enabled; // Alert enabled for this location
+
+  const AlertLocation({
+    required this.id,
+    required this.name,
+    this.latitude,
+    this.longitude,
+    this.displayName,
+    this.enabled = true,
+  });
+
+  bool get isConfigured => latitude != null && longitude != null;
+
+  factory AlertLocation.fromJson(Map<String, dynamic> json) {
+    return AlertLocation(
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? 'Ubicación',
+      latitude: json['latitude'] as double?,
+      longitude: json['longitude'] as double?,
+      displayName: json['displayName'] as String?,
+      enabled: json['enabled'] as bool? ?? true,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (displayName != null) 'displayName': displayName,
+      'enabled': enabled,
+    };
+  }
+
+  AlertLocation copyWith({
+    String? id,
+    String? name,
+    double? latitude,
+    double? longitude,
+    String? displayName,
+    bool? enabled,
+  }) {
+    return AlertLocation(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      displayName: displayName ?? this.displayName,
+      enabled: enabled ?? this.enabled,
+    );
+  }
+}
