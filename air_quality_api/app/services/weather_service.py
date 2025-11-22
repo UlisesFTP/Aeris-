@@ -1,7 +1,15 @@
 import requests
 import os
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+import pybreaker
 
 class WeatherService:
+    # Circuit breaker for OpenWeather API
+    circuit_breaker = pybreaker.CircuitBreaker(
+        fail_max=5,  # Open circuit after 5 failures
+        reset_timeout=60  # Stay open for 60 seconds (correct parameter name)
+    )
+    
     def __init__(self, api_key):
         """
         El constructor ahora requiere la clave de la API.
@@ -10,10 +18,27 @@ class WeatherService:
             raise ValueError("La clave de API de OpenWeather no puede estar vacía.")
         self.api_key = api_key
         self.base_url = "https://api.openweathermap.org/data/2.5"
+        
+        # Connection pooling with requests.Session
+        self.session = requests.Session()
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=10,
+            pool_maxsize=20,
+            max_retries=0  # We handle retries with tenacity
+        )
+        self.session.mount('https://', adapter)
+        self.session.mount('http://', adapter)
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        retry=retry_if_exception_type((requests.exceptions.RequestException, requests.exceptions.Timeout))
+    )
+    @circuit_breaker
     def get_air_quality(self, lat, lon):
         """
         Obtiene los datos de calidad del aire de la API de OpenWeatherMap.
+        Includes retry logic with exponential backoff and circuit breaker.
         """
         params = {
             'lat': lat,
@@ -21,7 +46,11 @@ class WeatherService:
             'appid': self.api_key
         }
         try:
-            response = requests.get(f"{self.base_url}/air_pollution", params=params, timeout=10)
+            response = self.session.get(
+                f"{self.base_url}/air_pollution", 
+                params=params, 
+                timeout=10
+            )
             response.raise_for_status()
             
             raw_data = response.json()
@@ -37,10 +66,19 @@ class WeatherService:
             }
             return clean_data
 
+        except pybreaker.CircuitBreakerError:
+            print("Circuit breaker is OPEN - OpenWeather API is unavailable")
+            return {"error": "Service temporarily unavailable"}
         except requests.exceptions.RequestException as e:
             print(f"Error al llamar a la API de OpenWeather (Air Quality): {e}")
             return {"error": f"No se pudo conectar a la API de OpenWeather: {e}"}
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        retry=retry_if_exception_type((requests.exceptions.RequestException, requests.exceptions.Timeout))
+    )
+    @circuit_breaker
     def get_current_weather(self, lat, lon):
         """
         Obtiene el clima actual.
@@ -53,7 +91,11 @@ class WeatherService:
             'lang': 'es'
         }
         try:
-            response = requests.get(f"https://api.openweathermap.org/data/2.5/weather", params=params, timeout=10)
+            response = self.session.get(
+                "https://api.openweathermap.org/data/2.5/weather", 
+                params=params, 
+                timeout=10
+            )
             response.raise_for_status()
             data = response.json()
             
@@ -62,10 +104,19 @@ class WeatherService:
                 "condition": data['weather'][0]['description'],
                 "icon": data['weather'][0]['icon']
             }
+        except pybreaker.CircuitBreakerError:
+            print("Circuit breaker is OPEN - OpenWeather API is unavailable")
+            return None
         except Exception as e:
             print(f"Error getting weather: {e}")
             return None
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        retry=retry_if_exception_type((requests.exceptions.RequestException, requests.exceptions.Timeout))
+    )
+    @circuit_breaker
     def get_forecast(self, lat, lon):
         """
         Obtiene el pronóstico de 5 días.
@@ -78,7 +129,11 @@ class WeatherService:
             'lang': 'es'
         }
         try:
-            response = requests.get(f"https://api.openweathermap.org/data/2.5/forecast", params=params, timeout=10)
+            response = self.session.get(
+                f"https://api.openweathermap.org/data/2.5/forecast", 
+                params=params, 
+                timeout=10
+            )
             response.raise_for_status()
             data = response.json()
             
@@ -107,10 +162,19 @@ class WeatherService:
             
             return forecast_list[:5]
             
+        except pybreaker.CircuitBreakerError:
+            print("Circuit breaker is OPEN - OpenWeather API is unavailable")
+            return []
         except Exception as e:
             print(f"Error getting forecast: {e}")
             return []
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        retry=retry_if_exception_type((requests.exceptions.RequestException, requests.exceptions.Timeout))
+    )
+    @circuit_breaker
     def get_air_quality_history(self, lat, lon, days=7):
         """
         Fetches historical air quality data for the past N days.
@@ -132,7 +196,7 @@ class WeatherService:
         }
         
         try:
-            response = requests.get(
+            response = self.session.get(
                 f"{self.base_url}/air_pollution/history",
                 params=params,
                 timeout=10
@@ -151,6 +215,10 @@ class WeatherService:
             
             return history
             
+        except pybreaker.CircuitBreakerError:
+            print("Circuit breaker is OPEN - OpenWeather API is unavailable")
+            return []
         except Exception as e:
             print(f"Error fetching air quality history: {e}")
             return []
+

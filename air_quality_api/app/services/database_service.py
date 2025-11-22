@@ -1,32 +1,46 @@
 from pymongo import MongoClient, errors
 from datetime import datetime, timedelta
 from bson import ObjectId
-import certifi 
+import certifi
+import threading 
 
 class DatabaseService:
     _instance = None
+    _lock = threading.Lock()  # Thread-safe singleton initialization
 
     def __new__(cls, *args, **kwargs):
+        # Double-checked locking pattern for thread safety
         if not cls._instance:
-            cls._instance = super(DatabaseService, cls).__new__(cls)
+            with cls._lock:
+                if not cls._instance:
+                    cls._instance = super(DatabaseService, cls).__new__(cls)
         return cls._instance
 
     def __init__(self, db_uri, db_name):
+        # Only initialize once
         if not hasattr(self, 'client'):
-            try:
-                self.client = MongoClient(
-                    db_uri,
-                    tls=True,
-                    tlsCAFile=certifi.where(),
-                    serverSelectionTimeoutMS=5000 
-                )
-                self.client.admin.command('ping')
-                print("Conexión a MongoDB establecida.")
-                self.db = self.client[db_name]
-            except errors.ConnectionFailure as e:
-                print(f"ERROR CRÍTICO: No se pudo conectar a MongoDB. Error: {e}")
-                self.client = None
-                self.db = None
+            with self._lock:
+                if not hasattr(self, 'client'):
+                    try:
+                        self.client = MongoClient(
+                            db_uri,
+                            tls=True,
+                            tlsCAFile=certifi.where(),
+                            serverSelectionTimeoutMS=5000,
+                            # Connection pool configuration for production
+                            maxPoolSize=50,  # Maximum connections in pool
+                            minPoolSize=10,   # Minimum connections to maintain
+                            maxIdleTimeMS=45000,  # Close idle connections after 45s
+                            retryWrites=True,  # Automatically retry failed writes
+                            retryReads=True,   # Automatically retry failed reads
+                        )
+                        self.client.admin.command('ping')
+                        print("Conexión a MongoDB establecida con pool de conexiones.")
+                        self.db = self.client[db_name]
+                    except errors.ConnectionFailure as e:
+                        print(f"ERROR CRÍTICO: No se pudo conectar a MongoDB. Error: {e}")
+                        self.client = None
+                        self.db = None
                 
     def save_reading(self, reading_data):
         if self.db is None: return

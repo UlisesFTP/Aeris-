@@ -1,21 +1,65 @@
 services:
-  # El servicio de nuestra API de Flask
+  # Flask API service
   api:
-    build: . # Construye la imagen a partir del Dockerfile en la misma carpeta
+    build: .
     ports:
-      - "5000:5000" # Mapea el puerto 5000 del contenedor al 5000 de tu máquina
+      - "5000:5000"
     volumes:
-      - .:/app # Monta el directorio actual para ver cambios en vivo sin reconstruir
+      - .:/app
     environment:
-      # Flask necesita saber qué archivo correr
       - FLASK_APP=main.py
-    # El archivo .env se leerá automáticamente para las demás variables
+      - PYTHONUNBUFFERED=1
     depends_on:
-      - redis # Asegura que Redis se inicie antes que la API
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import requests; requests.get('http://localhost:5000/api/health', timeout=5)",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # El servicio de Redis para el caché
+  # Redis cache service
   redis:
-    image: "redis:alpine" # Usa la imagen oficial de Redis
+    image: "redis:alpine"
     ports:
-      - "6379:6379" # Mapea el puerto de Redis
-
+      - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"

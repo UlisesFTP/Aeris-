@@ -6,7 +6,6 @@ from config import Config
 from ..services.weather_service import WeatherService
 from ..services.cache_service import CacheService
 from ..services.database_service import DatabaseService
-
 from ..services.gemini_service import GeminiService
 
 quality_bp = Blueprint('quality', __name__)
@@ -15,6 +14,12 @@ weather_service = WeatherService(api_key=Config.OPENWEATHER_API_KEY)
 cache_service = CacheService(redis_url=Config.REDIS_URL)
 db_service = DatabaseService(db_uri=Config.MONGO_URI, db_name=Config.MONGO_DB_NAME)
 gemini_service = GeminiService(api_key=Config.GEMINI_API_KEY)
+
+# Placeholder limiter object (will be replaced by app initialization)
+class _LimiterPlaceholder:
+    _limiter = None
+
+limiter = _LimiterPlaceholder()
 
 # Un helper para un mejor logging que funciona bien con Docker
 def log_and_flush(message):

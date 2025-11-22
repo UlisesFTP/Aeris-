@@ -7,3 +7,8 @@ Flask-Cors
 gunicorn
 certifi
 google-generativeai
+Flask-Limiter
+marshmallow
+pybreaker
+tenacity
+structlog

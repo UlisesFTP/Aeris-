@@ -1,25 +1,31 @@
-# Usamos una imagen base explícita y estable (Debian Bullseye)
+# Use explicit and stable Python base image (Debian Bullseye)
 FROM python:3.11-bullseye
 
-# Establecemos el directorio de trabajo dentro del contenedor
+# Set working directory
 WORKDIR /app
 
-# --- PASO CLAVE FINAL: Instalar herramientas de compilación y librerías SSL ---
-# Esto proporciona al entorno las herramientas necesarias para que pymongo
-# compile sus dependencias de seguridad y se conecte a MongoDB Atlas.
-RUN apt-get update && apt-get install -y ca-certificates build-essential libssl-dev
+# Install build tools and SSL libraries for pymongo
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    build-essential \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*  
 
-# Copiamos el archivo de dependencias
+# Copy requirements file
 COPY requirements.txt .
 
-# Instalamos las dependencias de Python
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiamos el resto del código de la aplicación
+# Copy application code
 COPY . .
 
-# Exponemos el puerto que usará Flask
+# Expose Flask port
 EXPOSE 5000
 
-# El comando que se ejecutará para iniciar la aplicación
-CMD ["flask", "run", "--host=0.0.0.0"]
+# Add health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:5000/api/health', timeout=5)"
+
+# Use Gunicorn for production
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "main:app"]

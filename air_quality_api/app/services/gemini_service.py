@@ -1,16 +1,32 @@
 import google.generativeai as genai
+import hashlib
+import json
 import os
 
 class GeminiService:
     def __init__(self, api_key):
+        """
+        Inicializa el servicio de Gemini con API key.
+       """
         if not api_key:
             raise ValueError("La clave de API de Gemini no puede estar vacía.")
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
-
+        
+        # Cache service for Gemini responses
+        from .cache_service import CacheService
+        from config import Config
+        self.cache_service = CacheService(Config.REDIS_URL)
+    
+    def _get_cache_key(self, prompt):
+        """Generate cache key from prompt hash"""
+        prompt_hash = hashlib.md5(prompt.encode()).hexdigest()
+        return f"gemini:{prompt_hash}"
+    
     def get_health_advice(self, weather_summary, aqi_data, language='es'):
         """
         Genera consejos de salud personalizados usando Gemini.
+        Uses caching to avoid redundant API calls for identical prompts.
         """
         try:
             if language == 'en':
@@ -46,8 +62,22 @@ class GeminiService:
                 Componentes: {aqi_data.get('components')}
                 """
             
+            # Check cache first
+            cache_key = self._get_cache_key(prompt)
+            cached_response = self.cache_service.get(cache_key)
+            if cached_response:
+                print(f"Cache HIT for Gemini health advice")
+                return cached_response.decode('utf-8') if isinstance(cached_response, bytes) else cached_response
+            
+            # Call Gemini API
             response = self.model.generate_content(prompt)
-            return response.text.strip()
+            advice = response.text.strip()
+            
+            # Cache response for 1 hour (advice doesn't change frequently)
+            self.cache_service.set(cache_key,  advice, ttl_seconds=3600)
+            print(f"Cache MISS for Gemini health advice - cached for 1 hour")
+            
+            return advice
         except Exception as e:
             print(f"Error al llamar a Gemini: {e}")
             if language == 'en':
@@ -58,6 +88,7 @@ class GeminiService:
     def get_weather_advice(self, weather_data, language='es'):
         """
         Genera consejos personalizados para el clima usando Gemini.
+        Uses caching to avoid redundant API calls for identical prompts.
         """
         try:
             temp = weather_data.get('temp')
@@ -100,8 +131,22 @@ class GeminiService:
                 Máxima: {max_temp}°C
                 """
             
+            # Check cache first
+            cache_key = self._get_cache_key(prompt)
+            cached_response = self.cache_service.get(cache_key)
+            if cached_response:
+                print(f"Cache HIT for Gemini weather advice")
+                return cached_response.decode('utf-8') if isinstance(cached_response, bytes) else cached_response
+            
+            # Call Gemini API
             response = self.model.generate_content(prompt)
-            return response.text.strip()
+            advice = response.text.strip()
+            
+            # Cache response for 1 hour
+            self.cache_service.set(cache_key, advice, ttl_seconds=3600)
+            print(f"Cache MISS for Gemini weather advice - cached for 1 hour")
+            
+            return advice
         except Exception as e:
             print(f"Error al llamar a Gemini para consejo del clima: {e}")
             if language == 'en':
