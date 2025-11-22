@@ -9,7 +9,8 @@ backlog = 2048
 # Worker processes
 # Recommended: (2 x $num_cores) + 1
 workers = multiprocessing.cpu_count() * 2 + 1
-worker_class = "sync"  # Use 'gevent' for async I/O if needed
+worker_class = "gthread"  # Use 'gevent' for async I/O if needed
+threads = 4
 worker_connections = 1000
 max_requests = 1000  # Restart workers after this many requests (prevents memory leaks)
 max_requests_jitter = 50  # Add randomness to max_requests
