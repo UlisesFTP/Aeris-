@@ -297,12 +297,16 @@ class AlertsScreen extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: theme.colorScheme.primary),
+                child: Icon(
+                  icon,
+                  color: theme.colorScheme.primary,
+                  size: 28,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(

@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 String get flaskBackendUrl {
-  return dotenv.env['API_URL'] ?? "http://127.0.0.1:5000/api";
+  return "http://127.0.0.1:5000/api";
 }
 
 class ApiService {
