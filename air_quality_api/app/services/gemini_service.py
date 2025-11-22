@@ -13,10 +13,9 @@ class GeminiService:
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
         
-        # Cache service for Gemini responses
+        # Cache service for Gemini responses (uses Upstash Redis)
         from .cache_service import CacheService
-        from config import Config
-        self.cache_service = CacheService(Config.REDIS_URL)
+        self.cache_service = CacheService()
     
     def _get_cache_key(self, prompt):
         """Generate cache key from prompt hash"""

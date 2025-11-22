@@ -31,9 +31,10 @@ def create_app():
         }
     })
     
-    # Initialize rate limiter with Redis backend
+    # Initialize rate limiter with Upstash Redis backend
+    # Upstash Redis credentials are loaded from environment variables
     from .middleware.rate_limiter import init_limiter
-    limiter = init_limiter(app, Config.REDIS_URL)
+    limiter = init_limiter(app, redis_url=None)
     
     # Register error handlers
     @app.errorhandler(400)
@@ -101,11 +102,20 @@ def create_app():
             health_status["services"]["mongodb"] = "error"
             health_status["status"] = "unhealthy"
         
-        # Check Redis connection
+        # Check Upstash Redis connection
         try:
-            cache_service = CacheService(Config.REDIS_URL)
-            if cache_service.client and cache_service.client.ping():
-                health_status["services"]["redis"] = "connected"
+            cache_service = CacheService()
+            if cache_service.client:
+                # Test with a simple operation instead of ping()
+                # Upstash REST API doesn't support ping() reliably
+                test_key = "__health_check__"
+                cache_service.client.set(test_key, "ok", ex=10)
+                result = cache_service.client.get(test_key)
+                if result:
+                    health_status["services"]["redis"] = "connected"
+                else:
+                    health_status["services"]["redis"] = "disconnected"
+                    health_status["status"] = "degraded"
             else:
                 health_status["services"]["redis"] = "disconnected"
                 health_status["status"] = "degraded"
@@ -132,23 +142,16 @@ def create_app():
             "uptime": "calculated_on_demand"
         }
         
-        # Try to get Redis info
+        # Try to get Upstash Redis info
         try:
-            cache_service = CacheService(Config.REDIS_URL)
+            cache_service = CacheService()
             if cache_service.client:
-                info = cache_service.client.info("stats")
+                # Upstash REST API doesn't support INFO command
+                # Just report that Redis is available
                 metrics["redis"] = {
-                    "total_connections_received": info.get("total_connections_received", 0),
-                    "total_commands_processed": info.get("total_commands_processed", 0),
-                    "keyspace_hits": info.get("keyspace_hits", 0),
-                    "keyspace_misses": info.get("keyspace_misses", 0),
+                    "status": "connected",
+                    "note": "Upstash REST API - detailed stats unavailable"
                 }
-                # Calculate cache hit rate
-                hits = metrics["redis"]["keyspace_hits"]
-                misses = metrics["redis"]["keyspace_misses"]
-                total = hits + misses
-                if total > 0:
-                    metrics["redis"]["cache_hit_rate"] = round((hits / total) * 100, 2)
         except Exception as e:
             logger.error("metrics_redis_error", error=str(e))
             metrics["redis"] = "unavailable"

@@ -12,3 +12,4 @@ marshmallow
 pybreaker
 tenacity
 structlog
+upstash-redis

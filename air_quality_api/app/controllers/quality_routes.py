@@ -11,7 +11,7 @@ from ..services.gemini_service import GeminiService
 quality_bp = Blueprint('quality', __name__)
 
 weather_service = WeatherService(api_key=Config.OPENWEATHER_API_KEY)
-cache_service = CacheService(redis_url=Config.REDIS_URL)
+cache_service = CacheService()  # Uses Upstash Redis from environment
 db_service = DatabaseService(db_uri=Config.MONGO_URI, db_name=Config.MONGO_DB_NAME)
 gemini_service = GeminiService(api_key=Config.GEMINI_API_KEY)
 
