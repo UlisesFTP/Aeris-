@@ -142,11 +142,13 @@ def get_weather_data():
     try:
         lat = request.args.get('lat', type=float)
         lon = request.args.get('lon', type=float)
+        lang = request.args.get('lang', default='es', type=str)
+        
         if lat is None or lon is None:
             return jsonify({"error": "Faltan los parámetros 'lat' y 'lon'"}), 400
 
-        current_weather = weather_service.get_current_weather(lat, lon)
-        forecast = weather_service.get_forecast(lat, lon)
+        current_weather = weather_service.get_current_weather(lat, lon, lang)
+        forecast = weather_service.get_forecast(lat, lon, lang)
 
         return jsonify({
             "current": current_weather,

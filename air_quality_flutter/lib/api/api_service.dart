@@ -7,18 +7,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 // --- URL PARA DEPURACIÓN LOCAL ---
 // Detecta automáticamente si estamos en Web o en Android Emulator
 
-//String get flaskBackendUrl {
-//if (kIsWeb) {
-//return "http://127.0.0.1:5000/api";
-//} else {
-//return "http://10.0.2.2:5000/api";
-//}
-//}
-
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 String get flaskBackendUrl {
-  return dotenv.env['API_URL'] ?? "http://127.0.0.1:5000/api";
+  return "http://127.0.0.1:5000/api";
 }
 
 class ApiService {
@@ -36,9 +28,6 @@ class ApiService {
       _userId =
           'user_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(9999)}';
       await prefs.setString('user_id', _userId!);
-      print('Generated new user ID: $_userId');
-    } else {
-      print('Loaded existing user ID: $_userId');
     }
 
     return _userId!;
@@ -128,10 +117,11 @@ class ApiService {
   }
 
   // --- OBTENER CLIMA Y PRONÓSTICO ---
-  Future<Map<String, dynamic>> getWeather(
-      double latitude, double longitude) async {
+  Future<Map<String, dynamic>> getWeather(double latitude, double longitude,
+      {String language = 'es'}) async {
     final response = await http.get(
-      Uri.parse('$flaskBackendUrl/weather?lat=$latitude&lon=$longitude'),
+      Uri.parse(
+          '$flaskBackendUrl/weather?lat=$latitude&lon=$longitude&lang=$language'),
     );
     if (response.statusCode == 200) {
       final data = json.decode(response.body);

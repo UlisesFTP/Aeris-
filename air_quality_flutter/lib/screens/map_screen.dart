@@ -137,19 +137,20 @@ class MapScreenState extends State<MapScreen> {
     );
 
     try {
+      // Get current language code
+      final languageCode = Localizations.localeOf(context).languageCode;
+
       final responses = await Future.wait([
         _apiService.getAirQuality(location.latitude, location.longitude),
         _apiService.getHistory(location.latitude, location.longitude),
-        _apiService.getWeather(location.latitude, location.longitude),
+        _apiService.getWeather(location.latitude, location.longitude,
+            language: languageCode),
       ]);
 
       final airData = responses[0] as AirQualityData;
       final history = responses[1] as List<HistoricalDataPoint>;
       final weatherData = responses[2] as Map<String, dynamic>;
       final newPoint = LatLng(location.latitude, location.longitude);
-
-      // Get current language code
-      final languageCode = Localizations.localeOf(context).languageCode;
 
       // Obtener consejo de Gemini (para calidad del aire)
       final advice = await _apiService.getAdvice(

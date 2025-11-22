@@ -79,16 +79,20 @@ class WeatherService:
         retry=retry_if_exception_type((requests.exceptions.RequestException, requests.exceptions.Timeout))
     )
     @circuit_breaker
-    def get_current_weather(self, lat, lon):
+    def get_current_weather(self, lat, lon, lang='es'):
         """
         Obtiene el clima actual.
+        Args:
+            lat: Latitude
+            lon: Longitude
+            lang: Language code (es, en, etc.)
         """
         params = {
             'lat': lat,
             'lon': lon,
             'appid': self.api_key,
             'units': 'metric',
-            'lang': 'es'
+            'lang': lang
         }
         try:
             response = self.session.get(
@@ -117,16 +121,20 @@ class WeatherService:
         retry=retry_if_exception_type((requests.exceptions.RequestException, requests.exceptions.Timeout))
     )
     @circuit_breaker
-    def get_forecast(self, lat, lon):
+    def get_forecast(self, lat, lon, lang='es'):
         """
         Obtiene el pronóstico de 5 días.
+        Args:
+            lat: Latitude
+            lon: Longitude
+            lang: Language code (es, en, etc.)
         """
         params = {
             'lat': lat,
             'lon': lon,
             'appid': self.api_key,
             'units': 'metric',
-            'lang': 'es'
+            'lang': lang
         }
         try:
             response = self.session.get(
