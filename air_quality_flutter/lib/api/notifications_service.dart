@@ -9,7 +9,7 @@ class NotificationService {
   Future<void> initNotifications() async {
     // --- 1. Configuración de Notificaciones Locales ---
     const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@drawable/ic_notification');
     const InitializationSettings settings =
         InitializationSettings(android: androidSettings);
     await _localNotificationsPlugin.initialize(settings);
