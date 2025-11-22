@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import '../api/api_service.dart';
 import '../models/models.dart';
+import '../services/message_service.dart';
 
 class LocationPickerDialog extends StatefulWidget {
   final LatLng? initialLocation;
@@ -66,9 +67,7 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
         _isSearching = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al buscar: $e')),
-        );
+        MessageService.showError(context, 'Error al buscar: $e');
       }
     }
   }
@@ -99,9 +98,7 @@ class _LocationPickerDialogState extends State<LocationPickerDialog> {
       _mapController.move(_selectedLocation, 15.0);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al obtener ubicación: $e')),
-        );
+        MessageService.showError(context, 'Error al obtener ubicación: $e');
       }
     }
   }

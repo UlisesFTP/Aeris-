@@ -5,6 +5,7 @@ import '../core/app_state.dart';
 import 'main_shell.dart';
 
 import 'package:air_quality_flutter/l10n/app_localizations.dart';
+import '../services/message_service.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -235,9 +236,8 @@ class _HistoryScreenState extends State<HistoryScreen>
             onPressed: () {
               Navigator.pop(ctx);
               context.read<AppState>().removeSavedLocation(location.id!);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.historyDeleted(location.name))),
-              );
+              MessageService.showSuccess(
+                  context, l10n.historyDeleted(location.name));
             },
             child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
           ),

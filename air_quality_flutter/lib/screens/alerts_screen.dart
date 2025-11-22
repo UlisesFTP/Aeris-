@@ -5,6 +5,7 @@ import '../core/app_state.dart';
 import '../widgets/location_picker_dialog.dart';
 
 import 'package:air_quality_flutter/l10n/app_localizations.dart';
+import '../services/message_service.dart';
 
 class AlertsScreen extends StatelessWidget {
   const AlertsScreen({super.key});
@@ -103,20 +104,10 @@ class AlertsScreen extends StatelessWidget {
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () async {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(l10n.alertsVerifying),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
+              MessageService.showInfo(context, l10n.alertsVerifying);
               final count = await appState.forceCheckAlertLocations();
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(l10n.alertsVerified(count)),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+                MessageService.showSuccess(context, l10n.alertsVerified(count));
               }
             },
             icon: const Icon(Icons.refresh),

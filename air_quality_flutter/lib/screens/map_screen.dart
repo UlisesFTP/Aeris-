@@ -14,6 +14,7 @@ import '../api/notifications_service.dart';
 import '../widgets/history_chart.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:air_quality_flutter/l10n/app_localizations.dart';
+import '../services/message_service.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -89,8 +90,7 @@ class MapScreenState extends State<MapScreen> {
           longitude: position.longitude));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error de Geolocalización: $e')));
+        MessageService.showError(context, 'Error de Geolocalización: $e');
       }
       setState(() => _isLoading = false);
     }
@@ -108,8 +108,7 @@ class MapScreenState extends State<MapScreen> {
       setState(() => _searchResults = results);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error al buscar: $e')));
+        MessageService.showError(context, 'Error al buscar: $e');
       }
     } finally {
       setState(() => _isLoading = false);
@@ -202,8 +201,8 @@ class MapScreenState extends State<MapScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al obtener datos: $e')));
+        // Simplificado para el usuario
+        MessageService.showError(context, 'Error de conexión');
       }
     } finally {
       setState(() => _isLoading = false);
@@ -240,11 +239,8 @@ class MapScreenState extends State<MapScreen> {
                     _currentLocation!.longitude,
                   );
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content:
-                            Text(l10n.mapLocationSaved(nameController.text))),
-                  );
+                  MessageService.showSuccess(
+                      context, l10n.mapLocationSaved(nameController.text));
                 }
               },
               child: Text(l10n.mapSave),
