@@ -352,6 +352,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notifAirQualityAlert => 'Air Quality Alert';
+
+  @override
+  String notifWeatherAt(int temp, String location) {
+    return '$temp°C in $location';
+  }
+
+  @override
+  String notifWeatherForecast(String condition, int maxTemp, int minTemp) {
+    return '$condition. Max: $maxTemp° Min: $minTemp°';
+  }
+
+  @override
+  String notifAirQualityBody(String location, String level, int aqi) {
+    return '$location: $level (AQI: $aqi)';
+  }
+
+  @override
   String get mapHealthAdviceAI => 'Health Advice (AI)';
 
   @override

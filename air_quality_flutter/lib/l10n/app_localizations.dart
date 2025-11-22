@@ -746,6 +746,30 @@ abstract class AppLocalizations {
   /// **'Error al obtener datos: {error}'**
   String mapErrorGettingData(String error);
 
+  /// No description provided for @notifAirQualityAlert.
+  ///
+  /// In es, this message translates to:
+  /// **'Alerta de Calidad del Aire'**
+  String get notifAirQualityAlert;
+
+  /// No description provided for @notifWeatherAt.
+  ///
+  /// In es, this message translates to:
+  /// **'{temp}°C en {location}'**
+  String notifWeatherAt(int temp, String location);
+
+  /// No description provided for @notifWeatherForecast.
+  ///
+  /// In es, this message translates to:
+  /// **'{condition}. Máx: {maxTemp}° Mín: {minTemp}°'**
+  String notifWeatherForecast(String condition, int maxTemp, int minTemp);
+
+  /// No description provided for @notifAirQualityBody.
+  ///
+  /// In es, this message translates to:
+  /// **'{location}: {level} (AQI: {aqi})'**
+  String notifAirQualityBody(String location, String level, int aqi);
+
   /// No description provided for @mapHealthAdviceAI.
   ///
   /// In es, this message translates to:

@@ -13,7 +13,10 @@ class AlertMonitoringService {
 
   /// Checks air quality for all enabled alert locations
   /// Returns a map of location names to their AQI values
-  Future<Map<String, int>> checkAlertLocations(AppState appState) async {
+  Future<Map<String, int>> checkAlertLocations(
+    AppState appState, {
+    required String languageCode,
+  }) async {
     final results = <String, int>{};
     final locationsToCheck = appState.alertLocations.values
         .where((loc) => loc.enabled && loc.isConfigured)
@@ -31,12 +34,16 @@ class AlertMonitoringService {
 
         // Send notification if AQI exceeds threshold (only on mobile)
         if (airQuality.aqi >= _aqiAlertThreshold && !kIsWeb) {
-          await _sendAlert(location.name, airQuality.aqi);
+          await _sendAlert(
+            location.name,
+            airQuality.aqi,
+            languageCode: languageCode,
+          );
         }
 
         // 2. Check Weather (if enabled)
         if (appState.notificationSettings['weather'] == true && !kIsWeb) {
-          await _checkWeatherAndNotify(location);
+          await _checkWeatherAndNotify(location, languageCode: languageCode);
         }
       } catch (e) {
         print('Error checking alerts for ${location.name}: $e');
@@ -47,7 +54,10 @@ class AlertMonitoringService {
   }
 
   /// Checks weather and sends a notification if appropriate
-  Future<void> _checkWeatherAndNotify(AlertLocation location) async {
+  Future<void> _checkWeatherAndNotify(
+    AlertLocation location, {
+    required String languageCode,
+  }) async {
     // Simple rate limiting: only send weather notification if we haven't sent one recently
     // For now, we'll rely on the main check interval (1 hour), but ideally this should be daily.
     // To avoid spamming every hour, let's check if the hour is e.g. 8 AM or 6 PM,
@@ -58,6 +68,7 @@ class AlertMonitoringService {
       final weatherData = await _apiService.getWeather(
         location.latitude!,
         location.longitude!,
+        language: languageCode,
       );
 
       final current = weatherData['current'] as WeatherData;
@@ -69,6 +80,7 @@ class AlertMonitoringService {
           location.name,
           current,
           today,
+          languageCode: languageCode,
         );
       }
     } catch (e) {
@@ -79,8 +91,9 @@ class AlertMonitoringService {
   Future<void> _sendWeatherNotification(
     String locationName,
     WeatherData current,
-    ForecastItem today,
-  ) async {
+    ForecastItem today, {
+    required String languageCode,
+  }) async {
     try {
       // Fetch AI-generated weather advice
       final weatherAdvice = await _apiService.getWeatherAdvice(
@@ -88,9 +101,12 @@ class AlertMonitoringService {
         condition: current.condition,
         minTemp: today.minTemp,
         maxTemp: today.maxTemp,
+        language: languageCode,
       );
 
-      final title = '${current.temp.round()}°C en $locationName';
+      // Use simple translations for titles
+      final title =
+          '${current.temp.round()}°${languageCode == 'en' ? 'C in' : 'C en'} $locationName';
       final body = '${weatherAdvice.advice}';
 
       await _notificationService.showNotification(
@@ -100,9 +116,12 @@ class AlertMonitoringService {
     } catch (e) {
       print('Error sending weather notification: $e');
       // Fallback to simple notification
-      final title = '${current.temp.round()}°C en $locationName';
-      final body =
-          '${current.condition}. Máx: ${today.maxTemp.round()}° Mín: ${today.minTemp.round()}°';
+      final title =
+          '${current.temp.round()}°${languageCode == 'en' ? 'C in' : 'C en'} $locationName';
+      final maxMin = languageCode == 'en'
+          ? 'Max: ${today.maxTemp.round()}° Min: ${today.minTemp.round()}°'
+          : 'Máx: ${today.maxTemp.round()}° Mín: ${today.minTemp.round()}°';
+      final body = '${current.condition}. $maxMin';
 
       await _notificationService.showNotification(
         title: title,
@@ -112,33 +131,60 @@ class AlertMonitoringService {
   }
 
   /// Sends a notification for poor air quality
-  Future<void> _sendAlert(String locationName, int aqi) async {
-    final aqiLevel = _getAqiLevelText(aqi);
+  Future<void> _sendAlert(
+    String locationName,
+    int aqi, {
+    required String languageCode,
+  }) async {
+    final aqiLevel = _getAqiLevelText(aqi, languageCode);
     final aqiColor = _getAqiEmoji(aqi);
+    final alertTitle = languageCode == 'en'
+        ? 'Air Quality Alert'
+        : 'Alerta de Calidad del Aire';
 
     await _notificationService.showNotification(
-      title: '$aqiColor Alerta de Calidad del Aire',
+      title: '$aqiColor $alertTitle',
       body: '$locationName: $aqiLevel (AQI: $aqi)',
     );
   }
 
   /// Gets the text description for an AQI level
-  String _getAqiLevelText(int aqi) {
-    switch (aqi) {
-      case 1:
-        return 'Bueno';
-      case 2:
-        return 'Regular';
-      case 3:
-        return 'Moderado';
-      case 4:
-        return 'Malo';
-      case 5:
-        return 'Muy Malo';
-      case 6:
-        return 'Peligroso';
-      default:
-        return 'Desconocido';
+  String _getAqiLevelText(int aqi, String languageCode) {
+    if (languageCode == 'en') {
+      switch (aqi) {
+        case 1:
+          return 'Good';
+        case 2:
+          return 'Fair';
+        case 3:
+          return 'Moderate';
+        case 4:
+          return 'Poor';
+        case 5:
+          return 'Very Poor';
+        case 6:
+          return 'Dangerous';
+        default:
+          return 'Unknown';
+      }
+    } else {
+      // Spanish (default)
+      switch (aqi) {
+        case 1:
+          return 'Bueno';
+        case 2:
+          return 'Regular';
+        case 3:
+          return 'Moderado';
+        case 4:
+          return 'Malo';
+        case 5:
+          return 'Muy Malo';
+        case 6:
+          return 'Peligroso';
+        default:
+          return 'Desconocido';
+      }
     }
   }
 

@@ -45,10 +45,45 @@ Future<void> main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final bool showWelcome;
 
   const MyApp({super.key, required this.showWelcome});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Set initial language after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateLanguage();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeLocales(List<Locale>? locales) {
+    _updateLanguage();
+  }
+
+  void _updateLanguage() {
+    if (mounted) {
+      final locale = WidgetsBinding.instance.platformDispatcher.locale;
+      final languageCode = locale.languageCode;
+      Provider.of<AppState>(context, listen: false)
+          .updateLanguage(languageCode);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +107,7 @@ class MyApp extends StatelessWidget {
         Locale('es'), // Español
         Locale('en'), // English
       ],
-      home: showWelcome ? const WelcomeScreen() : const MainShell(),
+      home: widget.showWelcome ? const WelcomeScreen() : const MainShell(),
     );
   }
 }

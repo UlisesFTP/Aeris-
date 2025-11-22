@@ -46,6 +46,15 @@ class AppState extends ChangeNotifier {
   TimeFilter _currentHistoryFilter = TimeFilter.week;
   TimeFilter get currentHistoryFilter => _currentHistoryFilter;
 
+  // --- LANGUAGE STATE ---
+  String _currentLanguageCode = 'es'; // Default to Spanish
+  String get currentLanguageCode => _currentLanguageCode;
+
+  void updateLanguage(String languageCode) {
+    _currentLanguageCode = languageCode;
+    notifyListeners();
+  }
+
   AppState() {
     _loadPreferences();
   }
@@ -225,7 +234,10 @@ class AppState extends ChangeNotifier {
 
     try {
       print('Checking alert locations for air quality...');
-      final results = await _alertMonitoring.checkAlertLocations(this);
+      final results = await _alertMonitoring.checkAlertLocations(
+        this,
+        languageCode: _currentLanguageCode,
+      );
       _alertMonitoring.markCheckComplete();
       print('Checked ${results.length} alert locations');
       return results.length;
