@@ -662,6 +662,96 @@ abstract class AppLocalizations {
   /// **'Ubicación de {name}'**
   String alertsLocationOf(String name);
 
+  /// No description provided for @mapSearchResults.
+  ///
+  /// In es, this message translates to:
+  /// **'Resultados de Búsqueda'**
+  String get mapSearchResults;
+
+  /// No description provided for @mapLocationOnMap.
+  ///
+  /// In es, this message translates to:
+  /// **'Ubicación en mapa'**
+  String get mapLocationOnMap;
+
+  /// No description provided for @mapSelectLocation.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona una ubicación'**
+  String get mapSelectLocation;
+
+  /// No description provided for @mapSaveLocationTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar esta ubicación'**
+  String get mapSaveLocationTooltip;
+
+  /// No description provided for @mapSaveLocationHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej: Casa, Oficina...'**
+  String get mapSaveLocationHint;
+
+  /// No description provided for @mapCancel.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelar'**
+  String get mapCancel;
+
+  /// No description provided for @mapSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar'**
+  String get mapSave;
+
+  /// No description provided for @mapLocationSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'\"{name}\" guardado.'**
+  String mapLocationSaved(String name);
+
+  /// No description provided for @mapWeeklyForecast.
+  ///
+  /// In es, this message translates to:
+  /// **'Pronóstico Semanal'**
+  String get mapWeeklyForecast;
+
+  /// No description provided for @mapNoForecastAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay pronóstico disponible.'**
+  String get mapNoForecastAvailable;
+
+  /// No description provided for @mapSelectLocationPrompt.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona una ubicación.'**
+  String get mapSelectLocationPrompt;
+
+  /// No description provided for @mapErrorGeolocation.
+  ///
+  /// In es, this message translates to:
+  /// **'Error de Geolocalización: {error}'**
+  String mapErrorGeolocation(String error);
+
+  /// No description provided for @mapErrorSearching.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al buscar: {error}'**
+  String mapErrorSearching(String error);
+
+  /// No description provided for @mapErrorGettingData.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al obtener datos: {error}'**
+  String mapErrorGettingData(String error);
+
+  /// No description provided for @mapHealthAdviceAI.
+  ///
+  /// In es, this message translates to:
+  /// **'Consejo de Salud (IA)'**
+  String get mapHealthAdviceAI;
+
   /// No description provided for @legalPrivacyContent.
   ///
   /// In es, this message translates to:

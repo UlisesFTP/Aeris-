@@ -195,7 +195,7 @@ class MapScreenState extends State<MapScreen> {
       if (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS) {
         _notificationService.showNotification(
-          title: 'Consejo de Salud (IA)',
+          title: AppLocalizations.of(context)!.mapHealthAdviceAI,
           body: advice.advice,
         );
       }
@@ -223,12 +223,12 @@ class MapScreenState extends State<MapScreen> {
               Text(l10n.alertsAddLocation), // Reusing "Add Location" or similar
           content: TextField(
             controller: nameController,
-            decoration: const InputDecoration(hintText: "Ej: Casa, Oficina..."),
+            decoration: InputDecoration(hintText: l10n.mapSaveLocationHint),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
+              child: Text(l10n.mapCancel),
             ),
             ElevatedButton(
               onPressed: () {
@@ -241,11 +241,12 @@ class MapScreenState extends State<MapScreen> {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                        content: Text('"${nameController.text}" guardado.')),
+                        content:
+                            Text(l10n.mapLocationSaved(nameController.text))),
                   );
                 }
               },
-              child: const Text('Guardar'),
+              child: Text(l10n.mapSave),
             ),
           ],
         );
@@ -260,8 +261,8 @@ class MapScreenState extends State<MapScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text(_currentLocation?.displayName ?? 'Selecciona una ubicación'),
+        title: Text(_currentLocation?.displayName ??
+            AppLocalizations.of(context)!.mapSelectLocation),
         centerTitle: true,
         actions: [
           IconButton(
@@ -278,7 +279,7 @@ class MapScreenState extends State<MapScreen> {
               initialCenter: const LatLng(23.6345, -102.5528),
               initialZoom: 5.0,
               onTap: (_, point) => _onLocationSelected(LocationSearchResult(
-                  displayName: "Ubicación en mapa",
+                  displayName: AppLocalizations.of(context)!.mapLocationOnMap,
                   latitude: point.latitude,
                   longitude: point.longitude)),
             ),
@@ -378,7 +379,7 @@ class MapScreenState extends State<MapScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Resultados de Búsqueda",
+        Text(AppLocalizations.of(context)!.mapSearchResults,
             style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 16),
         ListView.builder(
@@ -411,7 +412,7 @@ class MapScreenState extends State<MapScreen> {
               IconButton(
                 icon: const Icon(Icons.bookmark_add_outlined),
                 onPressed: _showSaveLocationDialog,
-                tooltip: 'Guardar esta ubicación',
+                tooltip: l10n.mapSaveLocationTooltip,
               ),
           ],
         ),
@@ -430,8 +431,7 @@ class MapScreenState extends State<MapScreen> {
         const SizedBox(height: 16),
         _buildAirQualityDisplay(l10n),
         const SizedBox(height: 24),
-        Text("Pronóstico Semanal",
-            style: textTheme.titleLarge), // TODO: Add to ARB
+        Text(l10n.mapWeeklyForecast, style: textTheme.titleLarge),
         const SizedBox(height: 16),
         _buildForecastDisplay(),
         const SizedBox(height: 24),
@@ -507,7 +507,7 @@ class MapScreenState extends State<MapScreen> {
 
   Widget _buildForecastDisplay() {
     if (_forecast.isEmpty) {
-      return const Text("No hay pronóstico disponible.");
+      return Text(AppLocalizations.of(context)!.mapNoForecastAvailable);
     }
     return SizedBox(
       height: 140,
@@ -542,7 +542,7 @@ class MapScreenState extends State<MapScreen> {
 
   Widget _buildAirQualityDisplay(AppLocalizations l10n) {
     if (_airQualityData == null) {
-      return const Center(child: Text("Selecciona una ubicación."));
+      return Center(child: Text(l10n.mapSelectLocationPrompt));
     }
 
     final data = _airQualityData!;

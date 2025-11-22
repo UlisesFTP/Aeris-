@@ -9,12 +9,16 @@ import 'screens/main_shell.dart';
 import 'theme.dart';
 import 'core/app_state.dart';
 import 'api/notifications_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:air_quality_flutter/l10n/app_localizations.dart';
 
 Future<void> main() async {
   // Asegurarse de que Flutter esté listo
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables
+  await dotenv.load(fileName: "assets/.env");
 
   // Inicializar Firebase
   await Firebase.initializeApp(

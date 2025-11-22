@@ -28,6 +28,7 @@ dependencies:
   shared_preferences: ^2.2.3 # Para recordar la pantalla de bienvenida
   provider: ^6.1.2             # Para la gestión de estado
   permission_handler: ^11.0.0 # Para abrir la configuración de la app
+  flutter_dotenv: ^5.1.0
   flutter_map_cancellable_tile_provider: ^3.0.2
 
 dev_dependencies:
@@ -44,6 +45,8 @@ flutter:
   uses-material-design: true
   generate: true
 
+  assets:
+    - assets/.env
   
   fonts:
     - family: ProductSans

@@ -4,19 +4,22 @@ import 'package:http/http.dart' as http;
 import 'package:air_quality_flutter/models/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
-
 // --- URL PARA DEPURACIÓN LOCAL ---
 // Detecta automáticamente si estamos en Web o en Android Emulator
-String get flaskBackendUrl {
-  if (kIsWeb) {
-    return "http://127.0.0.1:5000/api";
-  } else {
-    return "http://10.0.2.2:5000/api";
-  }
-}
 
-//const String flaskBackendUrl = "https://air-quality-api-2b88.onrender.com/api";
+//String get flaskBackendUrl {
+//if (kIsWeb) {
+//return "http://127.0.0.1:5000/api";
+//} else {
+//return "http://10.0.2.2:5000/api";
+//}
+//}
+
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+String get flaskBackendUrl {
+  return dotenv.env['API_URL'] ?? "http://127.0.0.1:5000/api";
+}
 
 class ApiService {
   String? _userId;

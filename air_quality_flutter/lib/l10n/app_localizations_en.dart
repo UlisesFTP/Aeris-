@@ -302,6 +302,59 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get mapSearchResults => 'Search Results';
+
+  @override
+  String get mapLocationOnMap => 'Location on map';
+
+  @override
+  String get mapSelectLocation => 'Select a location';
+
+  @override
+  String get mapSaveLocationTooltip => 'Save this location';
+
+  @override
+  String get mapSaveLocationHint => 'E.g.: Home, Office...';
+
+  @override
+  String get mapCancel => 'Cancel';
+
+  @override
+  String get mapSave => 'Save';
+
+  @override
+  String mapLocationSaved(String name) {
+    return '\"$name\" saved.';
+  }
+
+  @override
+  String get mapWeeklyForecast => 'Weekly Forecast';
+
+  @override
+  String get mapNoForecastAvailable => 'No forecast available.';
+
+  @override
+  String get mapSelectLocationPrompt => 'Select a location.';
+
+  @override
+  String mapErrorGeolocation(String error) {
+    return 'Geolocation Error: $error';
+  }
+
+  @override
+  String mapErrorSearching(String error) {
+    return 'Error searching: $error';
+  }
+
+  @override
+  String mapErrorGettingData(String error) {
+    return 'Error getting data: $error';
+  }
+
+  @override
+  String get mapHealthAdviceAI => 'Health Advice (AI)';
+
+  @override
   String get legalPrivacyContent =>
       '**Aeris Privacy Policy**\\n\\n**Last Updated:** November 21, 2024\\n\\n**1. Introduction**\\nAeris is a free application developed to inform about air quality and weather. We do not show ads or sell your data.\\n\\n**2. Data Collection**\\nAeris does NOT collect, store, or share personally identifiable information. We do not require registration or login.\\n\\n**3. Location Data**\\nTo provide you with accurate weather and air quality data, the application needs access to your location.\\n- Coordinates are sent to our data providers (OpenWeather) anonymously.\\n- If you save a location, coordinates are stored encrypted on our secure server.\\n- We do not track your movement history outside of queries you actively make.\\n\\n**4. Third-Party Services**\\nWe use trusted services to obtain data:\\n- **OpenWeather:** For weather and air quality data.\\n- **Google Gemini:** To generate health and weather recommendations based on current data.\\n\\n**5. Contact**\\nIf you have questions about this policy, contact us through the app store.';
 
