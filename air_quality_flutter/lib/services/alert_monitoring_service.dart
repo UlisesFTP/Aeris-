@@ -41,7 +41,17 @@ class AlertMonitoringService {
           );
         }
 
-        // 2. Check Weather (if enabled)
+        // 2. Check specific pollutants if enabled
+        if (!kIsWeb) {
+          await _checkPollutantsAndNotify(
+            location,
+            airQuality,
+            appState.notificationSettings,
+            languageCode: languageCode,
+          );
+        }
+
+        // 3. Check Weather (if enabled)
         if (appState.notificationSettings['weather'] == true && !kIsWeb) {
           await _checkWeatherAndNotify(location, languageCode: languageCode);
         }
@@ -51,6 +61,59 @@ class AlertMonitoringService {
     }
 
     return results;
+  }
+
+  /// Checks specific pollutants and sends notifications if thresholds are exceeded
+  Future<void> _checkPollutantsAndNotify(
+    AlertLocation location,
+    dynamic airQuality,
+    Map<String, bool> settings, {
+    required String languageCode,
+  }) async {
+    final components = airQuality.components as Map<String, dynamic>?;
+    if (components == null) return;
+
+    final alerts = <String>[];
+
+    // Check PM2.5 (threshold: 25 µg/m³ - WHO guideline)
+    if (settings['pm25'] == true) {
+      final pm25 = components['pm2_5'] as num?;
+      if (pm25 != null && pm25 > 25) {
+        final label = languageCode == 'en' ? 'PM2.5' : 'PM2.5';
+        alerts.add('$label: ${pm25.toStringAsFixed(1)} µg/m³');
+      }
+    }
+
+    // Check PM10 (threshold: 50 µg/m³ - WHO guideline)
+    if (settings['pm10'] == true) {
+      final pm10 = components['pm10'] as num?;
+      if (pm10 != null && pm10 > 50) {
+        final label = languageCode == 'en' ? 'PM10' : 'PM10';
+        alerts.add('$label: ${pm10.toStringAsFixed(1)} µg/m³');
+      }
+    }
+
+    // Check Ozone (threshold: 100 µg/m³ - WHO guideline)
+    if (settings['ozono'] == true) {
+      final o3 = components['o3'] as num?;
+      if (o3 != null && o3 > 100) {
+        final label = languageCode == 'en' ? 'Ozone' : 'Ozono';
+        alerts.add('$label: ${o3.toStringAsFixed(1)} µg/m³');
+      }
+    }
+
+    // Send notification if any pollutant exceeds threshold
+    if (alerts.isNotEmpty) {
+      final title = languageCode == 'en'
+          ? '⚠️ High Pollutant Levels'
+          : '⚠️ Niveles Altos de Contaminantes';
+      final body = '${location.name}: ${alerts.join(', ')}';
+
+      await _notificationService.showNotification(
+        title: title,
+        body: body,
+      );
+    }
   }
 
   /// Checks weather and sends a notification if appropriate
