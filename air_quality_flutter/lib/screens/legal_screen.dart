@@ -44,7 +44,7 @@ class _LegalScreenState extends State<LegalScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                widget.content,
+                widget.content.replaceAll('\\n', '\n'),
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       height: 1.6,
                       fontSize: 16,
