@@ -40,6 +40,9 @@
   "alertsAddLocation": "Add Location",
   "alertsCurrentLocation": "Current Location",
   "alertsSavedLocation": "Saved Location",
+  "alertsSectionPreferences": "Notification Preferences",
+  "alertsAiRecommendations": "AI Recommendations",
+  "alertsAiRecommendationsSubtitle": "Receive personalized advice combining weather and air quality.",
 
   "settingsTitle": "Settings",
   "settingsSectionGeneral": "General",

@@ -320,6 +320,24 @@ abstract class AppLocalizations {
   /// **'Ubicación Guardada'**
   String get alertsSavedLocation;
 
+  /// No description provided for @alertsSectionPreferences.
+  ///
+  /// In es, this message translates to:
+  /// **'Preferencias de Notificación'**
+  String get alertsSectionPreferences;
+
+  /// No description provided for @alertsAiRecommendations.
+  ///
+  /// In es, this message translates to:
+  /// **'Recomendaciones de IA'**
+  String get alertsAiRecommendations;
+
+  /// No description provided for @alertsAiRecommendationsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Recibe consejos personalizados combinando clima y calidad del aire.'**
+  String get alertsAiRecommendationsSubtitle;
+
   /// No description provided for @settingsTitle.
   ///
   /// In es, this message translates to:

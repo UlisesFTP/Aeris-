@@ -159,46 +159,18 @@ class AlertsScreen extends StatelessWidget {
                 ),
               ),
 
-              _buildSectionHeader(context, l10n.alertsSectionPollutants),
+              _buildSectionHeader(context, l10n.alertsSectionPreferences),
 
               _buildLocationTile(
                 context,
-                icon: Icons.wb_sunny_outlined,
-                title: l10n.alertsPollutantWeather,
-                subtitle: l10n.alertsPollutantWeatherSubtitle,
-                enabled: appState.notificationSettings['weather'] ?? true,
-                onChanged: (value) =>
-                    appState.updateNotificationSetting('weather', value),
-              ),
-
-              _buildLocationTile(
-                context,
-                icon: Icons.cloud_outlined,
-                title: l10n.alertsPollutantPM25,
-                subtitle: l10n.alertsPollutantPM25Subtitle,
-                enabled: appState.notificationSettings['pm25'] ?? true,
-                onChanged: (value) =>
-                    appState.updateNotificationSetting('pm25', value),
-              ),
-
-              _buildLocationTile(
-                context,
-                icon: Icons.cloud_queue,
-                title: l10n.alertsPollutantPM10,
-                subtitle: l10n.alertsPollutantPM10Subtitle,
-                enabled: appState.notificationSettings['pm10'] ?? false,
-                onChanged: (value) =>
-                    appState.updateNotificationSetting('pm10', value),
-              ),
-
-              _buildLocationTile(
-                context,
-                icon: Icons.wb_sunny_outlined,
-                title: l10n.alertsPollutantO3,
-                subtitle: l10n.alertsPollutantO3Subtitle,
-                enabled: appState.notificationSettings['ozono'] ?? true,
-                onChanged: (value) =>
-                    appState.updateNotificationSetting('ozono', value),
+                icon: Icons.auto_awesome,
+                title: l10n.alertsAiRecommendations,
+                subtitle: l10n.alertsAiRecommendationsSubtitle,
+                enabled:
+                    appState.notificationSettings['useAiRecommendations'] ??
+                        true,
+                onChanged: (value) => appState.updateNotificationSetting(
+                    'useAiRecommendations', value),
               ),
 
               const SizedBox(height: 80), // Space for FAB

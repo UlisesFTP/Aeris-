@@ -121,6 +121,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alertsSavedLocation => 'Saved Location';
 
   @override
+  String get alertsSectionPreferences => 'Notification Preferences';
+
+  @override
+  String get alertsAiRecommendations => 'AI Recommendations';
+
+  @override
+  String get alertsAiRecommendationsSubtitle =>
+      'Receive personalized advice combining weather and air quality.';
+
+  @override
   String get settingsTitle => 'Settings';
 
   @override

@@ -19,10 +19,7 @@ class AppState extends ChangeNotifier {
     'miUbicacion': true,
     'casa': true,
     'trabajo': false,
-    'pm25': true,
-    'pm10': false,
-    'ozono': true,
-    'weather': true,
+    'useAiRecommendations': true,
   };
   Map<String, bool> get notificationSettings => _notificationSettings;
 
@@ -226,8 +223,8 @@ class AppState extends ChangeNotifier {
 
   /// Checks all enabled alert locations and sends notifications if needed
   /// Returns the number of locations checked
-  Future<int> checkAlertLocationsNow() async {
-    if (!_alertMonitoring.shouldCheckNow()) {
+  Future<int> checkAlertLocationsNow({bool force = false}) async {
+    if (!force && !_alertMonitoring.shouldCheckNow()) {
       print('Skipping alert check - too soon since last check');
       return 0;
     }
@@ -237,6 +234,7 @@ class AppState extends ChangeNotifier {
       final results = await _alertMonitoring.checkAlertLocations(
         this,
         languageCode: _currentLanguageCode,
+        force: force,
       );
       _alertMonitoring.markCheckComplete();
       print('Checked ${results.length} alert locations');
@@ -250,7 +248,7 @@ class AppState extends ChangeNotifier {
   /// Forces an immediate check regardless of time interval
   Future<int> forceCheckAlertLocations() async {
     _alertMonitoring.resetCheckTimer();
-    return await checkAlertLocationsNow();
+    return await checkAlertLocationsNow(force: true);
   }
 
   // --- LOCATION HISTORY METHODS ---

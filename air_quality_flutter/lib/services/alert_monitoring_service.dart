@@ -16,6 +16,7 @@ class AlertMonitoringService {
   Future<Map<String, int>> checkAlertLocations(
     AppState appState, {
     required String languageCode,
+    bool force = false,
   }) async {
     final results = <String, int>{};
     final locationsToCheck = appState.alertLocations.values
@@ -32,28 +33,14 @@ class AlertMonitoringService {
 
         results[location.name] = airQuality.aqi;
 
-        // Send notification if AQI exceeds threshold (only on mobile)
-        if (airQuality.aqi >= _aqiAlertThreshold && !kIsWeb) {
-          await _sendAlert(
-            location.name,
-            airQuality.aqi,
-            languageCode: languageCode,
-          );
-        }
-
-        // 2. Check specific pollutants if enabled
-        if (!kIsWeb) {
-          await _checkPollutantsAndNotify(
+        // Send notification if AQI exceeds threshold OR if forced (only on mobile)
+        if ((airQuality.aqi >= _aqiAlertThreshold || force) && !kIsWeb) {
+          await _handleCombinedAlert(
             location,
             airQuality,
             appState.notificationSettings,
-            languageCode: languageCode,
+            languageCode,
           );
-        }
-
-        // 3. Check Weather (if enabled)
-        if (appState.notificationSettings['weather'] == true && !kIsWeb) {
-          await _checkWeatherAndNotify(location, languageCode: languageCode);
         }
       } catch (e) {
         print('Error checking alerts for ${location.name}: $e');
@@ -63,150 +50,106 @@ class AlertMonitoringService {
     return results;
   }
 
-  /// Checks specific pollutants and sends notifications if thresholds are exceeded
-  Future<void> _checkPollutantsAndNotify(
+  /// Handles the logic for fetching weather/AI data and sending the combined alert
+  Future<void> _handleCombinedAlert(
     AlertLocation location,
-    dynamic airQuality,
-    Map<String, bool> settings, {
-    required String languageCode,
-  }) async {
-    final components = airQuality.components as Map<String, dynamic>?;
-    if (components == null) return;
-
-    final alerts = <String>[];
-
-    // Check PM2.5 (threshold: 25 µg/m³ - WHO guideline)
-    if (settings['pm25'] == true) {
-      final pm25 = components['pm2_5'] as num?;
-      if (pm25 != null && pm25 > 25) {
-        final label = languageCode == 'en' ? 'PM2.5' : 'PM2.5';
-        alerts.add('$label: ${pm25.toStringAsFixed(1)} µg/m³');
-      }
-    }
-
-    // Check PM10 (threshold: 50 µg/m³ - WHO guideline)
-    if (settings['pm10'] == true) {
-      final pm10 = components['pm10'] as num?;
-      if (pm10 != null && pm10 > 50) {
-        final label = languageCode == 'en' ? 'PM10' : 'PM10';
-        alerts.add('$label: ${pm10.toStringAsFixed(1)} µg/m³');
-      }
-    }
-
-    // Check Ozone (threshold: 100 µg/m³ - WHO guideline)
-    if (settings['ozono'] == true) {
-      final o3 = components['o3'] as num?;
-      if (o3 != null && o3 > 100) {
-        final label = languageCode == 'en' ? 'Ozone' : 'Ozono';
-        alerts.add('$label: ${o3.toStringAsFixed(1)} µg/m³');
-      }
-    }
-
-    // Send notification if any pollutant exceeds threshold
-    if (alerts.isNotEmpty) {
-      final title = languageCode == 'en'
-          ? '⚠️ High Pollutant Levels'
-          : '⚠️ Niveles Altos de Contaminantes';
-      final body = '${location.name}: ${alerts.join(', ')}';
-
-      await _notificationService.showNotification(
-        title: title,
-        body: body,
-      );
-    }
-  }
-
-  /// Checks weather and sends a notification if appropriate
-  Future<void> _checkWeatherAndNotify(
-    AlertLocation location, {
-    required String languageCode,
-  }) async {
-    // Simple rate limiting: only send weather notification if we haven't sent one recently
-    // For now, we'll rely on the main check interval (1 hour), but ideally this should be daily.
-    // To avoid spamming every hour, let's check if the hour is e.g. 8 AM or 6 PM,
-    // OR just send it if it's the first check of the session.
-    // For this MVP, we'll just send it. To prevent spam, we could add a local timestamp map.
-
+    AirQualityData airQuality,
+    Map<String, bool> settings,
+    String languageCode,
+  ) async {
     try {
-      final weatherData = await _apiService.getWeather(
+      // 1. Fetch Weather Data
+      final weatherMap = await _apiService.getWeather(
         location.latitude!,
         location.longitude!,
         language: languageCode,
       );
+      final current = weatherMap['current'] as WeatherData;
 
-      final current = weatherData['current'] as WeatherData;
-      final forecast = weatherData['forecast'] as List<ForecastItem>;
+      // 2. Check AI Preference
+      final useAi = settings['useAiRecommendations'] ?? true;
 
-      if (forecast.isNotEmpty) {
-        final today = forecast.first;
-        await _sendWeatherNotification(
-          location.name,
-          current,
-          today,
-          languageCode: languageCode,
+      // 3. Construct and Send Notification
+      await _sendCombinedNotification(
+        location.name,
+        airQuality,
+        current,
+        useAi,
+        languageCode,
+      );
+    } catch (e) {
+      print('Error preparing combined alert: $e');
+      // Fallback: Send simple AQI alert if weather/AI fails
+      await _sendSimpleAqiAlert(location.name, airQuality.aqi, languageCode);
+    }
+  }
+
+  Future<void> _sendCombinedNotification(
+    String locationName,
+    AirQualityData airQuality,
+    WeatherData weather,
+    bool useAi,
+    String languageCode,
+  ) async {
+    // Title
+    final aqiEmoji = _getAqiEmoji(airQuality.aqi);
+    final title = languageCode == 'en'
+        ? '$aqiEmoji Air Quality Alert'
+        : '$aqiEmoji Alerta de Calidad del Aire';
+
+    // Body Construction
+    final sb = StringBuffer();
+
+    // Part 1: AQI Status
+    final aqiText = _getAqiLevelText(airQuality.aqi, languageCode);
+    sb.writeln('$locationName: $aqiText (AQI: ${airQuality.aqi})');
+
+    // Part 2: Simplified Particles
+    final pm25 = airQuality.components['pm2_5'];
+    final pm10 = airQuality.components['pm10'];
+    if (pm25 != null || pm10 != null) {
+      sb.write('🌫️ ');
+      if (pm25 != null) sb.write('PM2.5: ${pm25.round()} ');
+      if (pm10 != null) sb.write('PM10: ${pm10.round()}');
+      sb.writeln();
+    }
+
+    // Part 3: Weather
+    final weatherEmoji = _getWeatherEmoji(weather.condition);
+    sb.writeln(
+        '$weatherEmoji ${weather.temp.round()}°C - ${weather.condition}');
+
+    // Part 4: AI Recommendation (if enabled)
+    if (useAi) {
+      try {
+        final advice = await _apiService.getAdvice(
+          weatherCondition: weather.condition,
+          aqi: airQuality.aqi,
+          components: airQuality.components,
+          language: languageCode,
         );
+        sb.writeln('\n💡 ${advice.advice}');
+      } catch (e) {
+        print('Error fetching AI advice: $e');
       }
-    } catch (e) {
-      print('Error checking weather for ${location.name}: $e');
     }
+
+    await _notificationService.showNotification(
+      title: title,
+      body: sb.toString(),
+    );
   }
 
-  Future<void> _sendWeatherNotification(
-    String locationName,
-    WeatherData current,
-    ForecastItem today, {
-    required String languageCode,
-  }) async {
-    try {
-      // Fetch AI-generated weather advice
-      final weatherAdvice = await _apiService.getWeatherAdvice(
-        temp: current.temp,
-        condition: current.condition,
-        minTemp: today.minTemp,
-        maxTemp: today.maxTemp,
-        language: languageCode,
-      );
-
-      // Use simple translations for titles
-      final title =
-          '${current.temp.round()}°${languageCode == 'en' ? 'C in' : 'C en'} $locationName';
-      final body = '${weatherAdvice.advice}';
-
-      await _notificationService.showNotification(
-        title: title,
-        body: body,
-      );
-    } catch (e) {
-      print('Error sending weather notification: $e');
-      // Fallback to simple notification
-      final title =
-          '${current.temp.round()}°${languageCode == 'en' ? 'C in' : 'C en'} $locationName';
-      final maxMin = languageCode == 'en'
-          ? 'Max: ${today.maxTemp.round()}° Min: ${today.minTemp.round()}°'
-          : 'Máx: ${today.maxTemp.round()}° Mín: ${today.minTemp.round()}°';
-      final body = '${current.condition}. $maxMin';
-
-      await _notificationService.showNotification(
-        title: title,
-        body: body,
-      );
-    }
-  }
-
-  /// Sends a notification for poor air quality
-  Future<void> _sendAlert(
-    String locationName,
-    int aqi, {
-    required String languageCode,
-  }) async {
+  Future<void> _sendSimpleAqiAlert(
+      String locationName, int aqi, String languageCode) async {
     final aqiLevel = _getAqiLevelText(aqi, languageCode);
-    final aqiColor = _getAqiEmoji(aqi);
+    final aqiEmoji = _getAqiEmoji(aqi);
     final alertTitle = languageCode == 'en'
         ? 'Air Quality Alert'
         : 'Alerta de Calidad del Aire';
 
     await _notificationService.showNotification(
-      title: '$aqiColor $alertTitle',
+      title: '$aqiEmoji $alertTitle',
       body: '$locationName: $aqiLevel (AQI: $aqi)',
     );
   }
@@ -231,7 +174,6 @@ class AlertMonitoringService {
           return 'Unknown';
       }
     } else {
-      // Spanish (default)
       switch (aqi) {
         case 1:
           return 'Bueno';
@@ -269,14 +211,39 @@ class AlertMonitoringService {
     }
   }
 
+  String _getWeatherEmoji(String condition) {
+    final lower = condition.toLowerCase();
+    if (lower.contains('sun') ||
+        lower.contains('sol') ||
+        lower.contains('clear') ||
+        lower.contains('despejado')) {
+      return '☀️';
+    } else if (lower.contains('cloud') ||
+        lower.contains('nube') ||
+        lower.contains('nublado')) {
+      return '☁️';
+    } else if (lower.contains('rain') ||
+        lower.contains('lluvia') ||
+        lower.contains('drizzle')) {
+      return '🌧️';
+    } else if (lower.contains('storm') || lower.contains('tormenta')) {
+      return '⛈️';
+    } else if (lower.contains('snow') || lower.contains('nieve')) {
+      return '❄️';
+    } else if (lower.contains('mist') ||
+        lower.contains('fog') ||
+        lower.contains('niebla')) {
+      return '🌫️';
+    }
+    return '🌡️';
+  }
+
   /// Checks if enough time has passed since last check
-  /// to avoid spamming notifications
   static DateTime? _lastCheckTime;
   static const Duration _minimumCheckInterval = Duration(hours: 1);
 
   bool shouldCheckNow() {
     if (_lastCheckTime == null) return true;
-
     final timeSinceLastCheck = DateTime.now().difference(_lastCheckTime!);
     return timeSinceLastCheck >= _minimumCheckInterval;
   }
@@ -285,7 +252,6 @@ class AlertMonitoringService {
     _lastCheckTime = DateTime.now();
   }
 
-  /// Resets the check timer (useful for manual refresh)
   void resetCheckTimer() {
     _lastCheckTime = null;
   }

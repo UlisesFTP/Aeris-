@@ -191,13 +191,29 @@ class MapScreenState extends State<MapScreen> {
       });
       _mapController.move(newPoint, 13.0);
 
-      // Mostrar notificación con el consejo
+      // Mostrar notificación según preferencias
       if (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS) {
-        _notificationService.showNotification(
-          title: AppLocalizations.of(context)!.mapHealthAdviceAI,
-          body: advice.advice,
-        );
+        final appState = Provider.of<AppState>(context, listen: false);
+        final useAi =
+            appState.notificationSettings['useAiRecommendations'] ?? true;
+
+        if (useAi) {
+          _notificationService.showNotification(
+            title: AppLocalizations.of(context)!.mapHealthAdviceAI,
+            body: advice.advice,
+          );
+        } else {
+          // Notificación simplificada (Solo datos)
+          final temp = weatherData['current'].temp.round();
+          final condition = weatherData['current'].condition;
+          final aqi = airData.aqi;
+
+          _notificationService.showNotification(
+            title: '$temp°C - $condition',
+            body: 'AQI: $aqi | ${location.displayName}',
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

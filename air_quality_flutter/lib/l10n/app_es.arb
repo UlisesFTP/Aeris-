@@ -40,6 +40,9 @@
   "alertsAddLocation": "Agregar Ubicación",
   "alertsCurrentLocation": "Ubicación Actual",
   "alertsSavedLocation": "Ubicación Guardada",
+  "alertsSectionPreferences": "Preferencias de Notificación",
+  "alertsAiRecommendations": "Recomendaciones de IA",
+  "alertsAiRecommendationsSubtitle": "Recibe consejos personalizados combinando clima y calidad del aire.",
 
   "settingsTitle": "Ajustes",
   "settingsSectionGeneral": "General",
