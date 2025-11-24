@@ -92,34 +92,24 @@ class AlertMonitoringService {
     String languageCode,
   ) async {
     // Title
-    final aqiEmoji = _getAqiEmoji(airQuality.aqi);
     final title = languageCode == 'en'
-        ? '$aqiEmoji Air Quality Alert'
-        : '$aqiEmoji Alerta de Calidad del Aire';
+        ? 'Air Quality & Weather'
+        : 'Calidad del Aire y Clima';
 
     // Body Construction
     final sb = StringBuffer();
 
-    // Part 1: AQI Status
-    final aqiText = _getAqiLevelText(airQuality.aqi, languageCode);
-    sb.writeln('$locationName: $aqiText (AQI: ${airQuality.aqi})');
-
-    // Part 2: Simplified Particles
-    final pm25 = airQuality.components['pm2_5'];
-    final pm10 = airQuality.components['pm10'];
-    if (pm25 != null || pm10 != null) {
-      sb.write('🌫️ ');
-      if (pm25 != null) sb.write('PM2.5: ${pm25.round()} ');
-      if (pm10 != null) sb.write('PM10: ${pm10.round()}');
-      sb.writeln();
-    }
-
-    // Part 3: Weather
+    // Line 1: Weather
     final weatherEmoji = _getWeatherEmoji(weather.condition);
-    sb.writeln(
-        '$weatherEmoji ${weather.temp.round()}°C - ${weather.condition}');
+    sb.writeln('$weatherEmoji ${weather.condition} ${weather.temp.round()}°C');
 
-    // Part 4: AI Recommendation (if enabled)
+    // Line 2: AQI Status
+    final aqiEmoji = _getAqiEmoji(airQuality.aqi);
+    final aqiText = _getAqiLevelText(airQuality.aqi, languageCode);
+    final aqiLabel = languageCode == 'en' ? 'Air Quality' : 'Calidad del aire';
+    sb.writeln('$aqiEmoji $aqiLabel: $aqiText');
+
+    // Line 3: AI Recommendation (if enabled)
     if (useAi) {
       try {
         final advice = await _apiService.getAdvice(
@@ -128,7 +118,7 @@ class AlertMonitoringService {
           components: airQuality.components,
           language: languageCode,
         );
-        sb.writeln('\n💡 ${advice.advice}');
+        sb.writeln('\n${advice.advice}');
       } catch (e) {
         print('Error fetching AI advice: $e');
       }

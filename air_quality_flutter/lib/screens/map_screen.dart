@@ -199,9 +199,31 @@ class MapScreenState extends State<MapScreen> {
             appState.notificationSettings['useAiRecommendations'] ?? true;
 
         if (useAi) {
+          // Construct Rich Notification Body
+          final sb = StringBuffer();
+
+          // Line 1: Weather
+          final weatherEmoji =
+              _getWeatherEmoji(weatherData['current'].condition);
+          sb.writeln(
+              '$weatherEmoji ${weatherData['current'].condition} ${weatherData['current'].temp.round()}°C');
+
+          // Line 2: Air Quality
+          final aqiEmoji = _getAqiEmoji(airData.aqi);
+          final aqiText = _getAqiLevelText(airData.aqi, languageCode);
+          sb.writeln(
+              '$aqiEmoji ${AppLocalizations.of(context)!.mapAirQuality}: $aqiText');
+
+          // Line 3: AI Advice
+          sb.writeln('\n${advice.advice}');
+
+          final title = languageCode == 'en'
+              ? 'Air Quality & Weather'
+              : 'Calidad del Aire y Clima';
+
           _notificationService.showNotification(
-            title: AppLocalizations.of(context)!.mapHealthAdviceAI,
-            body: advice.advice,
+            title: title,
+            body: sb.toString(),
           );
         } else {
           // Notificación simplificada (Solo datos)
@@ -707,5 +729,89 @@ class MapScreenState extends State<MapScreen> {
         ),
       ),
     );
+  }
+
+  // --- HELPER METHODS FOR NOTIFICATIONS ---
+
+  String _getAqiLevelText(int aqi, String languageCode) {
+    if (languageCode == 'en') {
+      switch (aqi) {
+        case 1:
+          return 'Good';
+        case 2:
+          return 'Fair';
+        case 3:
+          return 'Moderate';
+        case 4:
+          return 'Poor';
+        case 5:
+          return 'Very Poor';
+        case 6:
+          return 'Dangerous';
+        default:
+          return 'Unknown';
+      }
+    } else {
+      switch (aqi) {
+        case 1:
+          return 'Bueno';
+        case 2:
+          return 'Regular';
+        case 3:
+          return 'Moderado';
+        case 4:
+          return 'Malo';
+        case 5:
+          return 'Muy Malo';
+        case 6:
+          return 'Peligroso';
+        default:
+          return 'Desconocido';
+      }
+    }
+  }
+
+  String _getAqiEmoji(int aqi) {
+    switch (aqi) {
+      case 1:
+      case 2:
+        return '🍃';
+      case 3:
+        return '⚠️';
+      case 4:
+      case 5:
+        return '🚨';
+      case 6:
+        return '☢️';
+      default:
+        return '📊';
+    }
+  }
+
+  String _getWeatherEmoji(String condition) {
+    final lower = condition.toLowerCase();
+    if (lower.contains('sun') ||
+        lower.contains('sol') ||
+        lower.contains('clear') ||
+        lower.contains('despejado')) {
+      return '☀️';
+    } else if (lower.contains('cloud') ||
+        lower.contains('nube') ||
+        lower.contains('nublado')) {
+      return '☁️';
+    } else if (lower.contains('rain') ||
+        lower.contains('lluvia') ||
+        lower.contains('drizzle')) {
+      return '🌧️';
+    } else if (lower.contains('storm') || lower.contains('tormenta')) {
+      return '⛈️';
+    } else if (lower.contains('snow') || lower.contains('nieve')) {
+      return '❄️';
+    } else if (lower.contains('mist') ||
+        lower.contains('fog') ||
+        lower.contains('niebla')) {
+      return '🌫️';
+    }
+    return '🌡️';
   }
 }
