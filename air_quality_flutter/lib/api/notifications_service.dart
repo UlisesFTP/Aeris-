@@ -24,7 +24,15 @@ class NotificationService {
   // --- 3. VERIFICAR QUE ESTA FUNCIÓN EXISTA ---
   Future<void> showNotification(
       {required String title, required String body}) async {
-    const AndroidNotificationDetails androidDetails =
+    final BigTextStyleInformation bigTextStyleInformation =
+        BigTextStyleInformation(
+      body,
+      htmlFormatBigText: true,
+      contentTitle: title,
+      htmlFormatContentTitle: true,
+    );
+
+    final AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
       'air_quality_channel', // id del canal
       'Alertas de Calidad del Aire', // nombre del canal
@@ -32,8 +40,9 @@ class NotificationService {
           'Notificaciones sobre niveles altos de contaminación.',
       importance: Importance.max,
       priority: Priority.high,
+      styleInformation: bigTextStyleInformation,
     );
-    const NotificationDetails notificationDetails =
+    final NotificationDetails notificationDetails =
         NotificationDetails(android: androidDetails);
 
     await _localNotificationsPlugin.show(

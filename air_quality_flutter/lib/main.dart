@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
+import 'package:workmanager/workmanager.dart';
+import 'services/background_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -30,6 +32,23 @@ Future<void> main() async {
   if (!kIsWeb) {
     final notificationService = NotificationService();
     await notificationService.initNotifications();
+
+    // Inicializar Workmanager para tareas en segundo plano
+    Workmanager().initialize(
+      callbackDispatcher,
+      isInDebugMode: kDebugMode,
+    );
+
+    // Registrar tarea periódica (cada 30 minutos)
+    Workmanager().registerPeriodicTask(
+      uniqueTaskName,
+      taskName,
+      frequency: const Duration(minutes: 30),
+      constraints: Constraints(
+        networkType: NetworkType.connected,
+      ),
+      existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
+    );
   }
 
   // Comprobar si se debe mostrar la pantalla de bienvenida

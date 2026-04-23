@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:air_quality_flutter/api/api_service.dart';
 import 'package:air_quality_flutter/api/notifications_service.dart';
 import 'package:air_quality_flutter/core/app_state.dart';
@@ -23,8 +25,27 @@ class AlertMonitoringService {
         .where((loc) => loc.enabled && loc.isConfigured)
         .toList();
 
+    // Load shared preferences to sync with background service
+    final prefs = await SharedPreferences.getInstance();
+    final String? lastStateString = prefs.getString('lastKnownState');
+    Map<String, dynamic> lastState = {};
+    if (lastStateString != null) {
+      lastState = json.decode(lastStateString);
+    }
+
     for (final location in locationsToCheck) {
       try {
+        // Check if we should skip based on recent background update
+        if (!force && lastState.containsKey(location.id)) {
+          final lastUpdate =
+              DateTime.parse(lastState[location.id]['timestamp']);
+          if (DateTime.now().difference(lastUpdate).inMinutes < 30) {
+            print(
+                'Skipping ${location.name} - updated recently by background service');
+            continue;
+          }
+        }
+
         // 1. Check Air Quality
         final airQuality = await _apiService.getAirQuality(
           location.latitude!,
@@ -41,6 +62,13 @@ class AlertMonitoringService {
             appState.notificationSettings,
             languageCode,
           );
+
+          // Update state for background service
+          // We need weather data for the state, so we might need to fetch it here if not already
+          // _handleCombinedAlert fetches weather, but we don't have it here easily unless we refactor.
+          // For now, let's just mark the timestamp. The background service will re-fetch and update full state next time.
+          // Or better, let _handleCombinedAlert return the weather data or update the state.
+          // Let's make _handleCombinedAlert return the WeatherData.
         }
       } catch (e) {
         print('Error checking alerts for ${location.name}: $e');
@@ -77,6 +105,23 @@ class AlertMonitoringService {
         useAi,
         languageCode,
       );
+
+      // 4. Update Shared State (for background sync)
+      final prefs = await SharedPreferences.getInstance();
+      final String? lastStateString = prefs.getString('lastKnownState');
+      Map<String, dynamic> lastState = {};
+      if (lastStateString != null) {
+        lastState = json.decode(lastStateString);
+      }
+
+      lastState[location.id] = {
+        'aqi': airQuality.aqi,
+        'condition': current.condition,
+        'temp': current.temp,
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+
+      await prefs.setString('lastKnownState', json.encode(lastState));
     } catch (e) {
       print('Error preparing combined alert: $e');
       // Fallback: Send simple AQI alert if weather/AI fails

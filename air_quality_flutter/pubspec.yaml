@@ -30,6 +30,7 @@ dependencies:
   permission_handler: ^11.0.0 # Para abrir la configuración de la app
   flutter_dotenv: ^5.1.0
   flutter_map_cancellable_tile_provider: ^3.0.2
+  workmanager: ^0.9.0+3
 
 dev_dependencies:
   flutter_test:
