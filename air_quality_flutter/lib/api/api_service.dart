@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
@@ -12,6 +13,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 String get flaskBackendUrl {
   return dotenv.env['API_URL'] ?? "http://127.0.0.1:5000/api";
 }
+
+/// Timeout global para todas las peticiones HTTP al backend.
+/// Si el servidor no responde en este tiempo, se lanza TimeoutException.
+const Duration _kHttpTimeout = Duration(seconds: 12);
 
 class ApiService {
   String? _userId;
@@ -36,9 +41,11 @@ class ApiService {
   // --- OBTENER DATOS ACTUALES ---
   Future<AirQualityData> getAirQuality(
       double latitude, double longitude) async {
-    final response = await http.get(
-      Uri.parse('$flaskBackendUrl/air_quality?lat=$latitude&lon=$longitude'),
-    );
+    final response = await http
+        .get(
+          Uri.parse('$flaskBackendUrl/air_quality?lat=$latitude&lon=$longitude'),
+        )
+        .timeout(_kHttpTimeout);
     if (response.statusCode == 200) {
       return AirQualityData.fromJson(json.decode(response.body));
     } else {
@@ -49,10 +56,9 @@ class ApiService {
 
   // --- BUSCAR UBICACIONES (Nominatim via Proxy) ---
   Future<List<LocationSearchResult>> searchLocation(String query) async {
-    // Usamos el proxy del backend para evitar problemas de CORS y User-Agent
-    final response =
-        await http.get(Uri.parse('$flaskBackendUrl/search?q=$query'));
-
+    final response = await http
+        .get(Uri.parse('$flaskBackendUrl/search?q=$query'))
+        .timeout(_kHttpTimeout);
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       return data.map((json) => LocationSearchResult.fromJson(json)).toList();
@@ -64,9 +70,11 @@ class ApiService {
   // --- OBTENER HISTORIAL ---
   Future<List<HistoricalDataPoint>> getHistory(
       double latitude, double longitude) async {
-    final response = await http.get(
-      Uri.parse('$flaskBackendUrl/history?lat=$latitude&lon=$longitude'),
-    );
+    final response = await http
+        .get(
+          Uri.parse('$flaskBackendUrl/history?lat=$latitude&lon=$longitude'),
+        )
+        .timeout(_kHttpTimeout);
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       return data.map((json) => HistoricalDataPoint.fromJson(json)).toList();
@@ -119,10 +127,12 @@ class ApiService {
   // --- OBTENER CLIMA Y PRONÓSTICO ---
   Future<Map<String, dynamic>> getWeather(double latitude, double longitude,
       {String language = 'es'}) async {
-    final response = await http.get(
-      Uri.parse(
-          '$flaskBackendUrl/weather?lat=$latitude&lon=$longitude&lang=$language'),
-    );
+    final response = await http
+        .get(
+          Uri.parse(
+              '$flaskBackendUrl/weather?lat=$latitude&lon=$longitude&lang=$language'),
+        )
+        .timeout(_kHttpTimeout);
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       return {

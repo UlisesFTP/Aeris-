@@ -4,6 +4,7 @@ import 'package:workmanager/workmanager.dart';
 import 'services/background_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'screens/welcome_screen.dart';
@@ -19,43 +20,59 @@ Future<void> main() async {
   // Asegurarse de que Flutter esté listo
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables
-  await dotenv.load(fileName: "assets/.env");
+  // Cargar variables de entorno
+  await dotenv.load(fileName: 'assets/.env');
 
   // Inicializar Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Inicializar servicio de notificaciones (solo en plataformas móviles)
-  // En web, las notificaciones locales no están soportadas completamente
   if (!kIsWeb) {
+    // -----------------------------------------------------------------------
+    // 1. Registrar el handler de mensajes FCM en segundo plano (app cerrada).
+    //    DEBE registrarse ANTES de cualquier otro listener de Firebase.
+    //    Es la función top-level definida en notifications_service.dart.
+    // -----------------------------------------------------------------------
+    FirebaseMessaging.onBackgroundMessage(firebaseBackgroundMessageHandler);
+
+    // -----------------------------------------------------------------------
+    // 2. Inicializar el servicio de notificaciones locales y crear los canales
+    //    de Android (weather_status + air_quality_alerts).
+    // -----------------------------------------------------------------------
     final notificationService = NotificationService();
     await notificationService.initNotifications();
 
-    // Inicializar Workmanager para tareas en segundo plano
-    Workmanager().initialize(
+    // -----------------------------------------------------------------------
+    // 3. Inicializar WorkManager y registrar la tarea periódica.
+    //    - Frecuencia: 15 min (mínimo que acepta Android).
+    //    - ExistingWorkPolicy.keep: si ya existe la tarea (por ej. tras hot
+    //      restart en debug), NO la reinicia. Evita duplicados.
+    //    - Constraints: solo cuando hay conexión a internet.
+    // -----------------------------------------------------------------------
+    await Workmanager().initialize(
       callbackDispatcher,
-      isInDebugMode: kDebugMode,
     );
 
-    // Registrar tarea periódica (cada 30 minutos)
-    Workmanager().registerPeriodicTask(
+    await Workmanager().registerPeriodicTask(
       uniqueTaskName,
       taskName,
-      frequency: const Duration(minutes: 30),
+      frequency: kWorkManagerInterval,
       constraints: Constraints(
         networkType: NetworkType.connected,
       ),
-      existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
+      existingWorkPolicy: ExistingPeriodicWorkPolicy.keep, // No reiniciar si ya existe
     );
+
+    if (kDebugMode) {
+      print('[Main] WorkManager registrado. Intervalo: $kWorkManagerInterval');
+    }
   }
 
   // Comprobar si se debe mostrar la pantalla de bienvenida
   final prefs = await SharedPreferences.getInstance();
   final bool showWelcome = prefs.getBool('showWelcome') ?? true;
 
-  // Correr la app con un proveedor de estado para manejar el tema
   runApp(
     ChangeNotifierProvider(
       create: (context) => AppState(),
@@ -78,7 +95,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Set initial language after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateLanguage();
     });
@@ -98,20 +114,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void _updateLanguage() {
     if (mounted) {
       final locale = WidgetsBinding.instance.platformDispatcher.locale;
-      final languageCode = locale.languageCode;
       Provider.of<AppState>(context, listen: false)
-          .updateLanguage(languageCode);
+          .updateLanguage(locale.languageCode);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Escuchar los cambios de tema desde AppState
     final appState = Provider.of<AppState>(context);
 
     return MaterialApp(
-      title: 'Air Quality Monitor',
-      // Cambiar dinámicamente entre el tema claro y oscuro
+      title: 'Aeris',
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: appState.isDarkMode ? ThemeMode.dark : ThemeMode.light,

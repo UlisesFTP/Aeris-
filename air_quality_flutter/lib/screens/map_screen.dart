@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
@@ -77,8 +78,22 @@ class MapScreenState extends State<MapScreen> {
             'Los permisos de ubicación están permanentemente denegados.');
       }
 
-      Position position = await Geolocator.getCurrentPosition();
-      // Use localized string if context is available, otherwise fallback
+      // GPS con timeout de 10s para evitar esperas indefinidas
+      Position position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.medium, // medium es más rápido que high
+        ).timeout(const Duration(seconds: 10));
+      } on TimeoutException {
+        // Fallback: usar la última posición conocida si el GPS tarda demasiado
+        final lastPos = await Geolocator.getLastKnownPosition();
+        if (lastPos != null) {
+          position = lastPos;
+        } else {
+          throw TimeoutException('GPS timeout y sin última posición conocida');
+        }
+      }
+
       String currentLocName = 'Ubicación Actual';
       if (mounted) {
         currentLocName = AppLocalizations.of(context)!.alertsCurrentLocation;
@@ -121,14 +136,14 @@ class MapScreenState extends State<MapScreen> {
       _searchResults.clear();
       _searchController.clear();
       _currentLocation = location;
-      _healthAdvice = null; // Limpiar consejo anterior
-      _weatherAdvice = null; // Limpiar consejo del clima anterior
+      _healthAdvice = null;
+      _weatherAdvice = null;
     });
     FocusScope.of(context).unfocus();
 
     Provider.of<AppState>(context, listen: false).addRecentLocation(location);
 
-    // Record visit for private history tracking
+    // Registrar visita en background (no bloquea)
     Provider.of<AppState>(context, listen: false).recordLocationVisit(
       location.latitude,
       location.longitude,
@@ -136,114 +151,126 @@ class MapScreenState extends State<MapScreen> {
     );
 
     try {
-      // Get current language code
       final languageCode = Localizations.localeOf(context).languageCode;
 
+      // -----------------------------------------------------------------------
+      // FASE 1: Datos críticos — AQI + Clima en paralelo.
+      // El spinner desaparece tan pronto como estos llegan (~1–2s).
+      // -----------------------------------------------------------------------
       final responses = await Future.wait([
         _apiService.getAirQuality(location.latitude, location.longitude),
-        _apiService.getHistory(location.latitude, location.longitude),
         _apiService.getWeather(location.latitude, location.longitude,
             language: languageCode),
       ]);
 
       final airData = responses[0] as AirQualityData;
-      final history = responses[1] as List<HistoricalDataPoint>;
-      final weatherData = responses[2] as Map<String, dynamic>;
+      final weatherData = responses[1] as Map<String, dynamic>;
       final newPoint = LatLng(location.latitude, location.longitude);
 
-      // Obtener consejo de Gemini (para calidad del aire)
-      final advice = await _apiService.getAdvice(
+      // Mostrar datos inmediatamente — el usuario ya puede ver el AQI y el clima
+      if (mounted) {
+        setState(() {
+          _airQualityData = airData;
+          _currentWeather = weatherData['current'];
+          _forecast = weatherData['forecast'];
+          _currentMarker = Marker(
+            point: newPoint,
+            width: 80,
+            height: 80,
+            child: const Icon(Icons.location_pin, color: Colors.red, size: 45),
+          );
+          _isLoading = false; // <-- UI responde aquí, ya no espera a Gemini
+        });
+        _mapController.move(newPoint, 13.0);
+      }
+
+      // -----------------------------------------------------------------------
+      // FASE 2: Datos secundarios — Historia + Consejos IA en background.
+      // Se cargan sin bloquear la UI. El usuario puede interactuar mientras.
+      // -----------------------------------------------------------------------
+      _loadSecondaryData(
+        location: location,
+        airData: airData,
+        weatherData: weatherData,
+        languageCode: languageCode,
+      );
+    } catch (e) {
+      if (mounted) {
+        MessageService.showError(context, 'Error de conexión');
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  /// Carga en background: historial AQI + consejos de IA.
+  /// No bloquea la UI — usa setState al terminar para actualizar los widgets.
+  Future<void> _loadSecondaryData({
+    required LocationSearchResult location,
+    required AirQualityData airData,
+    required Map<String, dynamic> weatherData,
+    required String languageCode,
+  }) async {
+    // Cargar historial y consejos en paralelo
+    final futures = await Future.wait([
+      _apiService.getHistory(location.latitude, location.longitude)
+          .catchError((_) => <HistoricalDataPoint>[]),
+      _apiService.getAdvice(
         weatherCondition: weatherData['current'].condition,
         aqi: airData.aqi,
         components: airData.components,
         language: languageCode,
-      );
+      ).catchError((_) => const HealthAdvice(advice: '')),
+      if (weatherData['forecast'].isNotEmpty)
+        _apiService.getWeatherAdvice(
+          temp: weatherData['current'].temp,
+          condition: weatherData['current'].condition,
+          minTemp: weatherData['forecast'][0].minTemp,
+          maxTemp: weatherData['forecast'][0].maxTemp,
+          language: languageCode,
+        ).catchError((_) => const HealthAdvice(advice: ''))
+      else
+        Future.value(const HealthAdvice(advice: '')),
+    ]);
 
-      // Obtener consejo del clima
-      HealthAdvice? weatherAdviceResult;
-      try {
-        if (weatherData['forecast'].isNotEmpty) {
-          weatherAdviceResult = await _apiService.getWeatherAdvice(
-            temp: weatherData['current'].temp,
-            condition: weatherData['current'].condition,
-            minTemp: weatherData['forecast'][0].minTemp,
-            maxTemp: weatherData['forecast'][0].maxTemp,
-            language: languageCode,
-          );
-        }
-      } catch (e) {
-        print('Error getting weather advice: $e');
-      }
+    if (!mounted) return;
 
-      setState(() {
-        _airQualityData = airData;
-        _historyData = history;
-        _currentWeather = weatherData['current'];
-        _forecast = weatherData['forecast'];
-        _healthAdvice = advice;
-        _weatherAdvice = weatherAdviceResult;
-        _currentMarker = Marker(
-          point: newPoint,
-          width: 80,
-          height: 80,
-          child: const Icon(Icons.location_pin, color: Colors.red, size: 45),
+    final history = futures[0] as List<HistoricalDataPoint>;
+    final advice = futures[1] as HealthAdvice;
+    final weatherAdvice = futures[2] as HealthAdvice;
+
+    setState(() {
+      _historyData = history;
+      if (advice.advice.isNotEmpty) _healthAdvice = advice;
+      if (weatherAdvice.advice.isNotEmpty) _weatherAdvice = weatherAdvice;
+    });
+
+    // Notificación persistente de estado (Google Weather style)
+    if (defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS) {
+      final appState = Provider.of<AppState>(context, listen: false);
+      final useAi = appState.notificationSettings['useAiRecommendations'] ?? true;
+
+      if (useAi && advice.advice.isNotEmpty) {
+        final sb = StringBuffer();
+        final weatherEmoji = _getWeatherEmoji(weatherData['current'].condition);
+        sb.writeln('$weatherEmoji ${weatherData['current'].condition} ${weatherData['current'].temp.round()}°C');
+        final aqiEmoji = _getAqiEmoji(airData.aqi);
+        final aqiText = _getAqiLevelText(airData.aqi, languageCode);
+        sb.writeln('$aqiEmoji ${AppLocalizations.of(context)!.mapAirQuality}: $aqiText');
+        sb.writeln('\n${advice.advice}');
+
+        final title = languageCode == 'en'
+            ? 'Air Quality & Weather'
+            : 'Calidad del Aire y Clima';
+        _notificationService.showNotification(title: title, body: sb.toString());
+      } else {
+        final temp = weatherData['current'].temp.round();
+        final condition = weatherData['current'].condition;
+        _notificationService.showNotification(
+          title: '$temp°C - $condition',
+          body: 'AQI: ${airData.aqi} | ${location.displayName}',
         );
-      });
-      _mapController.move(newPoint, 13.0);
-
-      // Mostrar notificación según preferencias
-      if (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS) {
-        final appState = Provider.of<AppState>(context, listen: false);
-        final useAi =
-            appState.notificationSettings['useAiRecommendations'] ?? true;
-
-        if (useAi) {
-          // Construct Rich Notification Body
-          final sb = StringBuffer();
-
-          // Line 1: Weather
-          final weatherEmoji =
-              _getWeatherEmoji(weatherData['current'].condition);
-          sb.writeln(
-              '$weatherEmoji ${weatherData['current'].condition} ${weatherData['current'].temp.round()}°C');
-
-          // Line 2: Air Quality
-          final aqiEmoji = _getAqiEmoji(airData.aqi);
-          final aqiText = _getAqiLevelText(airData.aqi, languageCode);
-          sb.writeln(
-              '$aqiEmoji ${AppLocalizations.of(context)!.mapAirQuality}: $aqiText');
-
-          // Line 3: AI Advice
-          sb.writeln('\n${advice.advice}');
-
-          final title = languageCode == 'en'
-              ? 'Air Quality & Weather'
-              : 'Calidad del Aire y Clima';
-
-          _notificationService.showNotification(
-            title: title,
-            body: sb.toString(),
-          );
-        } else {
-          // Notificación simplificada (Solo datos)
-          final temp = weatherData['current'].temp.round();
-          final condition = weatherData['current'].condition;
-          final aqi = airData.aqi;
-
-          _notificationService.showNotification(
-            title: '$temp°C - $condition',
-            body: 'AQI: $aqi | ${location.displayName}',
-          );
-        }
       }
-    } catch (e) {
-      if (mounted) {
-        // Simplificado para el usuario
-        MessageService.showError(context, 'Error de conexión');
-      }
-    } finally {
-      setState(() => _isLoading = false);
     }
   }
 

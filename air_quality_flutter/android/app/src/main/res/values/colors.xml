@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- Color de acento para el ícono de notificaciones de Firebase -->
+    <color name="notification_color">#4FC3F7</color>
 </resources>
