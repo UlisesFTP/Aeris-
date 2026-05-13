@@ -383,6 +383,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapHealthAdviceAI => 'Health Advice (AI)';
 
   @override
+  String get mapMainPollutants => 'Main pollutants';
+
+  @override
+  String get mapEnvironmentalConditions => 'Environmental conditions';
+
+  @override
+  String get pollutantStatusLow => 'Low';
+
+  @override
+  String get pollutantStatusModerate => 'Moderate';
+
+  @override
+  String get pollutantStatusHigh => 'High';
+
+  @override
+  String get metricHumidity => 'Humidity';
+
+  @override
+  String get metricWind => 'Wind';
+
+  @override
+  String get metricPressure => 'Pressure';
+
+  @override
+  String get metricFeelsLike => 'Feels like';
+
+  @override
+  String get aqiDescGood => 'Clean air. Perfect for outdoor activities.';
+
+  @override
+  String get aqiDescFair =>
+      'Acceptable quality. Very sensitive people, take caution.';
+
+  @override
+  String get aqiDescModerate =>
+      'Sensitive groups may feel effects. Limit exposure.';
+
+  @override
+  String get aqiDescPoor =>
+      'Health effects for everyone. Reduce outdoor activity.';
+
+  @override
+  String get aqiDescVeryPoor =>
+      'Health alert. Avoid going out if not necessary.';
+
+  @override
+  String get aqiDescDangerous => 'Health emergency. Stay indoors.';
+
+  @override
+  String get forecastToday => 'Today';
+
+  @override
+  String get forecastTomorrow => 'Tomorrow';
+
+  @override
   String get legalPrivacyContent =>
       '**Aeris Privacy Policy**\\n\\n**Last Updated:** November 21, 2024\\n\\n**1. Introduction**\\nAeris is a free application developed to inform about air quality and weather. We do not show ads or sell your data.\\n\\n**2. Data Collection**\\nAeris does NOT collect, store, or share personally identifiable information. We do not require registration or login.\\n\\n**3. Location Data**\\nTo provide you with accurate weather and air quality data, the application needs access to your location.\\n- Coordinates are sent to our data providers (OpenWeather) anonymously.\\n- If you save a location, coordinates are stored encrypted on our secure server.\\n- We do not track your movement history outside of queries you actively make.\\n\\n**4. Third-Party Services**\\nWe use trusted services to obtain data:\\n- **OpenWeather:** For weather and air quality data.\\n- **Google Gemini:** To generate health and weather recommendations based on current data.\\n\\n**5. Contact**\\nIf you have questions about this policy, contact us through the app store.';
 

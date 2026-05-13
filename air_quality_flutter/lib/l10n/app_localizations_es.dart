@@ -388,6 +388,63 @@ class AppLocalizationsEs extends AppLocalizations {
   String get mapHealthAdviceAI => 'Consejo de Salud (IA)';
 
   @override
+  String get mapMainPollutants => 'Contaminantes principales';
+
+  @override
+  String get mapEnvironmentalConditions => 'Condiciones ambientales';
+
+  @override
+  String get pollutantStatusLow => 'Bajo';
+
+  @override
+  String get pollutantStatusModerate => 'Moderado';
+
+  @override
+  String get pollutantStatusHigh => 'Alto';
+
+  @override
+  String get metricHumidity => 'Humedad';
+
+  @override
+  String get metricWind => 'Viento';
+
+  @override
+  String get metricPressure => 'Presión';
+
+  @override
+  String get metricFeelsLike => 'Sensación térmica';
+
+  @override
+  String get aqiDescGood =>
+      'Aire limpio. Perfecto para actividades al aire libre.';
+
+  @override
+  String get aqiDescFair =>
+      'Calidad aceptable. Personas muy sensibles, precaución.';
+
+  @override
+  String get aqiDescModerate =>
+      'Grupos sensibles pueden sentir efectos. Limita exposición.';
+
+  @override
+  String get aqiDescPoor =>
+      'Efectos en la salud para todos. Reduce actividad exterior.';
+
+  @override
+  String get aqiDescVeryPoor =>
+      'Alerta sanitaria. Evita salir si no es necesario.';
+
+  @override
+  String get aqiDescDangerous =>
+      'Emergencia de salud. Permanece en interiores.';
+
+  @override
+  String get forecastToday => 'Hoy';
+
+  @override
+  String get forecastTomorrow => 'Mañana';
+
+  @override
   String get legalPrivacyContent =>
       '**Política de Privacidad de Aeris**\\n\\n**Última actualización:** 21 de Noviembre de 2024\\n\\n**1. Introducción**\\nAeris es una aplicación gratuita desarrollada para informar sobre la calidad del aire y el clima. No mostramos anuncios ni vendemos tus datos.\\n\\n**2. Recopilación de Datos**\\nAeris NO recopila, almacena ni comparte información personal identificable. No requerimos registro ni inicio de sesión.\\n\\n**3. Datos de Ubicación**\\nPara proporcionarte datos precisos del clima y calidad del aire, la aplicación necesita acceso a tu ubicación.\\n- Las coordenadas se envían a nuestros proveedores de datos (OpenWeather) de forma anónima.\\n- Si guardas una ubicación, las coordenadas se almacenan cifradas en nuestro servidor seguro.\\n- No rastreamos tu historial de movimientos fuera de las consultas que realizas activamente.\\n\\n**4. Servicios de Terceros**\\nUtilizamos servicios de confianza para obtener datos:\\n- **OpenWeather:** Para datos meteorológicos y de calidad del aire.\\n- **Google Gemini:** Para generar recomendaciones de salud y clima basadas en los datos actuales.\\n\\n**5. Contacto**\\nSi tienes preguntas sobre esta política, contáctanos a través de la tienda de aplicaciones.';
 

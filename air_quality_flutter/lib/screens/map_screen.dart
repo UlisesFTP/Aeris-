@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
@@ -558,7 +559,7 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               width: 40,
               height: 5,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
@@ -570,10 +571,10 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               hintText: l10n.mapSearchPlaceholder,
               prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30.0),
+                  borderRadius: BorderRadius.circular(16.0),
                   borderSide: BorderSide.none),
               filled: true,
-              fillColor: Theme.of(context).colorScheme.surface,
+              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             ),
             onSubmitted: (_) => _searchLocation(),
           ),
@@ -700,22 +701,64 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     if (_healthAdvice == null) {
       return const SizedBox.shrink();
     }
-    return Card(
-      color: Theme.of(context).colorScheme.primaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF222222) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? const Color(0xFF3A3A3C) : const Color(0xFFE5E5E5),
+        ),
+      ),
+      child: IntrinsicHeight(
         child: Row(
           children: [
-            Icon(Icons.health_and_safety,
-                size: 40,
-                color: Theme.of(context).colorScheme.onPrimaryContainer),
-            const SizedBox(width: 16),
+            Container(
+              width: 4,
+              decoration: const BoxDecoration(
+                color: Color(0xFF66BB6A),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
+                ),
+              ),
+            ),
             Expanded(
-              child: Text(
-                _healthAdvice!.advice,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF66BB6A).withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.health_and_safety, size: 22, color: Color(0xFF66BB6A)),
                     ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.mapHealthAdviceAI,
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _healthAdvice!.advice,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -759,32 +802,111 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
   }
 
+  /// Converts ISO date string to human-friendly label
+  String _humanizeDate(String isoDate, AppLocalizations l10n) {
+    try {
+      final date = DateTime.parse(isoDate);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final tomorrow = today.add(const Duration(days: 1));
+      final target = DateTime(date.year, date.month, date.day);
+
+      if (target == today) return l10n.forecastToday;
+      if (target == tomorrow) return l10n.forecastTomorrow;
+
+      // Short weekday + day number: "Mié 14"
+      final locale = Localizations.localeOf(context).languageCode;
+      return DateFormat('E d', locale).format(date);
+    } catch (_) {
+      return isoDate;
+    }
+  }
+
   Widget _buildForecastDisplay() {
     if (_forecast.isEmpty) {
       return Text(AppLocalizations.of(context)!.mapNoForecastAvailable);
     }
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SizedBox(
-      height: 140,
+      height: 150,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: _forecast.length,
         itemBuilder: (context, index) {
           final item = _forecast[index];
-          return Card(
-            margin: const EdgeInsets.only(right: 8.0),
+          final isToday = index == 0;
+          final dateLabel = _humanizeDate(item.date, l10n);
+
+          return Container(
+            width: 100,
+            margin: const EdgeInsets.only(right: 10.0),
+            decoration: BoxDecoration(
+              color: isToday
+                  ? (isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF0F0F0))
+                  : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isToday
+                    ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)
+                    : (isDark ? const Color(0xFF3A3A3C) : const Color(0xFFE5E5E5)),
+                width: isToday ? 1.5 : 1,
+              ),
+            ),
             child: Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(item.date),
+                  Text(
+                    dateLabel,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   Image.network(
-                    'https://openweathermap.org/img/wn/${item.icon}.png',
+                    'https://openweathermap.org/img/wn/${item.icon}@2x.png',
                     width: 40,
                     height: 40,
+                    errorBuilder: (_, __, ___) => const Icon(Icons.cloud, size: 40),
                   ),
-                  Text('${item.maxTemp.round()}° / ${item.minTemp.round()}°'),
-                  Text(item.condition, style: const TextStyle(fontSize: 10)),
+                  const SizedBox(height: 8),
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${item.maxTemp.round()}°',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' / ${item.minTemp.round()}°',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.condition,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 ],
               ),
             ),
@@ -879,24 +1001,24 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       l10n.aqiDangerous,
     ];
     final healthDesc = [
-      'Aire limpio. Perfecto para actividades al aire libre.',
-      'Calidad aceptable. Personas muy sensibles, precaución.',
-      'Grupos sensibles pueden sentir efectos. Limita exposición.',
-      'Efectos en la salud para todos. Reduce actividad exterior.',
-      'Alerta sanitaria. Evita salir si no es necesario.',
-      'Emergencia de salud. Permanece en interiores.',
+      l10n.aqiDescGood,
+      l10n.aqiDescFair,
+      l10n.aqiDescModerate,
+      l10n.aqiDescPoor,
+      l10n.aqiDescVeryPoor,
+      l10n.aqiDescDangerous,
     ];
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final surfaceColor = isDark ? const Color(0xFF222222) : Colors.white;
 
     return Card(
       elevation: 0,
       color: surfaceColor,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: isDark ? const Color(0xFF333333) : const Color(0xFFE0E0E0),
+          color: isDark ? const Color(0xFF3A3A3C) : const Color(0xFFE0E0E0),
         ),
       ),
       child: Padding(
@@ -1028,13 +1150,13 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             const SizedBox(height: 20),
             Divider(
               height: 1,
-              color: isDark ? const Color(0xFF333333) : const Color(0xFFEEEEEE),
+              color: isDark ? const Color(0xFF3A3A3C) : const Color(0xFFEEEEEE),
             ),
             const SizedBox(height: 16),
 
             // ── Pollutant bars ─────────────────────────────────────────────
             Text(
-              'Contaminantes principales',
+              l10n.mapMainPollutants,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     letterSpacing: 0.8,
                     color: Theme.of(context)
@@ -1046,23 +1168,23 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             const SizedBox(height: 12),
             _buildComponentBar(
                 'PM2.5', data.components['pm2_5'], 12, 35, 'μg/m³'),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
             _buildComponentBar(
                 'CO', data.components['co'], 4400, 9400, 'μg/m³'),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
             _buildComponentBar('O₃', data.components['o3'], 100, 180, 'μg/m³'),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
             _buildComponentBar('NO₂', data.components['no2'], 40, 200, 'μg/m³'),
             const SizedBox(height: 20),
             Divider(
               height: 1,
-              color: isDark ? const Color(0xFF333333) : const Color(0xFFEEEEEE),
+              color: isDark ? const Color(0xFF3A3A3C) : const Color(0xFFEEEEEE),
             ),
             const SizedBox(height: 16),
 
             // ── Condiciones ambientales ────────────────────────────────────
             Text(
-              'Condiciones ambientales',
+              l10n.mapEnvironmentalConditions,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     letterSpacing: 0.8,
                     color: Theme.of(context)
@@ -1092,20 +1214,21 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     // Determine status
     String status;
     Color barColor;
+    final l10n = AppLocalizations.of(context)!;
     if (v < warnThreshold) {
-      status = 'Bajo';
+      status = l10n.pollutantStatusLow;
       barColor = const Color(0xFF4CAF50);
     } else if (v < dangerThreshold) {
-      status = 'Moderado';
+      status = l10n.pollutantStatusModerate;
       barColor = const Color(0xFFFF9800);
     } else {
-      status = 'Alto';
+      status = l10n.pollutantStatusHigh;
       barColor = const Color(0xFFE53935);
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final trackColor =
-        isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF0F0F0);
+        isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF0F0F0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1196,14 +1319,15 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
     final w = _currentWeather!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     final trackColor =
-        isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF0F0F0);
+        isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF0F0F0);
 
     return Column(
       children: [
         _buildMetricRow(
           icon: Icons.water_drop,
-          label: 'Humedad',
+          label: l10n.metricHumidity,
           value: w.humidity?.toDouble(),
           unit: '%',
           max: 100,
@@ -1215,7 +1339,7 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         const SizedBox(height: 12),
         _buildMetricRow(
           icon: Icons.air,
-          label: 'Viento',
+          label: l10n.metricWind,
           value: w.windSpeed,
           unit: 'm/s',
           max: 20,
@@ -1227,7 +1351,7 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         const SizedBox(height: 12),
         _buildMetricRow(
           icon: Icons.speed,
-          label: 'Presión',
+          label: l10n.metricPressure,
           value: w.pressure?.toDouble(),
           unit: 'hPa',
           max: 1050,
@@ -1242,7 +1366,7 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         const SizedBox(height: 12),
         _buildMetricRow(
           icon: Icons.thermostat,
-          label: 'Sensación térmica',
+          label: l10n.metricFeelsLike,
           value: w.feelsLike,
           unit: '°C',
           max: 45,
@@ -1381,39 +1505,64 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     if (_weatherAdvice == null) {
       return const SizedBox.shrink();
     }
-    return Card(
-      color: Theme.of(context).colorScheme.secondaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF222222) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? const Color(0xFF3A3A3C) : const Color(0xFFE5E5E5),
+        ),
+      ),
+      child: IntrinsicHeight(
         child: Row(
           children: [
-            Icon(Icons.wb_sunny,
-                size: 40,
-                color: Theme.of(context).colorScheme.onSecondaryContainer),
-            const SizedBox(width: 16),
+            // Left accent bar
+            Container(
+              width: 4,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFFB74D),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
+                ),
+              ),
+            ),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.mapWeatherAdvice,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSecondaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _weatherAdvice!.advice,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSecondaryContainer,
-                        ),
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFB74D).withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.wb_sunny, size: 22, color: Color(0xFFFFB74D)),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.mapWeatherAdvice,
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _weatherAdvice!.advice,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

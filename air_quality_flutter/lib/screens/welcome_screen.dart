@@ -106,9 +106,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             end: Alignment.bottomRight,
             colors: isDarkMode
                 ? [
-                    const Color(0xFF000000),
+                    const Color(0xFF111111),
                     const Color(0xFF1A1A1A),
-                    const Color(0xFF0A0A0A),
+                    const Color(0xFF111111),
                   ]
                 : [
                     const Color(0xFFFFFFFF),
@@ -293,9 +293,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: isDarkMode ? const Color(0xFF1A1A1A) : const Color(0xFFFFFFFF),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDarkMode ? const Color(0xFF333333) : const Color(0xFFE5E5E5),
+          color: isDarkMode ? const Color(0xFF3A3A3C) : const Color(0xFFE5E5E5),
           width: 1,
         ),
         boxShadow: [
@@ -312,7 +312,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: isDarkMode
-                  ? const Color(0xFF252525)
+                  ? const Color(0xFF222222)
                   : const Color(0xFFF5F5F5),
               borderRadius: BorderRadius.circular(14),
             ),

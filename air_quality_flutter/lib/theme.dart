@@ -39,7 +39,7 @@ final ThemeData lightTheme = ThemeData(
     elevation: 0,
     shadowColor: Colors.black.withOpacity(0.04),
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(16),
       side: const BorderSide(color: Color(0xFFE5E5E5), width: 1),
     ),
     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -51,7 +51,7 @@ final ThemeData lightTheme = ThemeData(
       foregroundColor: const Color(0xFFFFFFFF), // White
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
       ),
       textStyle: const TextStyle(
         fontSize: 16,
@@ -75,15 +75,15 @@ final ThemeData lightTheme = ThemeData(
     filled: true,
     fillColor: const Color(0xFFF5F5F5), // Very Light Gray
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       borderSide: BorderSide.none,
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       borderSide: const BorderSide(color: Color(0xFFE5E5E5), width: 1),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       borderSide: const BorderSide(color: Color(0xFF000000), width: 2),
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
@@ -166,46 +166,48 @@ final ThemeData lightTheme = ThemeData(
 );
 
 // --- DARK THEME (Monochromatic Black & White) ---
+// Surface colors follow recommended dark mode layering for premium feel:
+// Background (#111111) → Surface (#1A1A1A) → Card (#222222) → Elevated (#2C2C2C)
 final ThemeData darkTheme = ThemeData(
   brightness: Brightness.dark,
   useMaterial3: true,
   fontFamily: 'ProductSans',
   colorScheme: const ColorScheme.dark(
-    primary: Color(0xFFFFFFFF), // Pure White
+    primary: Color(0xFFF0F0F0), // Off-White (less harsh than pure white)
     secondary: Color(0xFFE0E0E0), // Light Gray
     tertiary: Color(0xFFCCCCCC), // Medium-Light Gray
-    surface: Color(0xFF1A1A1A), // Very Dark Gray
-    surfaceContainerHighest: Color(0xFF252525), // Lighter Dark Gray
+    surface: Color(0xFF1A1A1A), // Surface layer
+    surfaceContainerHighest: Color(0xFF2C2C2C), // Elevated elements
     onPrimary: Color(0xFF000000), // Black on white
     onSecondary: Color(0xFF000000), // Black on light gray
-    onSurface: Color(0xFFFFFFFF), // White text
-    onSurfaceVariant: Color(0xFFCCCCCC), // Light gray text
-    error: Color(0xFFFFFFFF), // White for errors (monochromatic)
-    outline: Color(0xFF333333), // Dark gray for borders
+    onSurface: Color(0xFFF0F0F0), // Off-white text (not pure white)
+    onSurfaceVariant: Color(0xFF8E8E93), // iOS-style secondary text
+    error: Color(0xFFFF6B6B), // Soft red for errors (visible in dark)
+    outline: Color(0xFF3A3A3C), // iOS-style separator
   ),
-  scaffoldBackgroundColor: const Color(0xFF0A0A0A), // Near-black
+  scaffoldBackgroundColor: const Color(0xFF111111), // Softer dark background
   appBarTheme: const AppBarTheme(
     centerTitle: false,
-    backgroundColor: Color(0xFF1A1A1A), // Very Dark Gray
+    backgroundColor: Color(0xFF1A1A1A), // Surface layer
     elevation: 0,
     scrolledUnderElevation: 0.5,
-    shadowColor: Color(0x33000000), // Medium black shadow
+    shadowColor: Color(0x33000000),
     titleTextStyle: TextStyle(
-      color: Color(0xFFFFFFFF), // White
+      color: Color(0xFFF0F0F0), // Off-white
       fontSize: 24,
       fontWeight: FontWeight.w700,
       fontFamily: 'ProductSans',
       letterSpacing: -0.5,
     ),
-    iconTheme: IconThemeData(color: Color(0xFFFFFFFF)), // White
+    iconTheme: IconThemeData(color: Color(0xFFF0F0F0)),
   ),
   cardTheme: CardThemeData(
-    color: const Color(0xFF1A1A1A), // Very Dark Gray
+    color: const Color(0xFF222222), // Card layer — clearly visible on #111111
     elevation: 0,
     shadowColor: Colors.black.withOpacity(0.3),
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(20),
-      side: const BorderSide(color: Color(0xFF333333), width: 1),
+      borderRadius: BorderRadius.circular(16),
+      side: const BorderSide(color: Color(0xFF3A3A3C), width: 1),
     ),
     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
   ),
@@ -238,75 +240,75 @@ final ThemeData darkTheme = ThemeData(
   ),
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
-    fillColor: const Color(0xFF252525), // Lighter Dark Gray
+    fillColor: const Color(0xFF2C2C2C), // Elevated layer
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       borderSide: BorderSide.none,
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: Color(0xFF333333), width: 1),
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: Color(0xFF3A3A3C), width: 1),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: Color(0xFFFFFFFF), width: 2),
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: Color(0xFFF0F0F0), width: 2),
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
     hintStyle: const TextStyle(
-      color: Color(0xFF808080), // Medium gray
+      color: Color(0xFF8E8E93), // iOS-style placeholder
       fontWeight: FontWeight.w400,
     ),
   ),
   dividerTheme: const DividerThemeData(
-    color: Color(0xFF333333),
+    color: Color(0xFF3A3A3C),
     thickness: 1,
     space: 1,
   ),
   iconTheme: const IconThemeData(
-    color: Color(0xFFFFFFFF), // White
+    color: Color(0xFFF0F0F0), // Off-white
     size: 24,
   ),
   textTheme: const TextTheme(
     displayLarge: TextStyle(
       fontSize: 32,
       fontWeight: FontWeight.w700,
-      color: Color(0xFFFFFFFF),
+      color: Color(0xFFF0F0F0),
       letterSpacing: -0.5,
     ),
     displayMedium: TextStyle(
       fontSize: 28,
       fontWeight: FontWeight.w700,
-      color: Color(0xFFFFFFFF),
+      color: Color(0xFFF0F0F0),
       letterSpacing: -0.5,
     ),
     displaySmall: TextStyle(
       fontSize: 24,
       fontWeight: FontWeight.w700,
-      color: Color(0xFFFFFFFF),
+      color: Color(0xFFF0F0F0),
       letterSpacing: -0.3,
     ),
     headlineMedium: TextStyle(
       fontSize: 20,
       fontWeight: FontWeight.w600,
-      color: Color(0xFFFFFFFF),
+      color: Color(0xFFF0F0F0),
       letterSpacing: -0.2,
     ),
     titleLarge: TextStyle(
       fontSize: 18,
       fontWeight: FontWeight.w600,
-      color: Color(0xFFFFFFFF),
+      color: Color(0xFFF0F0F0),
       letterSpacing: 0,
     ),
     titleMedium: TextStyle(
       fontSize: 16,
       fontWeight: FontWeight.w600,
-      color: Color(0xFFFFFFFF),
+      color: Color(0xFFF0F0F0),
       letterSpacing: 0.1,
     ),
     titleSmall: TextStyle(
       fontSize: 14,
       fontWeight: FontWeight.w600,
-      color: Color(0xFFFFFFFF),
+      color: Color(0xFFF0F0F0),
       letterSpacing: 0.1,
     ),
     bodyLarge: TextStyle(
@@ -318,13 +320,13 @@ final ThemeData darkTheme = ThemeData(
     bodyMedium: TextStyle(
       fontSize: 14,
       fontWeight: FontWeight.w400,
-      color: Color(0xFFCCCCCC),
+      color: Color(0xFF8E8E93),
       height: 1.5,
     ),
     bodySmall: TextStyle(
       fontSize: 12,
       fontWeight: FontWeight.w400,
-      color: Color(0xFF999999),
+      color: Color(0xFF8E8E93),
       height: 1.4,
     ),
   ),

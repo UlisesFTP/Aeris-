@@ -794,6 +794,108 @@ abstract class AppLocalizations {
   /// **'Consejo de Salud (IA)'**
   String get mapHealthAdviceAI;
 
+  /// No description provided for @mapMainPollutants.
+  ///
+  /// In es, this message translates to:
+  /// **'Contaminantes principales'**
+  String get mapMainPollutants;
+
+  /// No description provided for @mapEnvironmentalConditions.
+  ///
+  /// In es, this message translates to:
+  /// **'Condiciones ambientales'**
+  String get mapEnvironmentalConditions;
+
+  /// No description provided for @pollutantStatusLow.
+  ///
+  /// In es, this message translates to:
+  /// **'Bajo'**
+  String get pollutantStatusLow;
+
+  /// No description provided for @pollutantStatusModerate.
+  ///
+  /// In es, this message translates to:
+  /// **'Moderado'**
+  String get pollutantStatusModerate;
+
+  /// No description provided for @pollutantStatusHigh.
+  ///
+  /// In es, this message translates to:
+  /// **'Alto'**
+  String get pollutantStatusHigh;
+
+  /// No description provided for @metricHumidity.
+  ///
+  /// In es, this message translates to:
+  /// **'Humedad'**
+  String get metricHumidity;
+
+  /// No description provided for @metricWind.
+  ///
+  /// In es, this message translates to:
+  /// **'Viento'**
+  String get metricWind;
+
+  /// No description provided for @metricPressure.
+  ///
+  /// In es, this message translates to:
+  /// **'Presión'**
+  String get metricPressure;
+
+  /// No description provided for @metricFeelsLike.
+  ///
+  /// In es, this message translates to:
+  /// **'Sensación térmica'**
+  String get metricFeelsLike;
+
+  /// No description provided for @aqiDescGood.
+  ///
+  /// In es, this message translates to:
+  /// **'Aire limpio. Perfecto para actividades al aire libre.'**
+  String get aqiDescGood;
+
+  /// No description provided for @aqiDescFair.
+  ///
+  /// In es, this message translates to:
+  /// **'Calidad aceptable. Personas muy sensibles, precaución.'**
+  String get aqiDescFair;
+
+  /// No description provided for @aqiDescModerate.
+  ///
+  /// In es, this message translates to:
+  /// **'Grupos sensibles pueden sentir efectos. Limita exposición.'**
+  String get aqiDescModerate;
+
+  /// No description provided for @aqiDescPoor.
+  ///
+  /// In es, this message translates to:
+  /// **'Efectos en la salud para todos. Reduce actividad exterior.'**
+  String get aqiDescPoor;
+
+  /// No description provided for @aqiDescVeryPoor.
+  ///
+  /// In es, this message translates to:
+  /// **'Alerta sanitaria. Evita salir si no es necesario.'**
+  String get aqiDescVeryPoor;
+
+  /// No description provided for @aqiDescDangerous.
+  ///
+  /// In es, this message translates to:
+  /// **'Emergencia de salud. Permanece en interiores.'**
+  String get aqiDescDangerous;
+
+  /// No description provided for @forecastToday.
+  ///
+  /// In es, this message translates to:
+  /// **'Hoy'**
+  String get forecastToday;
+
+  /// No description provided for @forecastTomorrow.
+  ///
+  /// In es, this message translates to:
+  /// **'Mañana'**
+  String get forecastTomorrow;
+
   /// No description provided for @legalPrivacyContent.
   ///
   /// In es, this message translates to:
