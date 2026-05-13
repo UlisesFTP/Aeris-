@@ -15,8 +15,9 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late TabController _tabController;
+  late AnimationController _listAnimController;
   bool _isLoading = false;
 
   @override
@@ -24,6 +25,10 @@ class _HistoryScreenState extends State<HistoryScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_onTabChanged);
+    _listAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
 
     // Load initial history
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -47,12 +52,26 @@ class _HistoryScreenState extends State<HistoryScreen>
       appState.loadSavedLocationsFromApi(),
     ]);
     setState(() => _isLoading = false);
+    _listAnimController.reset();
+    _listAnimController.forward();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _listAnimController.dispose();
     super.dispose();
+  }
+
+  /// Staggered animation for the i-th list item
+  Animation<double> _itemAnimation(int index, int totalCount) {
+    if (totalCount == 0) return const AlwaysStoppedAnimation(1.0);
+    final start = (index / totalCount).clamp(0.0, 0.9);
+    final end = ((index + 1) / totalCount).clamp(start + 0.05, 1.0);
+    return CurvedAnimation(
+      parent: _listAnimController,
+      curve: Interval(start, end, curve: Curves.easeOutCubic),
+    );
   }
 
   @override
@@ -61,6 +80,11 @@ class _HistoryScreenState extends State<HistoryScreen>
 
     return Consumer<AppState>(
       builder: (context, appState, child) {
+        // Calculate total animated items
+        final savedCount = appState.savedLocations.length;
+        final historyCount = appState.locationHistory.length;
+        final totalItems = savedCount + historyCount + 2; // +2 for headers
+
         return Scaffold(
           appBar: AppBar(
             title: Text(l10n.historyTitle),
@@ -78,35 +102,79 @@ class _HistoryScreenState extends State<HistoryScreen>
             onRefresh: () => _loadHistory(appState.currentHistoryFilter),
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : ListView(
-                    padding: const EdgeInsets.all(16.0),
-                    children: [
-                      // SECCIÓN 1: Ubicaciones Guardadas
-                      _buildSectionHeader(context, l10n.historySectionSaved),
-                      if (appState.savedLocations.isEmpty)
-                        _buildEmptySection(
-                            context, l10n.historyNoSavedLocations)
-                      else
-                        ...appState.savedLocations.values.map(
-                            (loc) => _buildSavedLocationItem(context, loc)),
+                : AnimatedBuilder(
+                    animation: _listAnimController,
+                    builder: (context, _) {
+                      int itemIndex = 0;
+                      return ListView(
+                        padding: const EdgeInsets.all(16.0),
+                        children: [
+                          // SECCIÓN 1: Ubicaciones Guardadas
+                          _animatedItem(
+                            itemIndex++,
+                            totalItems,
+                            _buildSectionHeader(
+                                context, l10n.historySectionSaved),
+                          ),
+                          if (appState.savedLocations.isEmpty)
+                            _animatedItem(
+                              itemIndex++,
+                              totalItems,
+                              _buildEmptySection(
+                                  context, l10n.historyNoSavedLocations),
+                            )
+                          else
+                            ...appState.savedLocations.values.map((loc) =>
+                                _animatedItem(
+                                  itemIndex++,
+                                  totalItems,
+                                  _buildSavedLocationItem(context, loc),
+                                )),
 
-                      const SizedBox(height: 24),
+                          const SizedBox(height: 24),
 
-                      // SECCIÓN 2: Historial de Visitas
-                      _buildSectionHeader(context, l10n.historySectionVisits),
-                      if (appState.locationHistory.isEmpty)
-                        _buildEmptySection(context, l10n.historyNoRecentHistory)
-                      else
-                        ...appState.locationHistory
-                            .map((visit) => _buildHistoryItem(context, visit)),
+                          // SECCIÓN 2: Historial de Visitas
+                          _animatedItem(
+                            itemIndex++,
+                            totalItems,
+                            _buildSectionHeader(
+                                context, l10n.historySectionVisits),
+                          ),
+                          if (appState.locationHistory.isEmpty)
+                            _animatedItem(
+                              itemIndex++,
+                              totalItems,
+                              _buildEmptySection(
+                                  context, l10n.historyNoRecentHistory),
+                            )
+                          else
+                            ...appState.locationHistory.map((visit) =>
+                                _animatedItem(
+                                  itemIndex++,
+                                  totalItems,
+                                  _buildHistoryItem(context, visit),
+                                )),
 
-                      // Espacio extra al final
-                      const SizedBox(height: 48),
-                    ],
+                          // Espacio extra al final
+                          const SizedBox(height: 48),
+                        ],
+                      );
+                    },
                   ),
           ),
         );
       },
+    );
+  }
+
+  Widget _animatedItem(int index, int total, Widget child) {
+    final anim = _itemAnimation(index, total);
+    return Opacity(
+      opacity: anim.value.clamp(0.0, 1.0),
+      child: Transform.translate(
+        offset: Offset(0, 24 * (1 - anim.value)),
+        child: child,
+      ),
     );
   }
 
@@ -142,7 +210,10 @@ class _HistoryScreenState extends State<HistoryScreen>
         child: Text(
           message,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.5),
                 fontStyle: FontStyle.italic,
               ),
         ),

@@ -11,28 +11,66 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
+    with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late AnimationController _staggerController;
+  late AnimationController _pulseController;
   late Animation<double> _fadeAnimation;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+
+    // Main fade in
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
     _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeIn,
+      parent: _fadeController,
+      curve: Curves.easeOut,
     );
-    _animationController.forward();
+
+    // Staggered features
+    _staggerController = AnimationController(
+      duration: const Duration(milliseconds: 900),
+      vsync: this,
+    );
+
+    // Button pulse
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.04).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _fadeController.forward();
+    Future.delayed(const Duration(milliseconds: 300), () {
+      _staggerController.forward();
+    });
+    Future.delayed(const Duration(milliseconds: 900), () {
+      _pulseController.repeat(reverse: true);
+    });
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _fadeController.dispose();
+    _staggerController.dispose();
+    _pulseController.dispose();
     super.dispose();
+  }
+
+  Animation<double> _featureAnimation(int index) {
+    final start = (index / 3).clamp(0.0, 1.0);
+    final end = ((index + 1) / 3).clamp(0.0, 1.0);
+    return CurvedAnimation(
+      parent: _staggerController,
+      curve: Interval(start, end, curve: Curves.easeOutCubic),
+    );
   }
 
   Future<void> _onGetStarted(BuildContext context) async {
@@ -41,7 +79,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
     if (context.mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const MainShell()),
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const MainShell(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 500),
+        ),
       );
     }
   }
@@ -61,39 +106,46 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             end: Alignment.bottomRight,
             colors: isDarkMode
                 ? [
-                    const Color(0xFF000000), // Pure black
-                    const Color(0xFF1A1A1A), // Very dark gray
-                    const Color(0xFF0A0A0A), // Near-black
+                    const Color(0xFF000000),
+                    const Color(0xFF1A1A1A),
+                    const Color(0xFF0A0A0A),
                   ]
                 : [
-                    const Color(0xFFFFFFFF), // Pure white
-                    const Color(0xFFF5F5F5), // Very light gray
-                    const Color(0xFFFAFAFA), // Off-white
+                    const Color(0xFFFFFFFF),
+                    const Color(0xFFF5F5F5),
+                    const Color(0xFFFAFAFA),
                   ],
           ),
         ),
         child: SafeArea(
-          child: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: IntrinsicHeight(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: FadeTransition(
-                          opacity: _fadeAnimation,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const SizedBox(height: 20),
-                              // Header Section
-                              Column(
-                                children: [
-                                  Container(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const SizedBox(height: 20),
+                            // Header Section
+                            Column(
+                              children: [
+                                TweenAnimationBuilder<double>(
+                                  tween: Tween(begin: 0.8, end: 1.0),
+                                  duration: const Duration(milliseconds: 800),
+                                  curve: Curves.elasticOut,
+                                  builder: (context, scale, child) {
+                                    return Transform.scale(
+                                        scale: scale, child: child);
+                                  },
+                                  child: Container(
                                     padding: const EdgeInsets.all(24),
                                     decoration: BoxDecoration(
                                       color: isDarkMode
@@ -113,80 +165,116 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       color: colorScheme.primary,
                                     ),
                                   ),
-                                  const SizedBox(height: 32),
-                                  Text(
-                                    l10n.welcomeTitle,
-                                    style: textTheme.displaySmall?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      height: 1.2,
+                                ),
+                                const SizedBox(height: 32),
+                                Text(
+                                  l10n.welcomeTitle,
+                                  style: textTheme.displaySmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    height: 1.2,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  l10n.welcomeSubtitle,
+                                  style: textTheme.bodyLarge?.copyWith(
+                                    color: colorScheme.onSurface
+                                        .withValues(alpha: 0.7),
+                                    height: 1.5,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 32),
+                            // Features Section — staggered
+                            AnimatedBuilder(
+                              animation: _staggerController,
+                              builder: (context, _) {
+                                return Column(
+                                  children: [
+                                    _buildAnimatedFeature(
+                                      context,
+                                      index: 0,
+                                      icon: Icons.timer_outlined,
+                                      title: l10n.welcomeFeature1Title,
+                                      subtitle: l10n.welcomeFeature1Desc,
                                     ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    l10n.welcomeSubtitle,
-                                    style: textTheme.bodyLarge?.copyWith(
-                                      color: colorScheme.onSurface
-                                          .withOpacity(0.7),
-                                      height: 1.5,
+                                    const SizedBox(height: 20),
+                                    _buildAnimatedFeature(
+                                      context,
+                                      index: 1,
+                                      icon: Icons
+                                          .notifications_active_outlined,
+                                      title: l10n.welcomeFeature2Title,
+                                      subtitle: l10n.welcomeFeature2Desc,
                                     ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 32),
-                              // Features Section
-                              Column(
-                                children: [
-                                  _buildFeature(
-                                    context,
-                                    icon: Icons.timer_outlined,
-                                    title: l10n.welcomeFeature1Title,
-                                    subtitle: l10n.welcomeFeature1Desc,
-                                  ),
-                                  const SizedBox(height: 20),
-                                  _buildFeature(
-                                    context,
-                                    icon: Icons.notifications_active_outlined,
-                                    title: l10n.welcomeFeature2Title,
-                                    subtitle: l10n.welcomeFeature2Desc,
-                                  ),
-                                  const SizedBox(height: 20),
-                                  _buildFeature(
-                                    context,
-                                    icon: Icons.map_outlined,
-                                    title: l10n.welcomeFeature3Title,
-                                    subtitle: l10n.welcomeFeature3Desc,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 32),
-                              // Button Section
-                              Column(
-                                children: [
-                                  ElevatedButton(
-                                    onPressed: () => _onGetStarted(context),
+                                    const SizedBox(height: 20),
+                                    _buildAnimatedFeature(
+                                      context,
+                                      index: 2,
+                                      icon: Icons.map_outlined,
+                                      title: l10n.welcomeFeature3Title,
+                                      subtitle: l10n.welcomeFeature3Desc,
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 32),
+                            // Button Section
+                            Column(
+                              children: [
+                                AnimatedBuilder(
+                                  animation: _pulseAnimation,
+                                  builder: (context, child) {
+                                    return Transform.scale(
+                                      scale: _pulseAnimation.value,
+                                      child: child,
+                                    );
+                                  },
+                                  child: ElevatedButton(
+                                    onPressed: () =>
+                                        _onGetStarted(context),
                                     style: ElevatedButton.styleFrom(
-                                      minimumSize:
-                                          const Size(double.infinity, 56),
+                                      minimumSize: const Size(
+                                          double.infinity, 56),
                                       elevation: 0,
                                     ),
                                     child: Text(l10n.welcomeButton),
                                   ),
-                                  const SizedBox(height: 16),
-                                ],
-                              ),
-                            ],
-                          ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedFeature(
+    BuildContext context, {
+    required int index,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    final anim = _featureAnimation(index);
+    return Opacity(
+      opacity: anim.value.clamp(0.0, 1.0),
+      child: Transform.translate(
+        offset: Offset(30 * (1 - anim.value), 0),
+        child: _buildFeature(context, icon: icon, title: title, subtitle: subtitle),
       ),
     );
   }
@@ -212,7 +300,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDarkMode ? 0.2 : 0.03),
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.2 : 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -249,7 +337,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 Text(
                   subtitle,
                   style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.6),
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
               ],

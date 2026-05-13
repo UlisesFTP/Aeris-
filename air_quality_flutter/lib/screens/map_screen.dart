@@ -5,14 +5,10 @@ import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_ti
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, TargetPlatform;
-
 import '../api/api_service.dart';
 import '../models/models.dart';
 import '../core/app_state.dart';
-import '../api/notifications_service.dart';
-import '../widgets/history_chart.dart';
+import '../services/local_advice_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:air_quality_flutter/l10n/app_localizations.dart';
 import '../services/message_service.dart';
@@ -25,11 +21,14 @@ class MapScreen extends StatefulWidget {
   MapScreenState createState() => MapScreenState();
 }
 
-class MapScreenState extends State<MapScreen> {
+class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   final ApiService _apiService = ApiService();
-  final NotificationService _notificationService = NotificationService();
   final MapController _mapController = MapController();
   final TextEditingController _searchController = TextEditingController();
+
+  // Animation controller for staggered card animations
+  late AnimationController _staggerController;
+  final int _cardCount = 5; // number of animated sections
 
   // Estado local de la pantalla
   AirQualityData? _airQualityData;
@@ -38,15 +37,53 @@ class MapScreenState extends State<MapScreen> {
   HealthAdvice? _weatherAdvice;
   List<ForecastItem> _forecast = [];
   List<LocationSearchResult> _searchResults = [];
-  List<HistoricalDataPoint> _historyData = [];
   bool _isLoading = false;
+  String _loadingPhase = '';
   Marker? _currentMarker;
   LocationSearchResult? _currentLocation;
 
   @override
   void initState() {
     super.initState();
+    _staggerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
     _getCurrentLocationAndData();
+  }
+
+  @override
+  void dispose() {
+    _staggerController.dispose();
+    super.dispose();
+  }
+
+  /// Builds a staggered animation for the i-th card (0-indexed)
+  Animation<double> _cardAnimation(int index) {
+    final start = (index / _cardCount).clamp(0.0, 1.0);
+    final end = ((index + 1) / _cardCount).clamp(0.0, 1.0);
+    return CurvedAnimation(
+      parent: _staggerController,
+      curve: Interval(start, end, curve: Curves.easeOutCubic),
+    );
+  }
+
+  /// Wraps a child widget in a fade + slide-up animation
+  Widget _animatedCard(int index, Widget child) {
+    final anim = _cardAnimation(index);
+    return AnimatedBuilder(
+      animation: anim,
+      builder: (context, ch) {
+        return Opacity(
+          opacity: anim.value,
+          child: Transform.translate(
+            offset: Offset(0, 20 * (1 - anim.value)),
+            child: ch,
+          ),
+        );
+      },
+      child: child,
+    );
   }
 
   // --- NUEVO MÉTODO PÚBLICO ---
@@ -58,7 +95,11 @@ class MapScreenState extends State<MapScreen> {
   // --- LÓGICA DE DATOS ---
 
   Future<void> _getCurrentLocationAndData() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _loadingPhase = 'Obteniendo ubicación…';
+    });
+
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -78,36 +119,83 @@ class MapScreenState extends State<MapScreen> {
             'Los permisos de ubicación están permanentemente denegados.');
       }
 
-      // GPS con timeout de 10s para evitar esperas indefinidas
-      Position position;
-      try {
-        position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.medium, // medium es más rápido que high
-        ).timeout(const Duration(seconds: 10));
-      } on TimeoutException {
-        // Fallback: usar la última posición conocida si el GPS tarda demasiado
-        final lastPos = await Geolocator.getLastKnownPosition();
-        if (lastPos != null) {
-          position = lastPos;
-        } else {
-          throw TimeoutException('GPS timeout y sin última posición conocida');
+      // ── ESTRATEGIA "Last Known First" ─────────────────────────────────────
+      // 1. Intentar usar la última posición conocida inmediatamente.
+      //    Es instantánea y evita bloquear al usuario esperando el GPS.
+      Position? position = await Geolocator.getLastKnownPosition();
+
+      if (position != null) {
+        final age = DateTime.now().difference(position.timestamp ?? DateTime.now());
+        if (age <= const Duration(minutes: 5)) {
+          // Posición reciente (< 5 min): úsala directamente
+          _loadLocationFromPosition(position);
+          // En background, intentar obtener una posición más precisa
+          _refinePositionInBackground();
+          return;
         }
       }
 
-      String currentLocName = 'Ubicación Actual';
-      if (mounted) {
-        currentLocName = AppLocalizations.of(context)!.alertsCurrentLocation;
+      // 2. Si no hay posición reciente, pedir una nueva con timeout corto
+      try {
+        position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.low, // low es mucho más rápido
+          timeLimit: const Duration(seconds: 5),
+        );
+      } on TimeoutException {
+        // Fallback a última posición conocida (aunque sea vieja)
+        position = await Geolocator.getLastKnownPosition();
       }
 
-      _onLocationSelected(LocationSearchResult(
-          displayName: currentLocName,
-          latitude: position.latitude,
-          longitude: position.longitude));
+      if (position == null) {
+        throw Exception('No se pudo obtener la ubicación del dispositivo.');
+      }
+
+      _loadLocationFromPosition(position);
     } catch (e) {
       if (mounted) {
         MessageService.showError(context, 'Error de Geolocalización: $e');
       }
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _loadingPhase = '';
+      });
+    }
+  }
+
+  void _loadLocationFromPosition(Position position) {
+    String currentLocName = 'Ubicación Actual';
+    if (mounted) {
+      currentLocName = AppLocalizations.of(context)!.alertsCurrentLocation;
+    }
+
+    // Guardar posición real para que el background service la use
+    Provider.of<AppState>(context, listen: false)
+        .updateLastKnownDevicePosition(position.latitude, position.longitude);
+
+    _onLocationSelected(LocationSearchResult(
+        displayName: currentLocName,
+        latitude: position.latitude,
+        longitude: position.longitude));
+  }
+
+  /// Refina la posición en background cuando la última conocida era suficiente.
+  Future<void> _refinePositionInBackground() async {
+    try {
+      final refined = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+        timeLimit: const Duration(seconds: 8),
+      );
+      if (!mounted) return;
+      // Solo actualizar si el usuario sigue en la ubicación actual
+      final current = _currentLocation;
+      if (current != null &&
+          (current.latitude - refined.latitude).abs() < 0.01 &&
+          (current.longitude - refined.longitude).abs() < 0.01) {
+        return; // Misma zona, no hace falta recargar
+      }
+      _loadLocationFromPosition(refined);
+    } catch (_) {
+      // Silencioso: el usuario ya tiene datos válidos
     }
   }
 
@@ -116,6 +204,7 @@ class MapScreenState extends State<MapScreen> {
     FocusScope.of(context).unfocus();
     setState(() {
       _isLoading = true;
+      _loadingPhase = 'Buscando ubicación…';
       _searchResults.clear();
     });
     try {
@@ -126,36 +215,48 @@ class MapScreenState extends State<MapScreen> {
         MessageService.showError(context, 'Error al buscar: $e');
       }
     } finally {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _loadingPhase = '';
+      });
     }
   }
 
   void _onLocationSelected(LocationSearchResult location) async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final languageCode = Localizations.localeOf(context).languageCode;
+
     setState(() {
       _isLoading = true;
+      _loadingPhase = 'Consultando datos…';
       _searchResults.clear();
       _searchController.clear();
       _currentLocation = location;
-      _healthAdvice = null;
-      _weatherAdvice = null;
     });
     FocusScope.of(context).unfocus();
 
-    Provider.of<AppState>(context, listen: false).addRecentLocation(location);
-
-    // Registrar visita en background (no bloquea)
-    Provider.of<AppState>(context, listen: false).recordLocationVisit(
+    appState.addRecentLocation(location);
+    appState.recordLocationVisit(
       location.latitude,
       location.longitude,
       location.displayName,
     );
 
-    try {
-      final languageCode = Localizations.localeOf(context).languageCode;
+    final newPoint = LatLng(location.latitude, location.longitude);
 
+    // ── CACHE: intentar mostrar datos locales inmediatamente ────────────────
+    final cached = appState.getCachedMapData(location.latitude, location.longitude);
+    if (cached != null) {
+      _applyCachedData(cached, newPoint);
+      setState(() => _isLoading = false);
+      // Refrescar en background sin bloquear
+      _refreshDataInBackground(location, languageCode);
+      return;
+    }
+
+    try {
       // -----------------------------------------------------------------------
       // FASE 1: Datos críticos — AQI + Clima en paralelo.
-      // El spinner desaparece tan pronto como estos llegan (~1–2s).
       // -----------------------------------------------------------------------
       final responses = await Future.wait([
         _apiService.getAirQuality(location.latitude, location.longitude),
@@ -165,29 +266,19 @@ class MapScreenState extends State<MapScreen> {
 
       final airData = responses[0] as AirQualityData;
       final weatherData = responses[1] as Map<String, dynamic>;
-      final newPoint = LatLng(location.latitude, location.longitude);
 
-      // Mostrar datos inmediatamente — el usuario ya puede ver el AQI y el clima
-      if (mounted) {
-        setState(() {
-          _airQualityData = airData;
-          _currentWeather = weatherData['current'];
-          _forecast = weatherData['forecast'];
-          _currentMarker = Marker(
-            point: newPoint,
-            width: 80,
-            height: 80,
-            child: const Icon(Icons.location_pin, color: Colors.red, size: 45),
-          );
-          _isLoading = false; // <-- UI responde aquí, ya no espera a Gemini
-        });
-        _mapController.move(newPoint, 13.0);
-      }
+      _applyApiData(airData, weatherData, newPoint);
 
-      // -----------------------------------------------------------------------
-      // FASE 2: Datos secundarios — Historia + Consejos IA en background.
-      // Se cargan sin bloquear la UI. El usuario puede interactuar mientras.
-      // -----------------------------------------------------------------------
+      // Guardar en caché para la próxima vez
+      appState.cacheMapData(
+        lat: location.latitude,
+        lon: location.longitude,
+        airQuality: airData,
+        weather: weatherData['current'] as WeatherData,
+        forecast: weatherData['forecast'] as List<ForecastItem>,
+      );
+
+      // FASE 2: Datos secundarios en background
       _loadSecondaryData(
         location: location,
         airData: airData,
@@ -196,82 +287,130 @@ class MapScreenState extends State<MapScreen> {
       );
     } catch (e) {
       if (mounted) {
-        MessageService.showError(context, 'Error de conexión');
-        setState(() => _isLoading = false);
+        MessageService.showError(context, 'Error de conexión: $e');
+        setState(() {
+          _isLoading = false;
+          _loadingPhase = '';
+        });
       }
     }
   }
 
-  /// Carga en background: historial AQI + consejos de IA.
-  /// No bloquea la UI — usa setState al terminar para actualizar los widgets.
+  // ── HELPERS DE DATOS ──────────────────────────────────────────────────────
+
+  void _applyCachedData(Map<String, dynamic> cached, LatLng newPoint) {
+    final airJson = cached['airQuality'] as Map<String, dynamic>;
+    final weatherJson = cached['weather'] as Map<String, dynamic>;
+    final forecastList = (cached['forecast'] as List<dynamic>)
+        .map((f) => ForecastItem.fromJson(f as Map<String, dynamic>))
+        .toList();
+
+    setState(() {
+      _airQualityData = AirQualityData(
+        aqi: airJson['aqi'] as int,
+        components: (airJson['components'] as Map<String, dynamic>?) ?? {},
+      );
+      _currentWeather = WeatherData(
+        temp: (weatherJson['temp'] as num).toDouble(),
+        condition: weatherJson['condition'] as String,
+        icon: weatherJson['icon'] as String,
+      );
+      _forecast = forecastList;
+      _currentMarker = _buildMarker(newPoint);
+    });
+    _mapController.move(newPoint, 13.0);
+    _staggerController.reset();
+    _staggerController.forward();
+
+    // Consejos locales son instantáneos
+    if (_airQualityData != null) {
+      setState(() => _healthAdvice = LocalAdviceService.getAqiAdvice(_airQualityData!.aqi));
+    }
+    if (_currentWeather != null) {
+      setState(() => _weatherAdvice = LocalAdviceService.getWeatherAdvice(
+        condition: _currentWeather!.condition,
+        temp: _currentWeather!.temp,
+      ));
+    }
+  }
+
+  void _applyApiData(AirQualityData airData, Map<String, dynamic> weatherData, LatLng newPoint) {
+    if (!mounted) return;
+    setState(() {
+      _airQualityData = airData;
+      _currentWeather = weatherData['current'];
+      _forecast = weatherData['forecast'];
+      _currentMarker = _buildMarker(newPoint);
+      _isLoading = false;
+      _loadingPhase = '';
+    });
+    _mapController.move(newPoint, 13.0);
+    _staggerController.reset();
+    _staggerController.forward();
+  }
+
+  /// Refresca datos desde la API en background cuando ya se mostró caché.
+  Future<void> _refreshDataInBackground(LocationSearchResult location, String languageCode) async {
+    try {
+      final responses = await Future.wait([
+        _apiService.getAirQuality(location.latitude, location.longitude),
+        _apiService.getWeather(location.latitude, location.longitude, language: languageCode),
+      ]);
+      final airData = responses[0] as AirQualityData;
+      final weatherData = responses[1] as Map<String, dynamic>;
+      final newPoint = LatLng(location.latitude, location.longitude);
+
+      _applyApiData(airData, weatherData, newPoint);
+
+      Provider.of<AppState>(context, listen: false).cacheMapData(
+        lat: location.latitude,
+        lon: location.longitude,
+        airQuality: airData,
+        weather: weatherData['current'] as WeatherData,
+        forecast: weatherData['forecast'] as List<ForecastItem>,
+      );
+
+      _loadSecondaryData(
+        location: location,
+        airData: airData,
+        weatherData: weatherData,
+        languageCode: languageCode,
+      );
+    } catch (_) {
+      // Silencioso: el usuario ya vio datos cacheados
+    }
+  }
+
+  /// Carga en background: historial AQI. Los consejos ahora son locales e instantáneos.
   Future<void> _loadSecondaryData({
     required LocationSearchResult location,
     required AirQualityData airData,
     required Map<String, dynamic> weatherData,
     required String languageCode,
   }) async {
-    // Cargar historial y consejos en paralelo
-    final futures = await Future.wait([
-      _apiService.getHistory(location.latitude, location.longitude)
-          .catchError((_) => <HistoricalDataPoint>[]),
-      _apiService.getAdvice(
-        weatherCondition: weatherData['current'].condition,
-        aqi: airData.aqi,
-        components: airData.components,
-        language: languageCode,
-      ).catchError((_) => const HealthAdvice(advice: '')),
-      if (weatherData['forecast'].isNotEmpty)
-        _apiService.getWeatherAdvice(
-          temp: weatherData['current'].temp,
-          condition: weatherData['current'].condition,
-          minTemp: weatherData['forecast'][0].minTemp,
-          maxTemp: weatherData['forecast'][0].maxTemp,
-          language: languageCode,
-        ).catchError((_) => const HealthAdvice(advice: ''))
-      else
-        Future.value(const HealthAdvice(advice: '')),
-    ]);
+    // ── Consejos locales — instantáneos, sin red ───────────────────────────
+    final currentWeather = weatherData['current'] as WeatherData;
+    final aqiAdvice = LocalAdviceService.getAqiAdvice(airData.aqi);
+    final weatherAdvice = LocalAdviceService.getWeatherAdvice(
+      condition: currentWeather.condition,
+      temp: currentWeather.temp,
+      minTemp: (weatherData['forecast'] as List<ForecastItem>).isNotEmpty
+          ? weatherData['forecast'][0].minTemp
+          : null,
+      maxTemp: (weatherData['forecast'] as List<ForecastItem>).isNotEmpty
+          ? weatherData['forecast'][0].maxTemp
+          : null,
+    );
 
-    if (!mounted) return;
-
-    final history = futures[0] as List<HistoricalDataPoint>;
-    final advice = futures[1] as HealthAdvice;
-    final weatherAdvice = futures[2] as HealthAdvice;
-
-    setState(() {
-      _historyData = history;
-      if (advice.advice.isNotEmpty) _healthAdvice = advice;
-      if (weatherAdvice.advice.isNotEmpty) _weatherAdvice = weatherAdvice;
-    });
-
-    // Notificación persistente de estado (Google Weather style)
-    if (defaultTargetPlatform == TargetPlatform.android ||
-        defaultTargetPlatform == TargetPlatform.iOS) {
-      final appState = Provider.of<AppState>(context, listen: false);
-      final useAi = appState.notificationSettings['useAiRecommendations'] ?? true;
-
-      if (useAi && advice.advice.isNotEmpty) {
-        final sb = StringBuffer();
-        final weatherEmoji = _getWeatherEmoji(weatherData['current'].condition);
-        sb.writeln('$weatherEmoji ${weatherData['current'].condition} ${weatherData['current'].temp.round()}°C');
-        final aqiEmoji = _getAqiEmoji(airData.aqi);
-        final aqiText = _getAqiLevelText(airData.aqi, languageCode);
-        sb.writeln('$aqiEmoji ${AppLocalizations.of(context)!.mapAirQuality}: $aqiText');
-        sb.writeln('\n${advice.advice}');
-
-        final title = languageCode == 'en'
-            ? 'Air Quality & Weather'
-            : 'Calidad del Aire y Clima';
-        _notificationService.showNotification(title: title, body: sb.toString());
-      } else {
-        final temp = weatherData['current'].temp.round();
-        final condition = weatherData['current'].condition;
-        _notificationService.showNotification(
-          title: '$temp°C - $condition',
-          body: 'AQI: ${airData.aqi} | ${location.displayName}',
-        );
-      }
+    if (mounted) {
+      setState(() {
+        _healthAdvice = aqiAdvice;
+        _weatherAdvice = weatherAdvice;
+      });
     }
+
+    // Notificaciones se manejan ahora de forma asíncrona en segundo plano
+    // (WorkManager + AlertMonitoringService). El MapScreen solo muestra datos en UI.
   }
 
   void _showSaveLocationDialog() {
@@ -347,12 +486,27 @@ class MapScreenState extends State<MapScreen> {
             ),
             children: [
               TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                urlTemplate: Theme.of(context).brightness == Brightness.dark
+                    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                subdomains: const ['a', 'b', 'c', 'd'],
                 userAgentPackageName: 'com.example.air_quality_flutter',
                 tileProvider: CancellableNetworkTileProvider(),
               ),
-              if (_currentMarker != null)
+              if (_currentMarker != null) ...[
+                CircleLayer(
+                  circles: [
+                    CircleMarker(
+                      point: _currentMarker!.point,
+                      radius: 40,
+                      color: _getMarkerColor().withValues(alpha: 0.15),
+                      borderColor: _getMarkerColor().withValues(alpha: 0.3),
+                      borderStrokeWidth: 1,
+                    ),
+                  ],
+                ),
                 MarkerLayer(markers: [_currentMarker!]),
+              ],
               RichAttributionWidget(
                 attributions: [
                   TextSourceAttribution(
@@ -367,7 +521,7 @@ class MapScreenState extends State<MapScreen> {
           DraggableScrollableSheet(
             initialChildSize: 0.4,
             minChildSize: 0.1,
-            maxChildSize: 0.8,
+            maxChildSize: 0.92,
             builder: (context, scrollController) {
               return Container(
                 decoration: BoxDecoration(
@@ -425,10 +579,22 @@ class MapScreenState extends State<MapScreen> {
           ),
           const SizedBox(height: 16),
           _isLoading
-              ? const Center(
+              ? Center(
                   child: Padding(
-                      padding: EdgeInsets.all(32.0),
-                      child: CircularProgressIndicator()))
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const CircularProgressIndicator(),
+                        const SizedBox(height: 16),
+                        Text(
+                          _loadingPhase,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+                )
               : _searchResults.isNotEmpty
                   ? _buildSearchResults()
                   : _buildDataDisplay(textTheme, l10n),
@@ -466,40 +632,66 @@ class MapScreenState extends State<MapScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(l10n.mapCurrentWeather, style: textTheme.titleLarge),
-            if (_currentLocation != null)
-              IconButton(
-                icon: const Icon(Icons.bookmark_add_outlined),
-                onPressed: _showSaveLocationDialog,
-                tooltip: l10n.mapSaveLocationTooltip,
-              ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        _buildWeatherDisplay(),
+        _animatedCard(
+            0,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(l10n.mapCurrentWeather, style: textTheme.titleLarge),
+                    if (_currentLocation != null)
+                      IconButton(
+                        icon: const Icon(Icons.bookmark_add_outlined),
+                        onPressed: _showSaveLocationDialog,
+                        tooltip: l10n.mapSaveLocationTooltip,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildWeatherDisplay(),
+              ],
+            )),
         if (_weatherAdvice != null) ...[
           const SizedBox(height: 16),
-          _buildWeatherAdviceDisplay(l10n),
+          _animatedCard(1, _buildWeatherAdviceDisplay(l10n)),
         ],
         const SizedBox(height: 24),
-        Text(l10n.mapHealthAdvice, style: textTheme.titleLarge),
-        const SizedBox(height: 16),
-        _buildAdviceDisplay(),
+        _animatedCard(
+            2,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.mapHealthAdvice, style: textTheme.titleLarge),
+                const SizedBox(height: 16),
+                _buildAdviceDisplay(),
+              ],
+            )),
         const SizedBox(height: 24),
-        Text(l10n.mapAirQuality, style: textTheme.titleLarge),
-        const SizedBox(height: 16),
-        _buildAirQualityDisplay(l10n),
+        _animatedCard(
+            3,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.mapAirQuality, style: textTheme.titleLarge),
+                const SizedBox(height: 16),
+                _buildAirQualityDisplay(l10n),
+              ],
+            )),
         const SizedBox(height: 24),
-        Text(l10n.mapWeeklyForecast, style: textTheme.titleLarge),
-        const SizedBox(height: 16),
-        _buildForecastDisplay(),
-        const SizedBox(height: 24),
-        Text(l10n.historyChartTitle, style: textTheme.titleLarge),
-        const SizedBox(height: 16),
-        SizedBox(height: 150, child: HistoryChart(history: _historyData)),
+        _animatedCard(
+            4,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.mapWeeklyForecast, style: textTheme.titleLarge),
+                const SizedBox(height: 16),
+                _buildForecastDisplay(),
+              ],
+            )),
+        // Padding de seguridad para que la barra de navegación no tape el contenido
+        const SizedBox(height: 100),
       ],
     );
   }
@@ -602,113 +794,585 @@ class MapScreenState extends State<MapScreen> {
     );
   }
 
+  // ─── AQI PALETTE (international standard colors) ───────────────────────
+  static const List<Color> _aqiColors = [
+    Color(0xFF4CAF50), // 1 Good        – green
+    Color(0xFF8BC34A), // 2 Fair        – light green
+    Color(0xFFFFEB3B), // 3 Moderate    – yellow
+    Color(0xFFFF9800), // 4 Poor        – orange
+    Color(0xFFE53935), // 5 Very Poor   – red
+    Color(0xFF6A1B9A), // 6 Dangerous   – purple
+  ];
+
+  static const List<String> _aqiEmojis = ['🟢', '🟡', '🟠', '🔴', '🟣', '⚫'];
+
+  Color _getMarkerColor() {
+    if (_airQualityData == null) return Colors.grey;
+    final idx = (_airQualityData!.aqi - 1).clamp(0, 5);
+    return _aqiColors[idx];
+  }
+
+  Marker _buildMarker(LatLng point) {
+    final color = _getMarkerColor();
+    return Marker(
+      point: point,
+      width: 80,
+      height: 80,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Outer glow
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+          ),
+          // Main circle
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 3),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.5),
+                  blurRadius: 12,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Center(
+              child: Container(
+                width: 12,
+                height: 12,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAirQualityDisplay(AppLocalizations l10n) {
     if (_airQualityData == null) {
       return Center(child: Text(l10n.mapSelectLocationPrompt));
     }
 
     final data = _airQualityData!;
-    final aqiColors = [
-      const Color(0xFF4CAF50), // Good - Green
-      const Color(0xFFFFEB3B), // Fair - Yellow
-      const Color(0xFFFF9800), // Moderate - Orange
-      const Color(0xFFFF5722), // Poor - Deep Orange/Red
-      const Color(0xFF9C27B0), // Very Poor - Purple
-      const Color(0xFF795548), // Dangerous - Brown
-    ];
-    final aqiText = [
+    final idx = (data.aqi - 1).clamp(0, 5);
+    final aqiColor = _aqiColors[idx];
+    final aqiLabels = [
       l10n.aqiGood,
       l10n.aqiFair,
       l10n.aqiModerate,
       l10n.aqiPoor,
       l10n.aqiVeryPoor,
-      l10n.aqiDangerous
+      l10n.aqiDangerous,
     ];
-    final aqiValue = data.aqi - 1;
+    final healthDesc = [
+      'Aire limpio. Perfecto para actividades al aire libre.',
+      'Calidad aceptable. Personas muy sensibles, precaución.',
+      'Grupos sensibles pueden sentir efectos. Limita exposición.',
+      'Efectos en la salud para todos. Reduce actividad exterior.',
+      'Alerta sanitaria. Evita salir si no es necesario.',
+      'Emergencia de salud. Permanece en interiores.',
+    ];
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
     return Card(
+      elevation: 0,
+      color: surfaceColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isDark ? const Color(0xFF333333) : const Color(0xFFE0E0E0),
+        ),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                color: aqiColors[aqiValue],
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: aqiColors[aqiValue].withOpacity(0.4),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Text(
-                aqiText[aqiValue],
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.white, // Always white for contrast
-                  fontWeight: FontWeight.bold,
-                  shadows: [
-                    const Shadow(
-                      offset: Offset(0, 1),
-                      blurRadius: 2,
-                      color: Colors.black26,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
+            // ── AQI Hero number ───────────────────────────────────────────
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _buildComponentText('PM2.5', data.components['pm2_5']),
-                _buildComponentText('CO', data.components['co']),
-                _buildComponentText('O3', data.components['o3']),
+                // Big number
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: data.aqi.toDouble()),
+                  duration: const Duration(milliseconds: 800),
+                  curve: Curves.easeOutCubic,
+                  builder: (_, v, __) {
+                    return Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: aqiColor.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: aqiColor, width: 3),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${v.round()}',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: aqiColor,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            _aqiEmojis[idx],
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            aqiLabels[idx],
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: aqiColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        healthDesc[idx],
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.65),
+                              height: 1.4,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
+            const SizedBox(height: 20),
+
+            // ── Scale bar with 6 segments ─────────────────────────────────
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Row(
+                    children: List.generate(6, (i) {
+                      return Expanded(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 400),
+                          height: i == idx ? 14 : 8,
+                          margin: const EdgeInsets.symmetric(horizontal: 1),
+                          decoration: BoxDecoration(
+                            color: i <= idx
+                                ? _aqiColors[i]
+                                : _aqiColors[i].withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                // Labels below scale
+                Row(
+                  children: List.generate(6, (i) {
+                    return Expanded(
+                      child: Text(
+                        ['1', '2', '3', '4', '5', '6'][i],
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight:
+                              i == idx ? FontWeight.w800 : FontWeight.w400,
+                          color: i == idx
+                              ? aqiColor
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.4),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+            Divider(
+              height: 1,
+              color: isDark ? const Color(0xFF333333) : const Color(0xFFEEEEEE),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Pollutant bars ─────────────────────────────────────────────
+            Text(
+              'Contaminantes principales',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    letterSpacing: 0.8,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.5),
+                  ),
+            ),
+            const SizedBox(height: 12),
+            _buildComponentBar(
+                'PM2.5', data.components['pm2_5'], 12, 35, 'μg/m³'),
+            const SizedBox(height: 10),
+            _buildComponentBar(
+                'CO', data.components['co'], 4400, 9400, 'μg/m³'),
+            const SizedBox(height: 10),
+            _buildComponentBar('O₃', data.components['o3'], 100, 180, 'μg/m³'),
+            const SizedBox(height: 10),
+            _buildComponentBar('NO₂', data.components['no2'], 40, 200, 'μg/m³'),
+            const SizedBox(height: 20),
+            Divider(
+              height: 1,
+              color: isDark ? const Color(0xFF333333) : const Color(0xFFEEEEEE),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Condiciones ambientales ────────────────────────────────────
+            Text(
+              'Condiciones ambientales',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    letterSpacing: 0.8,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.5),
+                  ),
+            ),
+            const SizedBox(height: 12),
+            _buildEnvironmentalMetrics(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildComponentText(String name, double? value) {
-    IconData icon;
-    switch (name) {
-      case 'PM2.5':
-        icon = Icons.grain;
-        break;
-      case 'PM10':
-        icon = Icons.cloud;
-        break;
-      case 'CO':
-        icon = Icons.local_fire_department;
-        break;
-      case 'O3':
-        icon = Icons.air;
-        break;
-      case 'NO2':
-        icon = Icons.warning_amber;
-        break;
-      case 'SO2':
-        icon = Icons.science;
-        break;
-      default:
-        icon = Icons.analytics;
+  Widget _buildComponentBar(
+    String name,
+    double? value,
+    double warnThreshold,
+    double dangerThreshold,
+    String unit,
+  ) {
+    final double v = value ?? 0;
+    final double ratio = (v / dangerThreshold).clamp(0.0, 1.0);
+
+    // Determine status
+    String status;
+    Color barColor;
+    if (v < warnThreshold) {
+      status = 'Bajo';
+      barColor = const Color(0xFF4CAF50);
+    } else if (v < dangerThreshold) {
+      status = 'Moderado';
+      barColor = const Color(0xFFFF9800);
+    } else {
+      status = 'Alto';
+      barColor = const Color(0xFFE53935);
     }
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final trackColor =
+        isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF0F0F0);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              name,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: barColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                status,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: barColor,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              value != null ? '${value.toStringAsFixed(1)} $unit' : 'N/A',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.5),
+                  ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 5),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            return Stack(
+              children: [
+                // Track
+                Container(
+                  height: 6,
+                  width: constraints.maxWidth,
+                  decoration: BoxDecoration(
+                    color: trackColor,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                // Animated fill
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: ratio),
+                  duration: const Duration(milliseconds: 900),
+                  curve: Curves.easeOutCubic,
+                  builder: (_, animated, __) {
+                    return Container(
+                      height: 6,
+                      width: constraints.maxWidth * animated,
+                      decoration: BoxDecoration(
+                        color: barColor,
+                        borderRadius: BorderRadius.circular(4),
+                        boxShadow: [
+                          BoxShadow(
+                            color: barColor.withValues(alpha: 0.4),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEnvironmentalMetrics() {
+    if (_currentWeather == null) return const SizedBox.shrink();
+
+    final w = _currentWeather!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final trackColor =
+        isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF0F0F0);
 
     return Column(
       children: [
-        Icon(icon, size: 32, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(height: 4),
-        Text(name, style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 2),
-        Text(value?.toStringAsFixed(2) ?? 'N/A',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                )),
+        _buildMetricRow(
+          icon: Icons.water_drop,
+          label: 'Humedad',
+          value: w.humidity?.toDouble(),
+          unit: '%',
+          max: 100,
+          lowThreshold: 30,
+          highThreshold: 70,
+          colors: const [Color(0xFF4FC3F7), Color(0xFF0288D1)],
+          trackColor: trackColor,
+        ),
+        const SizedBox(height: 12),
+        _buildMetricRow(
+          icon: Icons.air,
+          label: 'Viento',
+          value: w.windSpeed,
+          unit: 'm/s',
+          max: 20,
+          lowThreshold: 5,
+          highThreshold: 12,
+          colors: const [Color(0xFF81C784), Color(0xFFFFB74D), Color(0xFFE53935)],
+          trackColor: trackColor,
+        ),
+        const SizedBox(height: 12),
+        _buildMetricRow(
+          icon: Icons.speed,
+          label: 'Presión',
+          value: w.pressure?.toDouble(),
+          unit: 'hPa',
+          max: 1050,
+          min: 960,
+          lowThreshold: 990,
+          highThreshold: 1020,
+          colors: const [Color(0xFFBA68C8), Color(0xFF42A5F5), Color(0xFF66BB6A)],
+          trackColor: trackColor,
+          isCentered: true,
+          centerValue: 1013,
+        ),
+        const SizedBox(height: 12),
+        _buildMetricRow(
+          icon: Icons.thermostat,
+          label: 'Sensación térmica',
+          value: w.feelsLike,
+          unit: '°C',
+          max: 45,
+          lowThreshold: 15,
+          highThreshold: 30,
+          colors: const [Color(0xFF4FC3F7), Color(0xFFFFB74D), Color(0xFFE53935)],
+          trackColor: trackColor,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricRow({
+    required IconData icon,
+    required String label,
+    required double? value,
+    required String unit,
+    required double max,
+    double min = 0,
+    required double lowThreshold,
+    required double highThreshold,
+    required List<Color> colors,
+    required Color trackColor,
+    bool isCentered = false,
+    double? centerValue,
+  }) {
+    final double v = value ?? 0;
+    final double ratio = ((v - min) / (max - min)).clamp(0.0, 1.0);
+
+    // Determine color based on value
+    Color barColor;
+    if (isCentered && centerValue != null) {
+      final deviation = (v - centerValue).abs();
+      if (deviation < 10) {
+        barColor = colors[1];
+      } else if (deviation < 20) {
+        barColor = colors[0];
+      } else {
+        barColor = colors[2];
+      }
+    } else {
+      if (v < lowThreshold) {
+        barColor = colors[0];
+      } else if (v < highThreshold) {
+        barColor = colors[1];
+      } else {
+        barColor = colors.length > 2 ? colors[2] : colors[1];
+      }
+    }
+
+    return Row(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: barColor.withValues(alpha: 0.12),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 18, color: barColor),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    label,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  Text(
+                    value != null ? '${value.toStringAsFixed(1)} $unit' : 'N/A',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: barColor,
+                        ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  return Stack(
+                    children: [
+                      // Track
+                      Container(
+                        height: 8,
+                        width: constraints.maxWidth,
+                        decoration: BoxDecoration(
+                          color: trackColor,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      // Animated fill
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: ratio),
+                        duration: const Duration(milliseconds: 900),
+                        curve: Curves.easeOutCubic,
+                        builder: (_, animated, __) {
+                          return Container(
+                            height: 8,
+                            width: constraints.maxWidth * animated,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [barColor.withValues(alpha: 0.7), barColor],
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: barColor.withValues(alpha: 0.35),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -758,87 +1422,4 @@ class MapScreenState extends State<MapScreen> {
     );
   }
 
-  // --- HELPER METHODS FOR NOTIFICATIONS ---
-
-  String _getAqiLevelText(int aqi, String languageCode) {
-    if (languageCode == 'en') {
-      switch (aqi) {
-        case 1:
-          return 'Good';
-        case 2:
-          return 'Fair';
-        case 3:
-          return 'Moderate';
-        case 4:
-          return 'Poor';
-        case 5:
-          return 'Very Poor';
-        case 6:
-          return 'Dangerous';
-        default:
-          return 'Unknown';
-      }
-    } else {
-      switch (aqi) {
-        case 1:
-          return 'Bueno';
-        case 2:
-          return 'Regular';
-        case 3:
-          return 'Moderado';
-        case 4:
-          return 'Malo';
-        case 5:
-          return 'Muy Malo';
-        case 6:
-          return 'Peligroso';
-        default:
-          return 'Desconocido';
-      }
-    }
-  }
-
-  String _getAqiEmoji(int aqi) {
-    switch (aqi) {
-      case 1:
-      case 2:
-        return '🍃';
-      case 3:
-        return '⚠️';
-      case 4:
-      case 5:
-        return '🚨';
-      case 6:
-        return '☢️';
-      default:
-        return '📊';
-    }
-  }
-
-  String _getWeatherEmoji(String condition) {
-    final lower = condition.toLowerCase();
-    if (lower.contains('sun') ||
-        lower.contains('sol') ||
-        lower.contains('clear') ||
-        lower.contains('despejado')) {
-      return '☀️';
-    } else if (lower.contains('cloud') ||
-        lower.contains('nube') ||
-        lower.contains('nublado')) {
-      return '☁️';
-    } else if (lower.contains('rain') ||
-        lower.contains('lluvia') ||
-        lower.contains('drizzle')) {
-      return '🌧️';
-    } else if (lower.contains('storm') || lower.contains('tormenta')) {
-      return '⛈️';
-    } else if (lower.contains('snow') || lower.contains('nieve')) {
-      return '❄️';
-    } else if (lower.contains('mist') ||
-        lower.contains('fog') ||
-        lower.contains('niebla')) {
-      return '🌫️';
-    }
-    return '🌡️';
-  }
 }

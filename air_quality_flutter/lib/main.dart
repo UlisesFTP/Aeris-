@@ -15,6 +15,23 @@ import 'api/notifications_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:air_quality_flutter/l10n/app_localizations.dart';
+import 'package:http/http.dart' as http;
+
+/// Ping fire-and-forget al backend para reducir cold-start en servicios
+/// como Render. No bloquea el inicio de la app.
+void _warmUpBackend() {
+  try {
+    final url = dotenv.env['API_URL'];
+    if (url != null && url.isNotEmpty) {
+      http.get(Uri.parse('$url/health')).timeout(const Duration(seconds: 5)).catchError((_) {
+        // Silencioso: solo es un precalentamiento
+        return http.Response('', 500);
+      });
+    }
+  } catch (_) {
+    // Ignorar cualquier error de warm-up
+  }
+}
 
 Future<void> main() async {
   // Asegurarse de que Flutter esté listo
@@ -22,6 +39,10 @@ Future<void> main() async {
 
   // Cargar variables de entorno
   await dotenv.load(fileName: 'assets/.env');
+
+  // Precalentar backend: ping fire-and-forget para despertar el servidor
+  // (especialmente útil en Render con cold starts)
+  _warmUpBackend();
 
   // Inicializar Firebase
   await Firebase.initializeApp(

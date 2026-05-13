@@ -5,7 +5,6 @@ import '../core/app_state.dart';
 import '../widgets/location_picker_dialog.dart';
 
 import 'package:air_quality_flutter/l10n/app_localizations.dart';
-import '../services/message_service.dart';
 
 class AlertsScreen extends StatelessWidget {
   const AlertsScreen({super.key});
@@ -102,17 +101,7 @@ class AlertsScreen extends StatelessWidget {
             title: Text(l10n.alertsTitle),
             automaticallyImplyLeading: false,
           ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () async {
-              MessageService.showInfo(context, l10n.alertsVerifying);
-              final count = await appState.forceCheckAlertLocations();
-              if (context.mounted) {
-                MessageService.showSuccess(context, l10n.alertsVerified(count));
-              }
-            },
-            icon: const Icon(Icons.refresh),
-            label: Text(l10n.alertsCheckNow),
-          ),
+
           body: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
@@ -129,6 +118,15 @@ class AlertsScreen extends StatelessWidget {
                   appState.updateNotificationSetting('miUbicacion', value);
                 },
                 isSystem: true,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 12.0),
+                child: Text(
+                  'La app monitoreará tu última ubicación conocida para enviar notificaciones de estado y alertas en segundo plano.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
               ),
 
               // Home Location
@@ -159,21 +157,8 @@ class AlertsScreen extends StatelessWidget {
                 ),
               ),
 
-              _buildSectionHeader(context, l10n.alertsSectionPreferences),
+              const SizedBox(height: 24),
 
-              _buildLocationTile(
-                context,
-                icon: Icons.auto_awesome,
-                title: l10n.alertsAiRecommendations,
-                subtitle: l10n.alertsAiRecommendationsSubtitle,
-                enabled:
-                    appState.notificationSettings['useAiRecommendations'] ??
-                        true,
-                onChanged: (value) => appState.updateNotificationSetting(
-                    'useAiRecommendations', value),
-              ),
-
-              const SizedBox(height: 80), // Space for FAB
             ],
           ),
         );

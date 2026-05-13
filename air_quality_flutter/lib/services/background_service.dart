@@ -62,16 +62,49 @@ Future<void> _runBackgroundCheck() async {
 
   // 2. Cargar ubicaciones de alerta configuradas y activas
   final String? alertsString = prefs.getString('alertLocations');
-  if (alertsString == null) {
-    debugPrint('[WorkManager] No hay ubicaciones de alerta configuradas.');
-    return;
-  }
-
-  final Map<String, dynamic> alertsJson = json.decode(alertsString);
+  final Map<String, dynamic> alertsJson =
+      alertsString != null ? json.decode(alertsString) : {};
   final List<AlertLocation> locations = alertsJson.values
       .map((e) => AlertLocation.fromJson(e))
       .where((l) => l.enabled && l.isConfigured)
       .toList();
+
+  // 2b. Cargar configuración de notificaciones
+  bool monitorCurrentLocation = true;
+  final String? settingsString = prefs.getString('notificationSettings');
+  if (settingsString != null) {
+    final settings = json.decode(settingsString) as Map<String, dynamic>;
+    monitorCurrentLocation = settings['miUbicacion'] ?? true;
+  }
+
+  // 2c. Si monitorear ubicación actual, agregarla al principio de la lista
+  if (monitorCurrentLocation) {
+    final String? lastPosString = prefs.getString('lastKnownDevicePosition');
+    if (lastPosString != null) {
+      try {
+        final lastPosJson = json.decode(lastPosString);
+        final lat = (lastPosJson['lat'] as num).toDouble();
+        final lon = (lastPosJson['lon'] as num).toDouble();
+        final timestamp = DateTime.parse(lastPosJson['timestamp'] as String);
+        // Considerar válida si tiene menos de 2 horas
+        if (DateTime.now().difference(timestamp) <= const Duration(hours: 2)) {
+          locations.insert(
+            0,
+            AlertLocation(
+              id: 'current_device',
+              name: 'Mi Ubicación',
+              latitude: lat,
+              longitude: lon,
+              displayName: 'Ubicación Actual',
+              enabled: true,
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('[WorkManager] Error leyendo lastKnownDevicePosition: $e');
+      }
+    }
+  }
 
   if (locations.isEmpty) {
     debugPrint('[WorkManager] No hay ubicaciones activas.');

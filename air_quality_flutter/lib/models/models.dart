@@ -116,11 +116,19 @@ class WeatherData {
   final double temp;
   final String condition;
   final String icon;
+  final int? humidity;
+  final int? pressure;
+  final double? windSpeed;
+  final double? feelsLike;
 
   const WeatherData({
     required this.temp,
     required this.condition,
     required this.icon,
+    this.humidity,
+    this.pressure,
+    this.windSpeed,
+    this.feelsLike,
   });
 
   factory WeatherData.fromJson(Map<String, dynamic> json) {
@@ -128,6 +136,10 @@ class WeatherData {
       temp: (json['temp'] as num?)?.toDouble() ?? 0.0,
       condition: json['condition'] as String? ?? '',
       icon: json['icon'] as String? ?? '',
+      humidity: json['humidity'] as int?,
+      pressure: json['pressure'] as int?,
+      windSpeed: (json['wind_speed'] as num?)?.toDouble(),
+      feelsLike: (json['feels_like'] as num?)?.toDouble(),
     );
   }
 }

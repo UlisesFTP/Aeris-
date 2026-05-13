@@ -106,7 +106,11 @@ class WeatherService:
             return {
                 "temp": data['main']['temp'],
                 "condition": data['weather'][0]['description'],
-                "icon": data['weather'][0]['icon']
+                "icon": data['weather'][0]['icon'],
+                "humidity": data['main'].get('humidity'),
+                "pressure": data['main'].get('pressure'),
+                "wind_speed": data.get('wind', {}).get('speed'),
+                "feels_like": data['main'].get('feels_like'),
             }
         except pybreaker.CircuitBreakerError:
             print("Circuit breaker is OPEN - OpenWeather API is unavailable")

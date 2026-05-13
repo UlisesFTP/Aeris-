@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Consorcio Gastronómico Global</title>
+<meta name="description" content="Elevamos la gastronomía a nivel mundial. Conceptos culinarios premium, catering de lujo e innovación gastronómica."/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#1a3a2a",
+          "primary-container": "#2d5e42",
+          "on-primary": "#ffffff",
+          "on-primary-container": "#c8e6d3",
+          "secondary": "#8b7355",
+          "secondary-container": "#f5e6d0",
+          "on-secondary": "#ffffff",
+          "on-secondary-container": "#5a4a35",
+          "tertiary": "#0f2b1e",
+          "tertiary-container": "#1a3a2a",
+          "on-tertiary": "#ffffff",
+          "on-tertiary-container": "#a8d5b8",
+          "background": "#faf8f5",
+          "on-background": "#1a1c1a",
+          "surface": "#faf8f5",
+          "surface-container-lowest": "#ffffff",
+          "surface-container-low": "#f4f1ec",
+          "surface-container": "#eee9e3",
+          "surface-container-high": "#e8e3dc",
+          "surface-container-highest": "#e2ddd6",
+          "on-surface": "#1a1c1a",
+          "on-surface-variant": "#5f6b5e",
+          "outline": "#8a9688",
+          "outline-variant": "#c9d1c7",
+          "error": "#ba1a1a",
+          "on-error": "#ffffff",
+          "error-container": "#ffdad6",
+          "on-error-container": "#93000a",
+          "inverse-surface": "#1a1c1a",
+          "inverse-on-surface": "#f0f1ec",
+          "inverse-primary": "#a8d5b8",
+          "surface-variant": "#dce5db",
+          "surface-tint": "#2d5e42",
+          "surface-bright": "#faf8f5",
+          "surface-dim": "#dbd9d4",
+          "gold": "#c9a96e",
+          "gold-light": "#e8d5a8",
+          "gold-dark": "#8b7340",
+        },
+        borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" },
+        spacing: {
+          "gutter": "32px", "unit": "8px",
+          "section-padding-desktop": "120px", "section-padding-mobile": "64px",
+          "container-max-width": "1280px"
+        },
+        fontFamily: {
+          "headline-sm": ["Playfair Display"], "label-md": ["Plus Jakarta Sans"],
+          "display-lg-mobile": ["Playfair Display"], "body-lg": ["Plus Jakarta Sans"],
+          "display-lg": ["Playfair Display"], "body-md": ["Plus Jakarta Sans"],
+          "headline-md": ["Playfair Display"]
+        },
+        fontSize: {
+          "headline-sm": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+          "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+          "display-lg-mobile": ["40px", {"lineHeight": "1.2", "fontWeight": "700"}],
+          "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+          "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+          "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+          "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}]
+        }
+      },
+    },
+  }
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  .animate-fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+  .animate-fade-in-up-delay { animation: fadeInUp 0.8s ease-out 0.2s forwards; opacity: 0; }
+  .animate-fade-in-up-delay2 { animation: fadeInUp 0.8s ease-out 0.4s forwards; opacity: 0; }
+  .glass { background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.3); }
+  .gold-shimmer { background: linear-gradient(90deg, #c9a96e 0%, #e8d5a8 50%, #c9a96e 100%); background-size: 200% 100%; animation: shimmer 3s ease-in-out infinite; }
+  .card-hover { transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+  .card-hover:hover { transform: translateY(-8px); box-shadow: 0 20px 60px rgba(26,58,42,0.15); }
+  .btn-premium { position: relative; overflow: hidden; transition: all 0.3s ease; }
+  .btn-premium::after { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: rgba(255,255,255,0.2); border-radius: 50%; transform: translate(-50%,-50%); transition: width 0.6s, height 0.6s; }
+  .btn-premium:hover::after { width: 300px; height: 300px; }
+  .img-overlay { position: relative; }
+  .img-overlay::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(26,58,42,0.4) 0%, transparent 50%); border-radius: inherit; pointer-events: none; }
+</style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased selection:bg-surface-container-high selection:text-primary">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 glass transition-all duration-300 border-b border-outline-variant/30">
+<div class="flex justify-between items-center h-20 px-gutter max-w-container-max-width mx-auto">
+<a class="text-headline-sm font-headline-md tracking-tight text-primary flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-gold">restaurant_menu</span>
+Consorcio Gastronómico
+</a>
+<div class="hidden md:flex items-center space-x-8">
+<a class="text-primary border-b-2 border-gold pb-1 font-label-md text-label-md" href="#">Inicio</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Portafolio</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Servicios</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Contacto</a>
+</div>
+<button class="btn-premium bg-primary-container text-on-primary font-label-md text-label-md px-6 py-3 rounded-full hover:scale-105 hover:shadow-lg transition-all duration-300">
+                Colabora con Nosotros
+            </button>
+</div>
+</nav>
+<main class="pt-24">
+<!-- Hero Section -->
+<section class="min-h-[870px] flex items-center px-gutter max-w-container-max-width mx-auto py-section-padding-mobile md:py-section-padding-desktop">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+<div class="space-y-8 z-10">
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary max-w-xl">
+                        Gastronomía de <span class="text-gold">Clase Mundial</span>
+                    </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-lg animate-fade-in-up-delay">
+                        Elevamos las experiencias culinarias a nivel global. Curamos, innovamos y gestionamos un portafolio de conceptos gastronómicos premium y servicios de catering, estableciendo el estándar de excelencia en la industria de la hospitalidad.
+                    </p>
+<div class="pt-4">
+<button class="btn-premium bg-primary-container text-on-primary font-label-md text-label-md px-8 py-4 rounded-full hover:scale-105 hover:shadow-lg transition-all duration-300 animate-fade-in-up-delay2">
+                            Explorar Nuestras Marcas
+                        </button>
+</div>
+</div>
+<div class="relative h-[600px] w-full hidden md:block">
+<div class="absolute top-0 right-0 w-3/4 h-3/4 rounded-2xl overflow-hidden transform rotate-3 hover:rotate-0 transition-transform duration-500 z-20">
+<img alt="Elegant interior of a high-end fine dining restaurant." class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWi-vPfnVNdMGkBVOgSIR7GnByR0PLT6palv1YJD7kMUMzA-eMvQDwHa10qanooxsaSUsPLXx9UhtRx1VKdrWlTX9w87rwFQoYq5dvF2FWyXHBQZ-dpql5F2XiwOsTNjY290mx7bpQVv_u87KSempuCuO6wYLvs7hb5mFNHkF8tHtMoNbGthjzYBg1tfjpM2fHeyQ47mr-TYvpaa4rmhTs9R7rnaMqbnh-GoZt9fw0an36pGcBweG_Y4FGk2LuY96Kf5E2BGIZ9wo"/>
+</div>
+<div class="absolute bottom-10 left-0 w-2/3 h-2/3 rounded-2xl overflow-hidden transform -rotate-3 hover:rotate-0 transition-transform duration-500 z-10">
+<img alt="A gourmet plated dish." class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCca69GJJ7oxJWoU7xLO6kG_Xvy2AgPapF_btprbqNr7CqtU04DLrXcTGmAu8NxNKbHIwbMStPPNli8Eh-5KuBDvGKv-Rlh3ELcJ7OGWVBOAF0Cz1YD0xnJ9CK_Zv9GfUQyGLzfqFwz3s0hfuxvbgP1gdus3J0u0RFgKGRrTW-SRzGjKtLMs2m7cbI8uOWcCaYFHFy678QvBxOTpOFo0x1X0XQ-JCw-npA9MeW55RVy_pD2Y_UL-bJ2WOeDcCL5Vyhz3K6Y52DoWQU"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Why Choose Us Section -->
+<section class="bg-surface-container-low py-section-padding-mobile md:py-section-padding-desktop">
+<div class="max-w-container-max-width mx-auto px-gutter text-center">
+<div class="mb-16">
+<h2 class="font-headline-md text-headline-md text-primary mb-4 flex items-center justify-center gap-4">
+<span class="h-[2px] w-12 gold-shimmer rounded"></span>
+                        Nuestra Excelencia
+                        <span class="h-[2px] w-12 gold-shimmer rounded"></span>
+</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto">
+                        Ofrecemos experiencias culinarias incomparables a través de la innovación, la gestión estratégica y un compromiso con la calidad.
+                    </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+<div class="flex flex-col items-center space-y-4 card-hover p-6 rounded-2xl">
+<div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">restaurant</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary">Maestría Culinaria</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-center">Colaboramos con chefs galardonados para ampliar los límites del sabor y la presentación.</p>
+</div>
+<div class="flex flex-col items-center space-y-4 card-hover p-6 rounded-2xl">
+<div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">business_center</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary">Crecimiento Estratégico</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-center">Desarrollamos y escalamos conceptos de restaurantes exitosos con marcos operativos sólidos.</p>
+</div>
+<div class="flex flex-col items-center space-y-4 card-hover p-6 rounded-2xl">
+<div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">star</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary">Servicio Premium</h3>
+<p class="font-body-md text-body-md text-on-surface-variant text-center">Garantizamos una hospitalidad impecable y experiencias memorables en todas nuestras empresas.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Categories Section -->
+<section class="py-section-padding-mobile md:py-section-padding-desktop">
+<div class="max-w-container-max-width mx-auto px-gutter">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="group card-hover bg-surface-container-low rounded-2xl overflow-hidden p-6 flex flex-col items-center text-center border border-outline-variant/20">
+<div class="w-full aspect-square rounded-xl overflow-hidden mb-6 relative img-overlay">
+<img alt="Mesa de alta cocina." class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXc1WFvqUncWbSMOzKJv4NrEwUGBqGHn4x32O9VbvXxnNmCpMUMs6r0FO_qsPwdK79pEnmWOD20H1S61vhkAYkV3nN3-9ml_fjW7HtAyMOfWJMXEadWMb8b4WLE4ST-AzvgKJsiedc3i8GQ02c6cD8hUjA8lGtIlCecmB3TQ0g6dhe1ARsM7bwL61KLYcxhznhg8slDbj3D4Rr2jdSS96ewQCQRdX9SzPJD4kHbND78TFFZzA6vs-MKS2Z3TlRL-NPtCJQXXRgV_w"/>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-2">Alta Cocina</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 text-sm">Experiencias gastronómicas exclusivas de nivel Michelin, enfocadas en el ambiente y menús exquisitos.</p>
+<button class="btn-premium bg-primary-container text-on-primary font-label-md text-label-md px-6 py-2 rounded-full transition-all">Descubrir Conceptos</button>
+</div>
+<div class="group card-hover bg-surface-container-low rounded-2xl overflow-hidden p-6 flex flex-col items-center text-center border border-outline-variant/20">
+<div class="w-full aspect-square rounded-xl overflow-hidden mb-6 relative img-overlay">
+<img alt="Catering para evento corporativo." class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXPCQ9Yq9Q_-DqziQxnbCuKnDvkGL7K2czX8ZGKoiif9hMfxE87dWKc6CRzilfGZCtxKTaZp2P2S-d4EGYLpc19FTbFy8D2WPrIVxX-E1FguzJZinK_spDILZDG_YslDHM_WMhMr6uNB-rL93o1HWZ_zMzM5D3S_oN2Zs28GKgxt1e9RgN02Hu2Ok9C3vwOsNbGdgDUa9TfGdQFQDqQ46_Fd5pZya-6q3E6nRtHFbSxXnS8OEBFtE38dlRi6Iqhmbe81QvDkBQTVk"/>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-2">Servicios de Catering</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 text-sm">Soluciones culinarias a medida para eventos corporativos, galas y reuniones privadas de lujo.</p>
+<button class="btn-premium bg-primary-container text-on-primary font-label-md text-label-md px-6 py-2 rounded-full transition-all">Explorar Catering</button>
+</div>
+<div class="group card-hover bg-surface-container-low rounded-2xl overflow-hidden p-6 flex flex-col items-center text-center border border-outline-variant/20">
+<div class="w-full aspect-square rounded-xl overflow-hidden mb-6 relative img-overlay">
+<img alt="Chef profesional emplatando." class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLjfc43vqraDWzpHAJLf5JgP-NHNVjXlbuofyRsd_7dna3oZbTv1NrpXMGs50q0mIYlibzgxbAFw1FRnpiZCoePs5R1f-x8jTNzkc_U85IF14HqMUsQjhE6KiguZ9qKTLYrP1TlEbW2Dhqpxpd7x3OUFFAkdR4JNrvtHWnvBd-iq-dJW1wVi1-kR66X6piaTM34FWFjXGbfv0EUMbf5UchE1yQFu74ajkFq3SEm057THQQlBzmndcW9D1zXFYdc1MVHOWrl26RWP4"/>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-2">Innovación Culinaria</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 text-sm">Invertimos en tecnología alimentaria, abastecimiento sostenible y laboratorios de gastronomía experimental.</p>
+<button class="btn-premium bg-primary-container text-on-primary font-label-md text-label-md px-6 py-2 rounded-full transition-all">Saber Más</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid Gallery Section -->
+<section class="bg-surface-container-low py-section-padding-mobile md:py-section-padding-desktop">
+<div class="max-w-container-max-width mx-auto px-gutter">
+<div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+<div>
+<h2 class="font-headline-md text-headline-md text-primary mb-2">Nuestra Visión Culinaria</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-xl">Una mirada a los diversos y lujosos ambientes gastronómicos que curamos alrededor del mundo.</p>
+</div>
+<button class="btn-premium bg-primary-container text-on-primary font-label-md text-label-md px-6 py-3 rounded-full hover:scale-105 hover:shadow-lg transition-all duration-300 shrink-0">Ver Portafolio Completo</button>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[200px]">
+<div class="col-span-2 row-span-2 rounded-2xl overflow-hidden group">
+<img alt="Modern restaurant kitchen." class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG1QghTPMfcFvV5tq8F4VuSpSx_lvkbJ9rKBUhzuuRWqPOrIm45iwSTN2f7V81C6OXo-bo-9jZ5m8QN7ExtJqnXgwgGESvWs86MWJvo3b7WMRmYGko__1VPdsrTFia81M9IgREirBwIb7_g_rJd4UeOXYSSWNKwziQN7vVw-pAVU82LIbDC-04zL8iMuuMZzsHRAaNDB8Clg_kxU8kxG473A_FUcJlquTtmVA7Nqi2iwg4AxwYTtoxXWlVFwhexNFjfsqM-l5lIok"/>
+</div>
+<div class="rounded-2xl overflow-hidden group">
+<img alt="Avant-garde dessert plate." class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAOPUcGIQtwH_DTjVF6Z-DjUko6inSsGX-SQYpAvRCLlT20qhg-6LyMuDFyjjIRFjrP6u0CKV4CUPr3uiOQw_aO-E3CZnmBF088RzTZQCV0df6cOXJYVrapWTQY49FXB0tY9w6m8LymgsOni5a8FaYs2q6_4SCWMrithDTLAAGi34vy3NIy3kYycIMIaIE8RKa6XD3sXanO2FazUx5DN7yGmxQxcEoCS8Z9TPVSUmH6zOPiAdvykQoYHQT2K5oWxV4YrbXhHHRzJY"/>
+</div>
+<div class="rounded-2xl overflow-hidden group">
+<img alt="Wagyu beef on dark plate." class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0cm1DxDEUKnf5uwLMpVQHUQUDBJ0Xi9WlD7U9k5UWXl0uul5DQW9GG9u6Vm6wKHjndaH5J3kTgLAghad8xS7snxPfIkpfgESYJ4aF5HXZnLOkGouoLYFmWDUrGp90XgJrZah66lLumc_-kgPt9Flz8APK0fFlmodWqfcPK65JNdmRQJJ9DX5Dd3mzBzo_yACu5Ioh3b3oFW4FDWNusMru6rYb52bYWcENSQZjqlEOBsaeiPtL8RObfo_YF5Tw9cJBMrFNvqrFVqc"/>
+</div>
+<div class="col-span-2 rounded-2xl overflow-hidden group">
+<img alt="Restaurant with panoramic city views." class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlBss4nBNdtiuEN_oqVJlAHVtlZbtzngUJshT873-myC380H8uaKUBIJZ_xllXMd8xTw_UH0-Szn2wD36AypjNSAbCbjuiwhjx_UyxXEeAhMni3cLV2uu1Wkb8Z1zQRfikFUKTCPOXKjJOyNHee91U43qRkqNQqk9tYCaUKBSlf4tvhkG2SGFKK14o_GTiMcXyjirtMqB7RYocLI7-bXTHPpqVC1Jon5Cx_lsGZZ24oX4hCxtSUsg5rZBr7fTeE9C16U7qevxCUas"/>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant w-full py-section-padding-mobile md:py-section-padding-desktop">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-gutter max-w-container-max-width mx-auto">
+<div class="md:col-span-1">
+<h2 class="text-headline-sm font-headline-md text-primary mb-4">Consorcio Gastronómico Global</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">© 2024 Consorcio Gastronómico Global. Excelencia en cada detalle.</p>
+</div>
+<div class="flex flex-col space-y-3">
+<h3 class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider mb-2">Corporativo</h3>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-opacity" href="#">Nuestra Historia</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-opacity" href="#">Relaciones con Inversionistas</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-opacity" href="#">Prensa y Medios</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-opacity" href="#">Carreras</a>
+</div>
+<div class="flex flex-col space-y-3">
+<h3 class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider mb-2">Sede Central</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Av. Culinaria 100<br/>Metrópolis, CDMX 10001</p>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">contact@consorciogastronomico.com</p>
+<p class="font-body-md text-body-md text-on-surface-variant">+1 (800) 555-0199</p>
+</div>
+<div class="flex items-start space-x-4">
+<a class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined">public</span>
+</a>
+<a class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined">mail</span>
+</a>
+</div>
+</div>
+</footer>
+</body></html>

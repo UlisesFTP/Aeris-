@@ -1,15 +1,12 @@
 Flask
 python-dotenv
-pymongo[srv]>=4.0.0
 redis
 requests
 Flask-Cors
 gunicorn
-certifi
-google-generativeai
 Flask-Limiter
 marshmallow
-pybreaker
-tenacity
 structlog
 upstash-redis
+pybreaker
+tenacity
