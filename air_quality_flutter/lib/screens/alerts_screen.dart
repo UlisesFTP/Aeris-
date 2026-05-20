@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:latlong2/latlong.dart';
-import '../core/app_state.dart';
+import '../core/notifiers/alert_notifier.dart';
 import '../widgets/location_picker_dialog.dart';
 
 import 'package:air_quality_flutter/l10n/app_localizations.dart';
@@ -14,8 +15,8 @@ class AlertsScreen extends StatelessWidget {
     String locationId,
     String title,
   ) async {
-    final appState = Provider.of<AppState>(context, listen: false);
-    final currentLocation = appState.alertLocations[locationId];
+    final alertNotifier = Provider.of<AlertNotifier>(context, listen: false);
+    final currentLocation = alertNotifier.alertLocations[locationId];
 
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
@@ -28,7 +29,7 @@ class AlertsScreen extends StatelessWidget {
     );
 
     if (result != null) {
-      await appState.updateAlertLocation(
+      await alertNotifier.updateAlertLocation(
         locationId,
         result['latitude'] as double,
         result['longitude'] as double,
@@ -80,8 +81,8 @@ class AlertsScreen extends StatelessWidget {
     );
 
     if (result != null && context.mounted) {
-      final appState = Provider.of<AppState>(context, listen: false);
-      await appState.addCustomAlertLocation(
+      final alertNotifier = Provider.of<AlertNotifier>(context, listen: false);
+      await alertNotifier.addCustomAlertLocation(
         name,
         result['latitude'] as double,
         result['longitude'] as double,
@@ -94,8 +95,8 @@ class AlertsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
+    return Consumer<AlertNotifier>(
+      builder: (context, alertNotifier, child) {
         return Scaffold(
           appBar: AppBar(
             title: Text(l10n.alertsTitle),
@@ -113,9 +114,10 @@ class AlertsScreen extends StatelessWidget {
                 icon: Icons.my_location,
                 title: l10n.alertsCurrentLocation,
                 subtitle: l10n.alertsCurrentLocationSubtitle,
-                enabled: appState.notificationSettings['miUbicacion'] ?? true,
+                enabled: alertNotifier.notificationSettings['miUbicacion'] ?? true,
                 onChanged: (value) {
-                  appState.updateNotificationSetting('miUbicacion', value);
+                  HapticFeedback.lightImpact();
+                  alertNotifier.updateNotificationSetting('miUbicacion', value);
                 },
                 isSystem: true,
               ),
@@ -130,16 +132,16 @@ class AlertsScreen extends StatelessWidget {
               ),
 
               // Home Location
-              _buildAlertLocationTile(context, appState, 'home'),
+              _buildAlertLocationTile(context, alertNotifier, 'home'),
 
               // Work Location
-              _buildAlertLocationTile(context, appState, 'work'),
+              _buildAlertLocationTile(context, alertNotifier, 'work'),
 
               // Custom Locations
-              ...appState.alertLocations.entries
+              ...alertNotifier.alertLocations.entries
                   .where((e) => e.key.startsWith('custom_'))
                   .map(
-                      (e) => _buildAlertLocationTile(context, appState, e.key)),
+                      (e) => _buildAlertLocationTile(context, alertNotifier, e.key)),
 
               // Add Custom Location Button
               Padding(
@@ -168,11 +170,11 @@ class AlertsScreen extends StatelessWidget {
 
   Widget _buildAlertLocationTile(
     BuildContext context,
-    AppState appState,
+    AlertNotifier alertNotifier,
     String locationId,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    final location = appState.alertLocations[locationId];
+    final location = alertNotifier.alertLocations[locationId];
     if (location == null) return const SizedBox.shrink();
 
     IconData icon;
@@ -203,7 +205,10 @@ class AlertsScreen extends StatelessWidget {
       subtitle: subtitle,
       enabled: location.enabled,
       onChanged: location.isConfigured
-          ? (value) => appState.toggleAlertLocation(locationId, value)
+          ? (value) {
+              HapticFeedback.lightImpact();
+              alertNotifier.toggleAlertLocation(locationId, value);
+            }
           : null,
       onTap: () => _showLocationPicker(
         context,
@@ -211,7 +216,7 @@ class AlertsScreen extends StatelessWidget {
         l10n.alertsLocationOf(title),
       ),
       onDelete: locationId.startsWith('custom_')
-          ? () => appState.removeAlertLocation(locationId)
+          ? () => alertNotifier.removeAlertLocation(locationId)
           : null,
       isConfigured: location.isConfigured,
     );

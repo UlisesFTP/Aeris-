@@ -445,6 +445,71 @@ class AppLocalizationsEs extends AppLocalizations {
   String get forecastTomorrow => 'Mañana';
 
   @override
+  String get emptyHistoryTitle => 'Aún no hay historial';
+
+  @override
+  String get emptyHistorySubtitle =>
+      'Comienza a explorar ubicaciones para crear tu historial.';
+
+  @override
+  String get emptySavedLocationsTitle => 'No hay ubicaciones guardadas';
+
+  @override
+  String get emptySavedLocationsSubtitle =>
+      'Guarda tus lugares favoritos para monitorear la calidad del aire.';
+
+  @override
+  String get emptyAlertsTitle => 'No hay alertas activas';
+
+  @override
+  String get emptyAlertsSubtitle =>
+      'Configura alertas para recibir notificaciones sobre la calidad del aire.';
+
+  @override
+  String get emptySearchTitle => 'Sin resultados';
+
+  @override
+  String get emptySearchSubtitle =>
+      'Intenta buscar con un nombre de ciudad diferente.';
+
+  @override
+  String get errorNetworkTitle => 'Sin conexión a internet';
+
+  @override
+  String get errorNetworkSubtitle => 'Verifica tu conexión e intenta de nuevo.';
+
+  @override
+  String get errorLocationTitle => 'Acceso a ubicación denegado';
+
+  @override
+  String get errorLocationSubtitle =>
+      'Permite el acceso a la ubicación para ver la calidad del aire local.';
+
+  @override
+  String get errorGenericTitle => 'Algo salió mal';
+
+  @override
+  String get errorGenericSubtitle =>
+      'Ocurrió un error inesperado. Por favor intenta de nuevo.';
+
+  @override
+  String get openSettings => 'Abrir Ajustes';
+
+  @override
+  String get onboardingMapTitle => 'Arrastra el panel hacia arriba';
+
+  @override
+  String get onboardingMapSubtitle =>
+      'Desliza para ver detalles de calidad del aire, clima y pronóstico.';
+
+  @override
+  String get onboardingAlertsTitle => 'Configura ubicaciones de alerta';
+
+  @override
+  String get onboardingAlertsSubtitle =>
+      'Toca una tarjeta de ubicación para configurar dónde monitorear la calidad del aire.';
+
+  @override
   String get legalPrivacyContent =>
       '**Política de Privacidad de Aeris**\\n\\n**Última actualización:** 21 de Noviembre de 2024\\n\\n**1. Introducción**\\nAeris es una aplicación gratuita desarrollada para informar sobre la calidad del aire y el clima. No mostramos anuncios ni vendemos tus datos.\\n\\n**2. Recopilación de Datos**\\nAeris NO recopila, almacena ni comparte información personal identificable. No requerimos registro ni inicio de sesión.\\n\\n**3. Datos de Ubicación**\\nPara proporcionarte datos precisos del clima y calidad del aire, la aplicación necesita acceso a tu ubicación.\\n- Las coordenadas se envían a nuestros proveedores de datos (OpenWeather) de forma anónima.\\n- Si guardas una ubicación, las coordenadas se almacenan cifradas en nuestro servidor seguro.\\n- No rastreamos tu historial de movimientos fuera de las consultas que realizas activamente.\\n\\n**4. Servicios de Terceros**\\nUtilizamos servicios de confianza para obtener datos:\\n- **OpenWeather:** Para datos meteorológicos y de calidad del aire.\\n- **Google Gemini:** Para generar recomendaciones de salud y clima basadas en los datos actuales.\\n\\n**5. Contacto**\\nSi tienes preguntas sobre esta política, contáctanos a través de la tienda de aplicaciones.';
 

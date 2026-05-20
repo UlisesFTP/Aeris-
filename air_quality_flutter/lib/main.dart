@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:workmanager/workmanager.dart';
 import 'services/background_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,7 +11,13 @@ import 'firebase_options.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/main_shell.dart';
 import 'theme.dart';
-import 'core/app_state.dart';
+import 'core/di/di.dart';
+import 'core/database/hive_service.dart';
+import 'core/database/migration_service.dart';
+import 'core/notifiers/theme_notifier.dart';
+import 'core/notifiers/location_notifier.dart';
+import 'core/notifiers/alert_notifier.dart';
+import 'core/notifiers/map_data_notifier.dart';
 import 'api/notifications_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -90,13 +97,44 @@ Future<void> main() async {
     }
   }
 
+  // Inicializar Hive ANTES de configureDependencies() para que
+  // AppModule.hiveService (@preResolve) pueda abrir las cajas.
+  await Hive.initFlutter();
+
+  // Configurar inyección de dependencias (get_it + injectable).
+  // SharedPreferences y HiveService son registrados internamente con @preResolve.
+  await configureDependencies();
+
+  // Migración one-shot: mueve datos de SharedPreferences → Hive si aún no se hizo.
+  await MigrationService.run(
+    prefs: getIt<SharedPreferences>(),
+    hive: getIt<HiveService>(),
+  );
+
   // Comprobar si se debe mostrar la pantalla de bienvenida
-  final prefs = await SharedPreferences.getInstance();
+  final prefs = getIt<SharedPreferences>();
   final bool showWelcome = prefs.getBool('showWelcome') ?? true;
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => AppState(),
+    MultiProvider(
+      providers: [
+        // ThemeNotifier: tema oscuro/claro + código de idioma
+        ChangeNotifierProvider<ThemeNotifier>.value(
+          value: getIt<ThemeNotifier>(),
+        ),
+        // LocationNotifier: ubicaciones guardadas, recientes, historial
+        ChangeNotifierProvider<LocationNotifier>.value(
+          value: getIt<LocationNotifier>(),
+        ),
+        // AlertNotifier: alertas de AQI, ajustes de notificaciones
+        ChangeNotifierProvider<AlertNotifier>.value(
+          value: getIt<AlertNotifier>(),
+        ),
+        // MapDataNotifier: caché local de datos del mapa
+        ChangeNotifierProvider<MapDataNotifier>.value(
+          value: getIt<MapDataNotifier>(),
+        ),
+      ],
       child: MyApp(showWelcome: showWelcome),
     ),
   );
@@ -135,20 +173,23 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void _updateLanguage() {
     if (mounted) {
       final locale = WidgetsBinding.instance.platformDispatcher.locale;
-      Provider.of<AppState>(context, listen: false)
-          .updateLanguage(locale.languageCode);
+      final code = locale.languageCode;
+      // ThemeNotifier guarda el código de idioma para uso general.
+      Provider.of<ThemeNotifier>(context, listen: false).updateLanguage(code);
+      // AlertNotifier lo necesita para las notificaciones de alerta.
+      Provider.of<AlertNotifier>(context, listen: false).updateLanguageCode(code);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context);
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
 
     return MaterialApp(
       title: 'Aeris',
       theme: lightTheme,
       darkTheme: darkTheme,
-      themeMode: appState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      themeMode: themeNotifier.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         AppLocalizations.delegate,

@@ -1,38 +1,42 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:air_quality_flutter/api/api_service.dart';
 import 'package:air_quality_flutter/api/notifications_service.dart';
-import 'package:air_quality_flutter/core/app_state.dart';
 import 'package:air_quality_flutter/models/models.dart';
 
+@singleton
 class AlertMonitoringService {
-  final ApiService _apiService = ApiService();
-  final NotificationService _notificationService = NotificationService();
+  final ApiService _apiService;
+  final NotificationService _notificationService;
+
+  AlertMonitoringService(this._apiService, this._notificationService);
 
   // AQI threshold for sending intrusive alerts (4 = Poor)
   static const int _aqiAlertThreshold = 4;
 
-  /// Checks air quality for all enabled alert locations including the
-  /// current device position (if miUbicacion is enabled).
-  /// Updates the persistent status notification for the current location
-  /// and sends intrusive alerts for any location with AQI >= 4.
-  Future<Map<String, int>> checkAlertLocations(
-    AppState appState, {
+  /// Verifica la calidad del aire para todas las ubicaciones de alerta habilitadas,
+  /// incluyendo la posición actual del dispositivo (si miUbicacion está activo).
+  ///
+  /// Recibe los datos directamente en lugar de depender de AppState.
+  Future<Map<String, int>> checkAlertLocations({
+    required Map<String, AlertLocation> alertLocations,
+    required Map<String, bool> notificationSettings,
     required String languageCode,
     bool force = false,
   }) async {
     final results = <String, int>{};
 
     // 1. Build list of locations to check (saved locations)
-    final locationsToCheck = appState.alertLocations.values
+    final locationsToCheck = alertLocations.values
         .where((loc) => loc.enabled && loc.isConfigured)
         .toList();
 
     // 2. Add current device location if monitoring is enabled
     final prefs = await SharedPreferences.getInstance();
     final bool monitorCurrent =
-        appState.notificationSettings['miUbicacion'] ?? true;
+        notificationSettings['miUbicacion'] ?? true;
     if (monitorCurrent) {
       final String? lastPosString = prefs.getString('lastKnownDevicePosition');
       if (lastPosString != null) {

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'map_screen.dart';
@@ -11,8 +13,13 @@ import 'package:air_quality_flutter/l10n/app_localizations.dart';
 
 // Este widget es el esqueleto de la app, con la barra de navegación.
 class MainShell extends StatefulWidget {
+  /// En modo go_router (cuando se usa StatefulShellRoute.indexedStack),
+  /// este shell gestiona el IndexedStack de las 4 pestañas.
+  /// Cuando es null, MainShell usa su propio AnimatedSwitcher (modo legacy).
+  final StatefulNavigationShell? navigationShell;
+
   // Le pasamos una clave global para que otras pantallas puedan encontrarlo y llamar a sus métodos.
-  const MainShell({super.key});
+  const MainShell({super.key, this.navigationShell});
 
   @override
   State<MainShell> createState() => MainShellState();
@@ -22,44 +29,71 @@ class MainShell extends StatefulWidget {
 class MainShellState extends State<MainShell> with TickerProviderStateMixin {
   int _selectedIndex = 0;
 
-  // Creamos una clave global para poder acceder a los métodos de MapScreenState
+  // Clave global para acceder al state de MapScreen en MODO LEGACY.
+  // En modo go_router, se usa MapScreen.globalKey directamente.
   final GlobalKey<MapScreenState> _mapScreenKey = GlobalKey<MapScreenState>();
 
-  // Lista de las pantallas que se mostrarán.
-  // Ahora pasamos la clave a nuestra MapScreen.
-  late final List<Widget> _pages = <Widget>[
-    MapScreen(key: _mapScreenKey), // Pasamos la clave aquí
-    const AlertsScreen(),
-    const HistoryScreen(),
-    const SettingsScreen(),
-  ];
+  // Lista de páginas solo para el modo legacy (sin go_router).
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.navigationShell == null) {
+      // Modo legacy: MainShell gestiona las páginas internamente.
+      _pages = <Widget>[
+        MapScreen(key: _mapScreenKey),
+        const AlertsScreen(),
+        const HistoryScreen(),
+        const SettingsScreen(),
+      ];
+    }
+  }
 
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
-    setState(() {
-      _selectedIndex = index;
-    });
+    HapticFeedback.mediumImpact();
+    if (widget.navigationShell != null) {
+      // Modo go_router: delega la navegación al shell.
+      widget.navigationShell!.goBranch(
+        index,
+        initialLocation: index == widget.navigationShell!.currentIndex,
+      );
+    } else {
+      // Modo legacy: actualiza el índice local.
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
-  // --- NUEVA FUNCIÓN ---
-  // Este método será llamado desde la pantalla de historial.
+  // --- NAVEGACIÓN DESDE HISTORIAL ---
+  // Este método es llamado desde la pantalla de historial vía findAncestorStateOfType.
   void navigateToMapAndLoadLocation(LocationSearchResult location) {
-    // 1. Cambia a la pestaña del mapa.
-    setState(() {
-      _selectedIndex = 0;
-    });
-    // 2. Llama al método público en MapScreenState para cargar los datos.
-    // Usamos un pequeño retraso para asegurar que la pantalla del mapa esté visible
-    // antes de intentar cargar los datos.
-    Future.delayed(const Duration(milliseconds: 50), () {
-      _mapScreenKey.currentState?.loadLocation(location);
-    });
+    if (widget.navigationShell != null) {
+      // Modo go_router: cambiar al branch del mapa y cargar la ubicación.
+      widget.navigationShell!.goBranch(0);
+      Future.delayed(const Duration(milliseconds: 50), () {
+        MapScreen.globalKey.currentState?.loadLocation(location);
+      });
+    } else {
+      // Modo legacy: cambiar pestaña y usar la clave local de MapScreen.
+      setState(() {
+        _selectedIndex = 0;
+      });
+      Future.delayed(const Duration(milliseconds: 50), () {
+        _mapScreenKey.currentState?.loadLocation(location);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
+
+    // En modo go_router, el índice activo lo determina el shell.
+    final currentIndex = widget.navigationShell?.currentIndex ?? _selectedIndex;
 
     final navItems = <_NavItem>[
       _NavItem(IconlyLight.home, IconlyBold.home, l10n.navMap),
@@ -68,23 +102,30 @@ class MainShellState extends State<MainShell> with TickerProviderStateMixin {
       _NavItem(IconlyLight.setting, IconlyBold.setting, l10n.navSettings),
     ];
 
+    /// Cuerpo de la pantalla:
+    /// - Modo go_router: el shell renderiza el IndexedStack de las ramas.
+    /// - Modo legacy: AnimatedSwitcher con _pages.
+    final body = widget.navigationShell != null
+        ? widget.navigationShell!
+        : AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, animation) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+            child: KeyedSubtree(
+              key: ValueKey(_selectedIndex),
+              child: _pages[_selectedIndex],
+            ),
+          );
+
     return Scaffold(
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
-        transitionBuilder: (child, animation) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        child: KeyedSubtree(
-          key: ValueKey(_selectedIndex),
-          child: _pages[_selectedIndex],
-        ),
-      ),
+      body: body,
       extendBody: true,
       bottomNavigationBar: _PillNavBar(
         items: navItems,
-        selectedIndex: _selectedIndex,
+        selectedIndex: currentIndex,
         onTap: _onItemTapped,
         isDark: isDark,
       ),

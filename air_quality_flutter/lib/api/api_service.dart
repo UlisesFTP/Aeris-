@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:injectable/injectable.dart';
 import 'package:air_quality_flutter/models/models.dart';
 
 // --- URL PARA DEPURACIÓN LOCAL ---
@@ -16,6 +17,7 @@ String get flaskBackendUrl {
 /// Se aumentó a 45 segundos para dar tiempo a que Render despierte (cold start).
 const Duration _kHttpTimeout = Duration(seconds: 45);
 
+@singleton
 class ApiService {
 
   // --- OBTENER DATOS ACTUALES ---

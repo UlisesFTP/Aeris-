@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 import 'package:intl/intl.dart';
@@ -8,13 +9,22 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import '../api/api_service.dart';
 import '../models/models.dart';
-import '../core/app_state.dart';
+import '../core/notifiers/location_notifier.dart';
+import '../core/notifiers/map_data_notifier.dart';
 import '../services/local_advice_service.dart';
+import '../widgets/skeleton_widgets.dart';
+import '../widgets/empty_state_widget.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:air_quality_flutter/l10n/app_localizations.dart';
 import '../services/message_service.dart';
 
 class MapScreen extends StatefulWidget {
+  /// GlobalKey estático reutilizable:
+  /// - router.dart lo pasa al GoRoute builder para que go_router preserve el state.
+  /// - MainShell.navigateToMapAndLoadLocation lo usa para llamar loadLocation().
+  static final GlobalKey<MapScreenState> globalKey =
+      GlobalKey<MapScreenState>();
+
   const MapScreen({super.key});
 
   @override
@@ -126,7 +136,8 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       Position? position = await Geolocator.getLastKnownPosition();
 
       if (position != null) {
-        final age = DateTime.now().difference(position.timestamp ?? DateTime.now());
+        final age =
+            DateTime.now().difference(position.timestamp ?? DateTime.now());
         if (age <= const Duration(minutes: 5)) {
           // Posición reciente (< 5 min): úsala directamente
           _loadLocationFromPosition(position);
@@ -170,7 +181,7 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     }
 
     // Guardar posición real para que el background service la use
-    Provider.of<AppState>(context, listen: false)
+    Provider.of<LocationNotifier>(context, listen: false)
         .updateLastKnownDevicePosition(position.latitude, position.longitude);
 
     _onLocationSelected(LocationSearchResult(
@@ -202,6 +213,7 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
   void _searchLocation() async {
     if (_searchController.text.isEmpty) return;
+    HapticFeedback.mediumImpact();
     FocusScope.of(context).unfocus();
     setState(() {
       _isLoading = true;
@@ -224,7 +236,8 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   }
 
   void _onLocationSelected(LocationSearchResult location) async {
-    final appState = Provider.of<AppState>(context, listen: false);
+    final locationNotifier = Provider.of<LocationNotifier>(context, listen: false);
+    final mapDataNotifier = Provider.of<MapDataNotifier>(context, listen: false);
     final languageCode = Localizations.localeOf(context).languageCode;
 
     setState(() {
@@ -236,8 +249,8 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     });
     FocusScope.of(context).unfocus();
 
-    appState.addRecentLocation(location);
-    appState.recordLocationVisit(
+    locationNotifier.addRecentLocation(location);
+    locationNotifier.recordLocationVisit(
       location.latitude,
       location.longitude,
       location.displayName,
@@ -246,7 +259,8 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     final newPoint = LatLng(location.latitude, location.longitude);
 
     // ── CACHE: intentar mostrar datos locales inmediatamente ────────────────
-    final cached = appState.getCachedMapData(location.latitude, location.longitude);
+    final cached =
+        mapDataNotifier.getCachedMapData(location.latitude, location.longitude);
     if (cached != null) {
       _applyCachedData(cached, newPoint);
       setState(() => _isLoading = false);
@@ -271,7 +285,7 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       _applyApiData(airData, weatherData, newPoint);
 
       // Guardar en caché para la próxima vez
-      appState.cacheMapData(
+      mapDataNotifier.cacheMapData(
         lat: location.latitude,
         lon: location.longitude,
         airQuality: airData,
@@ -325,17 +339,19 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
     // Consejos locales son instantáneos
     if (_airQualityData != null) {
-      setState(() => _healthAdvice = LocalAdviceService.getAqiAdvice(_airQualityData!.aqi));
+      setState(() => _healthAdvice =
+          LocalAdviceService.getAqiAdvice(_airQualityData!.aqi));
     }
     if (_currentWeather != null) {
       setState(() => _weatherAdvice = LocalAdviceService.getWeatherAdvice(
-        condition: _currentWeather!.condition,
-        temp: _currentWeather!.temp,
-      ));
+            condition: _currentWeather!.condition,
+            temp: _currentWeather!.temp,
+          ));
     }
   }
 
-  void _applyApiData(AirQualityData airData, Map<String, dynamic> weatherData, LatLng newPoint) {
+  void _applyApiData(AirQualityData airData, Map<String, dynamic> weatherData,
+      LatLng newPoint) {
     if (!mounted) return;
     setState(() {
       _airQualityData = airData;
@@ -351,11 +367,13 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   }
 
   /// Refresca datos desde la API en background cuando ya se mostró caché.
-  Future<void> _refreshDataInBackground(LocationSearchResult location, String languageCode) async {
+  Future<void> _refreshDataInBackground(
+      LocationSearchResult location, String languageCode) async {
     try {
       final responses = await Future.wait([
         _apiService.getAirQuality(location.latitude, location.longitude),
-        _apiService.getWeather(location.latitude, location.longitude, language: languageCode),
+        _apiService.getWeather(location.latitude, location.longitude,
+            language: languageCode),
       ]);
       final airData = responses[0] as AirQualityData;
       final weatherData = responses[1] as Map<String, dynamic>;
@@ -363,7 +381,7 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
       _applyApiData(airData, weatherData, newPoint);
 
-      Provider.of<AppState>(context, listen: false).cacheMapData(
+      Provider.of<MapDataNotifier>(context, listen: false).cacheMapData(
         lat: location.latitude,
         lon: location.longitude,
         airQuality: airData,
@@ -438,7 +456,8 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             ElevatedButton(
               onPressed: () {
                 if (nameController.text.isNotEmpty) {
-                  Provider.of<AppState>(context, listen: false).saveLocation(
+                  HapticFeedback.mediumImpact();
+                  Provider.of<LocationNotifier>(context, listen: false).saveLocation(
                     nameController.text,
                     _currentLocation!.latitude,
                     _currentLocation!.longitude,
@@ -520,8 +539,8 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             ],
           ),
           DraggableScrollableSheet(
-            initialChildSize: 0.4,
-            minChildSize: 0.1,
+            initialChildSize: 0.45,
+            minChildSize: 0.28,
             maxChildSize: 0.92,
             builder: (context, scrollController) {
               return Container(
@@ -535,9 +554,17 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         blurRadius: 10.0, color: Colors.black.withOpacity(0.2))
                   ],
                 ),
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  child: _buildInfoPanel(l10n),
+                child: RefreshIndicator(
+                  color: Theme.of(context).colorScheme.primary,
+                  onRefresh: () async {
+                    if (_currentLocation != null) {
+                      _onLocationSelected(_currentLocation!);
+                    }
+                  },
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    child: _buildInfoPanel(l10n),
+                  ),
                 ),
               );
             },
@@ -559,7 +586,10 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               width: 40,
               height: 5,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
@@ -580,28 +610,28 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           ),
           const SizedBox(height: 16),
           _isLoading
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const CircularProgressIndicator(),
-                        const SizedBox(height: 16),
-                        Text(
-                          _loadingPhase,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : _searchResults.isNotEmpty
-                  ? _buildSearchResults()
-                  : _buildDataDisplay(textTheme, l10n),
+              ? const SkeletonMapSheet()
+              : _buildCurrentContent(textTheme, l10n),
         ],
       ),
     );
+  }
+
+  /// Routes to the right content based on search/data state.
+  Widget _buildCurrentContent(TextTheme textTheme, AppLocalizations l10n) {
+    // Track whether user has searched (search controller has text) but got no results
+    final hasSearched = _searchController.text.isNotEmpty && !_isLoading;
+    if (_searchResults.isNotEmpty) {
+      return _buildSearchResults();
+    }
+    if (hasSearched) {
+      return CenteredEmptyState(
+        icon: Icons.search_off_rounded,
+        title: l10n.emptySearchTitle,
+        subtitle: l10n.emptySearchSubtitle,
+      );
+    }
+    return _buildDataDisplay(textTheme, l10n);
   }
 
   Widget _buildSearchResults() {
@@ -736,7 +766,8 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         color: const Color(0xFF66BB6A).withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.health_and_safety, size: 22, color: Color(0xFF66BB6A)),
+                      child: const Icon(Icons.health_and_safety,
+                          size: 22, color: Color(0xFF66BB6A)),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -745,7 +776,10 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         children: [
                           Text(
                             l10n.mapHealthAdviceAI,
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -849,8 +883,13 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isToday
-                    ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)
-                    : (isDark ? const Color(0xFF3A3A3C) : const Color(0xFFE5E5E5)),
+                    ? Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.3)
+                    : (isDark
+                        ? const Color(0xFF3A3A3C)
+                        : const Color(0xFFE5E5E5)),
                 width: isToday ? 1.5 : 1,
               ),
             ),
@@ -872,7 +911,8 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     'https://openweathermap.org/img/wn/${item.icon}@2x.png',
                     width: 40,
                     height: 40,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.cloud, size: 40),
+                    errorBuilder: (_, __, ___) =>
+                        const Icon(Icons.cloud, size: 40),
                   ),
                   const SizedBox(height: 8),
                   RichText(
@@ -891,7 +931,8 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -1345,7 +1386,11 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           max: 20,
           lowThreshold: 5,
           highThreshold: 12,
-          colors: const [Color(0xFF81C784), Color(0xFFFFB74D), Color(0xFFE53935)],
+          colors: const [
+            Color(0xFF81C784),
+            Color(0xFFFFB74D),
+            Color(0xFFE53935)
+          ],
           trackColor: trackColor,
         ),
         const SizedBox(height: 12),
@@ -1358,7 +1403,11 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           min: 960,
           lowThreshold: 990,
           highThreshold: 1020,
-          colors: const [Color(0xFFBA68C8), Color(0xFF42A5F5), Color(0xFF66BB6A)],
+          colors: const [
+            Color(0xFFBA68C8),
+            Color(0xFF42A5F5),
+            Color(0xFF66BB6A)
+          ],
           trackColor: trackColor,
           isCentered: true,
           centerValue: 1013,
@@ -1372,7 +1421,11 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           max: 45,
           lowThreshold: 15,
           highThreshold: 30,
-          colors: const [Color(0xFF4FC3F7), Color(0xFFFFB74D), Color(0xFFE53935)],
+          colors: const [
+            Color(0xFF4FC3F7),
+            Color(0xFFFFB74D),
+            Color(0xFFE53935)
+          ],
           trackColor: trackColor,
         ),
       ],
@@ -1476,7 +1529,10 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                             width: constraints.maxWidth * animated,
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: [barColor.withValues(alpha: 0.7), barColor],
+                                colors: [
+                                  barColor.withValues(alpha: 0.7),
+                                  barColor
+                                ],
                               ),
                               borderRadius: BorderRadius.circular(6),
                               boxShadow: [
@@ -1540,7 +1596,8 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         color: const Color(0xFFFFB74D).withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.wb_sunny, size: 22, color: Color(0xFFFFB74D)),
+                      child: const Icon(Icons.wb_sunny,
+                          size: 22, color: Color(0xFFFFB74D)),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -1549,7 +1606,10 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         children: [
                           Text(
                             l10n.mapWeatherAdvice,
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -1570,5 +1630,4 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       ),
     );
   }
-
 }

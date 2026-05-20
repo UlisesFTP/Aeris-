@@ -438,6 +438,70 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forecastTomorrow => 'Tomorrow';
 
   @override
+  String get emptyHistoryTitle => 'No history yet';
+
+  @override
+  String get emptyHistorySubtitle =>
+      'Start exploring locations to build your history.';
+
+  @override
+  String get emptySavedLocationsTitle => 'No saved locations';
+
+  @override
+  String get emptySavedLocationsSubtitle =>
+      'Save your favorite places to monitor air quality.';
+
+  @override
+  String get emptyAlertsTitle => 'No active alerts';
+
+  @override
+  String get emptyAlertsSubtitle =>
+      'Configure alerts to get notified about air quality.';
+
+  @override
+  String get emptySearchTitle => 'No results found';
+
+  @override
+  String get emptySearchSubtitle => 'Try searching for a different city name.';
+
+  @override
+  String get errorNetworkTitle => 'No internet connection';
+
+  @override
+  String get errorNetworkSubtitle => 'Check your connection and try again.';
+
+  @override
+  String get errorLocationTitle => 'Location access denied';
+
+  @override
+  String get errorLocationSubtitle =>
+      'Allow location access to see local air quality.';
+
+  @override
+  String get errorGenericTitle => 'Something went wrong';
+
+  @override
+  String get errorGenericSubtitle =>
+      'An unexpected error occurred. Please try again.';
+
+  @override
+  String get openSettings => 'Open Settings';
+
+  @override
+  String get onboardingMapTitle => 'Drag the panel up';
+
+  @override
+  String get onboardingMapSubtitle =>
+      'Slide up to see air quality, weather and forecast details.';
+
+  @override
+  String get onboardingAlertsTitle => 'Set alert locations';
+
+  @override
+  String get onboardingAlertsSubtitle =>
+      'Tap a location card to configure where to monitor air quality.';
+
+  @override
   String get legalPrivacyContent =>
       '**Aeris Privacy Policy**\\n\\n**Last Updated:** November 21, 2024\\n\\n**1. Introduction**\\nAeris is a free application developed to inform about air quality and weather. We do not show ads or sell your data.\\n\\n**2. Data Collection**\\nAeris does NOT collect, store, or share personally identifiable information. We do not require registration or login.\\n\\n**3. Location Data**\\nTo provide you with accurate weather and air quality data, the application needs access to your location.\\n- Coordinates are sent to our data providers (OpenWeather) anonymously.\\n- If you save a location, coordinates are stored encrypted on our secure server.\\n- We do not track your movement history outside of queries you actively make.\\n\\n**4. Third-Party Services**\\nWe use trusted services to obtain data:\\n- **OpenWeather:** For weather and air quality data.\\n- **Google Gemini:** To generate health and weather recommendations based on current data.\\n\\n**5. Contact**\\nIf you have questions about this policy, contact us through the app store.';
 

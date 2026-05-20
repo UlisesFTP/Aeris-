@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:air_quality_flutter/l10n/app_localizations.dart';
 import 'main_shell.dart';
@@ -78,16 +79,24 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     await prefs.setBool('showWelcome', false);
 
     if (context.mounted) {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const MainShell(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 500),
-        ),
-      );
+      // Si go_router está disponible en el árbol (MaterialApp.router),
+      // usar navegación declarativa. Si no, usar Navigator (modo legacy).
+      final router = GoRouter.maybeOf(context);
+      if (router != null) {
+        context.go('/map');
+      } else {
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const MainShell(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+            transitionDuration: const Duration(milliseconds: 500),
+          ),
+        );
+      }
     }
   }
 

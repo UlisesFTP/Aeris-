@@ -1,4 +1,7 @@
 // Este archivo define las estructuras de datos (modelos) que la aplicación utiliza.
+import 'package:hive/hive.dart';
+
+part 'models.g.dart';
 
 // Modelo para los datos de calidad del aire recibidos de nuestra API de Flask.
 class AirQualityData {
@@ -56,12 +59,21 @@ class HistoricalDataPoint {
 }
 
 // Modelo para una ubicación guardada por el usuario.
+@HiveType(typeId: 0)
 class SavedLocation {
-  final String?
-      id; // El ID de MongoDB, puede ser nulo si es una nueva ubicación
+  @HiveField(0)
+  final String? id;
+
+  @HiveField(1)
   final String name;
-  final String? displayName; // Puede ser nulo
+
+  @HiveField(2)
+  final String? displayName;
+
+  @HiveField(3)
   final double latitude;
+
+  @HiveField(4)
   final double longitude;
 
   const SavedLocation({
@@ -182,13 +194,25 @@ class HealthAdvice {
   }
 }
 
+@HiveType(typeId: 1)
 class AlertLocation {
-  final String id; // 'home', 'work', 'custom_123456'
-  final String name; // Display name
+  @HiveField(0)
+  final String id;
+
+  @HiveField(1)
+  final String name;
+
+  @HiveField(2)
   final double? latitude;
+
+  @HiveField(3)
   final double? longitude;
-  final String? displayName; // Full address from search
-  final bool enabled; // Alert enabled for this location
+
+  @HiveField(4)
+  final String? displayName;
+
+  @HiveField(5)
+  final bool enabled;
 
   const AlertLocation({
     required this.id,
@@ -272,12 +296,22 @@ enum TimeFilter {
 }
 
 // Modelo para visitas a ubicaciones (historial de búsquedas)
+@HiveType(typeId: 2)
 class LocationVisit {
+  @HiveField(0)
   final String locationName;
+
+  @HiveField(1)
   final double latitude;
+
+  @HiveField(2)
   final double longitude;
+
+  @HiveField(3)
   final DateTime visitedAt;
-  final int searchCount; // Número de veces visitada en el período
+
+  @HiveField(4)
+  final int searchCount;
 
   const LocationVisit({
     required this.locationName,

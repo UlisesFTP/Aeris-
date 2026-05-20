@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:injectable/injectable.dart';
 
 // ---------------------------------------------------------------------------
 // IDs fijos para las notificaciones
@@ -99,6 +100,7 @@ Future<void> firebaseBackgroundMessageHandler(RemoteMessage message) async {
 // ---------------------------------------------------------------------------
 // Servicio principal
 // ---------------------------------------------------------------------------
+@singleton
 class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 

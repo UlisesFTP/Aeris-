@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../core/app_state.dart';
+import '../core/notifiers/theme_notifier.dart';
 import '../widgets/option_tile.dart';
 import 'legal_screen.dart';
 import 'package:air_quality_flutter/l10n/app_localizations.dart';
@@ -13,8 +14,8 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
+    return Consumer<ThemeNotifier>(
+      builder: (context, themeNotifier, child) {
         return Scaffold(
           appBar: AppBar(
             title: Text(l10n.settingsTitle),
@@ -29,8 +30,11 @@ class SettingsScreen extends StatelessWidget {
                 icon: Icons.brightness_6_outlined,
                 title: l10n.settingsThemeDark,
                 subtitle: l10n.settingsThemeDarkSubtitle,
-                value: appState.isDarkMode,
-                onChanged: (value) => appState.toggleTheme(),
+                value: themeNotifier.isDarkMode,
+              onChanged: (value) {
+                HapticFeedback.lightImpact();
+                themeNotifier.toggleTheme();
+              },
               ),
 
               const SizedBox(height: 24),

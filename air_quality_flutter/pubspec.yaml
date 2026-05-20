@@ -32,6 +32,14 @@ dependencies:
   flutter_map_cancellable_tile_provider: ^3.0.2
   workmanager: ^0.9.0+3
   flutter_iconly: ^1.0.2
+  overlay_tooltip: ^0.2.4   # Para onboarding contextual
+
+  # --- ARQUITECTURA (DI + Router + Persistencia) ---
+  get_it: ^7.7.0              # Service locator
+  injectable: ^2.4.4          # Anotaciones para DI
+  go_router: ^14.0.0          # Router declarativo
+  hive: ^2.2.3                # Persistencia local estructurada
+  hive_flutter: ^1.1.0        # Inicialización Flutter para Hive
 
 
 dev_dependencies:
@@ -40,6 +48,9 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   rename_app: ^1.3.1
   flutter_launcher_icons: ^0.13.1
+  injectable_generator: ^2.6.2  # Code gen para injectable
+  hive_generator: ^2.0.1        # Code gen para adaptadores Hive
+  build_runner: ^2.4.13         # Runner de code generation
 
 rename_app:
   name: "Aeris"

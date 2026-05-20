@@ -896,6 +896,120 @@ abstract class AppLocalizations {
   /// **'Mañana'**
   String get forecastTomorrow;
 
+  /// No description provided for @emptyHistoryTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no hay historial'**
+  String get emptyHistoryTitle;
+
+  /// No description provided for @emptyHistorySubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Comienza a explorar ubicaciones para crear tu historial.'**
+  String get emptyHistorySubtitle;
+
+  /// No description provided for @emptySavedLocationsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay ubicaciones guardadas'**
+  String get emptySavedLocationsTitle;
+
+  /// No description provided for @emptySavedLocationsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Guarda tus lugares favoritos para monitorear la calidad del aire.'**
+  String get emptySavedLocationsSubtitle;
+
+  /// No description provided for @emptyAlertsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay alertas activas'**
+  String get emptyAlertsTitle;
+
+  /// No description provided for @emptyAlertsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Configura alertas para recibir notificaciones sobre la calidad del aire.'**
+  String get emptyAlertsSubtitle;
+
+  /// No description provided for @emptySearchTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin resultados'**
+  String get emptySearchTitle;
+
+  /// No description provided for @emptySearchSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Intenta buscar con un nombre de ciudad diferente.'**
+  String get emptySearchSubtitle;
+
+  /// No description provided for @errorNetworkTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión a internet'**
+  String get errorNetworkTitle;
+
+  /// No description provided for @errorNetworkSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Verifica tu conexión e intenta de nuevo.'**
+  String get errorNetworkSubtitle;
+
+  /// No description provided for @errorLocationTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Acceso a ubicación denegado'**
+  String get errorLocationTitle;
+
+  /// No description provided for @errorLocationSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Permite el acceso a la ubicación para ver la calidad del aire local.'**
+  String get errorLocationSubtitle;
+
+  /// No description provided for @errorGenericTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Algo salió mal'**
+  String get errorGenericTitle;
+
+  /// No description provided for @errorGenericSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ocurrió un error inesperado. Por favor intenta de nuevo.'**
+  String get errorGenericSubtitle;
+
+  /// No description provided for @openSettings.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir Ajustes'**
+  String get openSettings;
+
+  /// No description provided for @onboardingMapTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Arrastra el panel hacia arriba'**
+  String get onboardingMapTitle;
+
+  /// No description provided for @onboardingMapSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Desliza para ver detalles de calidad del aire, clima y pronóstico.'**
+  String get onboardingMapSubtitle;
+
+  /// No description provided for @onboardingAlertsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Configura ubicaciones de alerta'**
+  String get onboardingAlertsTitle;
+
+  /// No description provided for @onboardingAlertsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Toca una tarjeta de ubicación para configurar dónde monitorear la calidad del aire.'**
+  String get onboardingAlertsSubtitle;
+
   /// No description provided for @legalPrivacyContent.
   ///
   /// In es, this message translates to:

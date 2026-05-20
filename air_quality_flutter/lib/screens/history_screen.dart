@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:air_quality_flutter/models/models.dart';
-import '../core/app_state.dart';
+import '../core/notifiers/location_notifier.dart';
 import 'main_shell.dart';
+import '../widgets/skeleton_widgets.dart';
+import '../widgets/empty_state_widget.dart';
 
 import 'package:air_quality_flutter/l10n/app_localizations.dart';
 import '../services/message_service.dart';
@@ -45,11 +48,11 @@ class _HistoryScreenState extends State<HistoryScreen>
 
   Future<void> _loadHistory(TimeFilter filter) async {
     setState(() => _isLoading = true);
-    final appState = context.read<AppState>();
+    final locationNotifier = context.read<LocationNotifier>();
     // Cargar historial y asegurar que las ubicaciones guardadas estén actualizadas
     await Future.wait([
-      appState.loadLocationHistory(filter),
-      appState.loadSavedLocationsFromApi(),
+      locationNotifier.loadLocationHistory(filter),
+      locationNotifier.loadSavedLocationsFromApi(),
     ]);
     setState(() => _isLoading = false);
     _listAnimController.reset();
@@ -78,11 +81,11 @@ class _HistoryScreenState extends State<HistoryScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
+    return Consumer<LocationNotifier>(
+      builder: (context, locationNotifier, child) {
         // Calculate total animated items
-        final savedCount = appState.savedLocations.length;
-        final historyCount = appState.locationHistory.length;
+        final savedCount = locationNotifier.savedLocations.length;
+        final historyCount = locationNotifier.locationHistory.length;
         final totalItems = savedCount + historyCount + 2; // +2 for headers
 
         return Scaffold(
@@ -99,9 +102,13 @@ class _HistoryScreenState extends State<HistoryScreen>
             ),
           ),
           body: RefreshIndicator(
-            onRefresh: () => _loadHistory(appState.currentHistoryFilter),
+            color: Theme.of(context).colorScheme.primary,
+            onRefresh: () => _loadHistory(locationNotifier.currentHistoryFilter),
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const SingleChildScrollView(
+                    physics: NeverScrollableScrollPhysics(),
+                    child: SkeletonHistoryList(),
+                  )
                 : AnimatedBuilder(
                     animation: _listAnimController,
                     builder: (context, _) {
@@ -116,15 +123,18 @@ class _HistoryScreenState extends State<HistoryScreen>
                             _buildSectionHeader(
                                 context, l10n.historySectionSaved),
                           ),
-                          if (appState.savedLocations.isEmpty)
+                          if (locationNotifier.savedLocations.isEmpty)
                             _animatedItem(
                               itemIndex++,
                               totalItems,
-                              _buildEmptySection(
-                                  context, l10n.historyNoSavedLocations),
+                              CenteredEmptyState(
+                                icon: Icons.bookmark_border_rounded,
+                                title: l10n.emptySavedLocationsTitle,
+                                subtitle: l10n.emptySavedLocationsSubtitle,
+                              ),
                             )
                           else
-                            ...appState.savedLocations.values.map((loc) =>
+                            ...locationNotifier.savedLocations.values.map((loc) =>
                                 _animatedItem(
                                   itemIndex++,
                                   totalItems,
@@ -140,15 +150,18 @@ class _HistoryScreenState extends State<HistoryScreen>
                             _buildSectionHeader(
                                 context, l10n.historySectionVisits),
                           ),
-                          if (appState.locationHistory.isEmpty)
+                          if (locationNotifier.locationHistory.isEmpty)
                             _animatedItem(
                               itemIndex++,
                               totalItems,
-                              _buildEmptySection(
-                                  context, l10n.historyNoRecentHistory),
+                              CenteredEmptyState(
+                                icon: Icons.history_rounded,
+                                title: l10n.emptyHistoryTitle,
+                                subtitle: l10n.emptyHistorySubtitle,
+                              ),
                             )
                           else
-                            ...appState.locationHistory.map((visit) =>
+                            ...locationNotifier.locationHistory.map((visit) =>
                                 _animatedItem(
                                   itemIndex++,
                                   totalItems,
@@ -203,47 +216,35 @@ class _HistoryScreenState extends State<HistoryScreen>
     );
   }
 
-  Widget _buildEmptySection(BuildContext context, String message) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Center(
-        child: Text(
-          message,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.5),
-                fontStyle: FontStyle.italic,
-              ),
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildSavedLocationItem(BuildContext context, SavedLocation location) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Icon(
-          Icons.bookmark,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        title: Text(location.displayName ?? location.name),
-        subtitle: Text(
-          '${location.latitude.toStringAsFixed(2)}, ${location.longitude.toStringAsFixed(2)}',
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-          onPressed: () {
-            _confirmDelete(context, location);
+    return Hero(
+      tag: 'location_saved_${location.id}',
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 8),
+        child: ListTile(
+          leading: Icon(
+            Icons.bookmark,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          title: Text(location.displayName ?? location.name),
+          subtitle: Text(
+            '${location.latitude.toStringAsFixed(2)}, ${location.longitude.toStringAsFixed(2)}',
+          ),
+          trailing: IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+            onPressed: () {
+              _confirmDelete(context, location);
+            },
+          ),
+          onTap: () {
+            HapticFeedback.lightImpact();
+            context
+                .findAncestorStateOfType<MainShellState>()
+                ?.navigateToMapAndLoadLocation(location.toLocationSearchResult());
           },
         ),
-        onTap: () {
-          context
-              .findAncestorStateOfType<MainShellState>()
-              ?.navigateToMapAndLoadLocation(location.toLocationSearchResult());
-        },
       ),
     );
   }
@@ -283,6 +284,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         ),
         trailing: const Icon(Icons.chevron_right, size: 20),
         onTap: () {
+          HapticFeedback.lightImpact();
           context
               .findAncestorStateOfType<MainShellState>()
               ?.navigateToMapAndLoadLocation(visit.toLocationSearchResult());
@@ -306,7 +308,7 @@ class _HistoryScreenState extends State<HistoryScreen>
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              context.read<AppState>().removeSavedLocation(location.id!);
+              context.read<LocationNotifier>().removeSavedLocation(location.id!);
               MessageService.showSuccess(
                   context, l10n.historyDeleted(location.name));
             },
