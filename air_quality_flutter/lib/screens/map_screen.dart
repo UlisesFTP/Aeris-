@@ -137,7 +137,7 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
       if (position != null) {
         final age =
-            DateTime.now().difference(position.timestamp ?? DateTime.now());
+            DateTime.now().difference(position.timestamp);
         if (age <= const Duration(minutes: 5)) {
           // Posición reciente (< 5 min): úsala directamente
           _loadLocationFromPosition(position);
@@ -338,14 +338,16 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     _staggerController.forward();
 
     // Consejos locales son instantáneos
+    final l10n = AppLocalizations.of(context)!;
     if (_airQualityData != null) {
       setState(() => _healthAdvice =
-          LocalAdviceService.getAqiAdvice(_airQualityData!.aqi));
+          LocalAdviceService.getAqiAdvice(_airQualityData!.aqi, l10n));
     }
     if (_currentWeather != null) {
       setState(() => _weatherAdvice = LocalAdviceService.getWeatherAdvice(
             condition: _currentWeather!.condition,
             temp: _currentWeather!.temp,
+            l10n: l10n,
           ));
     }
   }
@@ -409,7 +411,8 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   }) async {
     // ── Consejos locales — instantáneos, sin red ───────────────────────────
     final currentWeather = weatherData['current'] as WeatherData;
-    final aqiAdvice = LocalAdviceService.getAqiAdvice(airData.aqi);
+    final l10n = AppLocalizations.of(context)!;
+    final aqiAdvice = LocalAdviceService.getAqiAdvice(airData.aqi, l10n);
     final weatherAdvice = LocalAdviceService.getWeatherAdvice(
       condition: currentWeather.condition,
       temp: currentWeather.temp,
@@ -419,6 +422,7 @@ class MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       maxTemp: (weatherData['forecast'] as List<ForecastItem>).isNotEmpty
           ? weatherData['forecast'][0].maxTemp
           : null,
+      l10n: l10n,
     );
 
     if (mounted) {

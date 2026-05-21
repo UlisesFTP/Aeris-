@@ -45,6 +45,7 @@ class MapDataNotifier extends ChangeNotifier {
                 'max_temp': f.maxTemp,
                 'icon': f.icon,
                 'condition': f.condition,
+                'aqi': f.aqi,
               })
           .toList(),
     };

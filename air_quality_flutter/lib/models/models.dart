@@ -162,6 +162,7 @@ class ForecastItem {
   final double maxTemp;
   final String icon;
   final String condition;
+  final int? aqi; // Nuevo campo para AQI predictivo
 
   const ForecastItem({
     required this.date,
@@ -169,6 +170,7 @@ class ForecastItem {
     required this.maxTemp,
     required this.icon,
     required this.condition,
+    this.aqi, // Parámetro opcional
   });
 
   factory ForecastItem.fromJson(Map<String, dynamic> json) {
@@ -178,6 +180,7 @@ class ForecastItem {
       maxTemp: (json['max_temp'] as num?)?.toDouble() ?? 0.0,
       icon: json['icon'] as String? ?? '',
       condition: json['condition'] as String? ?? '',
+      aqi: json['aqi'] as int?, // Deserializar AQI si viene en el payload
     );
   }
 }

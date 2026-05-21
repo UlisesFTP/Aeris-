@@ -1,7 +1,8 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 import 'package:injectable/injectable.dart';
+import '../services/widget_data_service.dart';
 
 // ---------------------------------------------------------------------------
 // IDs fijos para las notificaciones
@@ -48,6 +49,28 @@ const AndroidNotificationChannel _aqiAlertsChannel = AndroidNotificationChannel(
   showBadge: true,
 );
 
+/// Canal de PRONÓSTICO: importancia media, notificaciones predictivas.
+const AndroidNotificationChannel _forecastChannel = AndroidNotificationChannel(
+  'air_quality_forecast',
+  'Pronóstico de Calidad del Aire',
+  description: 'Alertas predictivas sobre la calidad del aire del día siguiente.',
+  importance: Importance.defaultImportance,
+  playSound: true,
+  enableVibration: true,
+  showBadge: true,
+);
+
+/// Canal de GEOFENCING: importancia alta, notificaciones de proximidad al ingresar a zonas guardadas.
+const AndroidNotificationChannel _geofenceChannel = AndroidNotificationChannel(
+  'air_quality_geofence',
+  'Alertas de Proximidad (Geofencing)',
+  description: 'Notificaciones en tiempo real al ingresar a zonas guardadas con mala calidad del aire.',
+  importance: Importance.high,
+  playSound: true,
+  enableVibration: true,
+  showBadge: true,
+);
+
 // ---------------------------------------------------------------------------
 // Plugin global (se usa también desde el background handler de FCM)
 // ---------------------------------------------------------------------------
@@ -78,6 +101,8 @@ Future<void> firebaseBackgroundMessageHandler(RemoteMessage message) async {
           AndroidFlutterLocalNotificationsPlugin>();
   await androidPlugin?.createNotificationChannel(_weatherStatusChannel);
   await androidPlugin?.createNotificationChannel(_aqiAlertsChannel);
+  await androidPlugin?.createNotificationChannel(_forecastChannel);
+  await androidPlugin?.createNotificationChannel(_geofenceChannel);
 
   // Leer datos del payload FCM
   final data = message.data;
@@ -127,6 +152,8 @@ class NotificationService {
             AndroidFlutterLocalNotificationsPlugin>();
     await androidPlugin?.createNotificationChannel(_weatherStatusChannel);
     await androidPlugin?.createNotificationChannel(_aqiAlertsChannel);
+    await androidPlugin?.createNotificationChannel(_forecastChannel);
+    await androidPlugin?.createNotificationChannel(_geofenceChannel);
 
     // 3. Solicitar permiso Firebase / APNs
     await _firebaseMessaging.requestPermission(
@@ -226,6 +253,18 @@ class NotificationService {
       NotificationDetails(android: androidDetails),
       payload: 'status_$locationName',
     );
+
+    // Actualizar los datos del Home Screen Widget nativo en paralelo
+    try {
+      await WidgetDataService.updateWidgetData(
+        locationName: locationName,
+        aqi: aqi,
+        temp: temp,
+        condition: weatherCondition,
+      );
+    } catch (e) {
+      debugPrint('[NotificationService] Error al sincronizar datos del widget: $e');
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -282,6 +321,120 @@ class NotificationService {
       sb.toString(),
       NotificationDetails(android: androidDetails),
       payload: 'alert_$locationName',
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // NOTIFICACIÓN PREDICTIVA DE FORECAST (Mañana se espera AQI alto)
+  // -------------------------------------------------------------------------
+  Future<void> showPredictiveForecastNotification({
+    required String locationName,
+    required int aqi,
+    String languageCode = 'es',
+  }) async {
+    final aqiEmoji = _getAqiEmoji(aqi);
+    final aqiText = _getAqiLevelText(aqi, languageCode: languageCode);
+
+    String title = '';
+    String body = '';
+
+    if (languageCode == 'es') {
+      title = '🔮 Calidad del Aire Mañana — $locationName';
+      body = 'Mañana se espera una calidad del aire $aqiText ($aqiEmoji AQI $aqi). Considera adaptar tus actividades al aire libre.';
+    } else if (languageCode == 'en') {
+      title = '🔮 Tomorrow\'s Air Quality — $locationName';
+      body = 'Air quality tomorrow is expected to be $aqiText ($aqiEmoji AQI $aqi). Consider adjusting your outdoor activities.';
+    } else if (languageCode == 'pt') {
+      title = '🔮 Qualidade do Ar Amanhã — $locationName';
+      body = 'Amanhã espera-se qualidade do ar $aqiText ($aqiEmoji AQI $aqi). Considere adaptar suas atividades ao ar livre.';
+    } else if (languageCode == 'fr') {
+      title = '🔮 Qualité de l\'Air Demain — $locationName';
+      body = 'Demain, la qualité de l\'air devrait être $aqiText ($aqiEmoji AQI $aqi). Pensez à adapter vos activités de plein air.';
+    } else if (languageCode == 'de') {
+      title = '🔮 Luftqualität Morgen — $locationName';
+      body = 'Morgen wird eine Luftqualität von $aqiText ($aqiEmoji AQI $aqi) erwartet. Bitte passen Sie Ihre Outdoor-Aktivitäten an.';
+    } else {
+      title = '🔮 Tomorrow\'s Air Quality — $locationName';
+      body = 'Air quality tomorrow is expected to be $aqiText ($aqiEmoji AQI $aqi). Consider adjusting your outdoor activities.';
+    }
+
+    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      _forecastChannel.id,
+      _forecastChannel.name,
+      channelDescription: _forecastChannel.description,
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+      styleInformation: BigTextStyleInformation(body, contentTitle: title),
+      playSound: true,
+      enableVibration: true,
+      autoCancel: true,
+    );
+
+    final int notifId = 2000 + locationName.hashCode.abs() % 900;
+
+    await flutterLocalNotificationsPlugin.show(
+      notifId,
+      title,
+      body,
+      NotificationDetails(android: androidDetails),
+      payload: 'predictive_$locationName',
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // NOTIFICACIÓN DE GEOFENCING (Cerca de una ubicación guardada con AQI alto)
+  // -------------------------------------------------------------------------
+  Future<void> showGeofenceAlertNotification({
+    required String locationName,
+    required int aqi,
+    String languageCode = 'es',
+  }) async {
+    final aqiEmoji = _getAqiEmoji(aqi);
+    final aqiText = _getAqiLevelText(aqi, languageCode: languageCode);
+
+    String title = '';
+    String body = '';
+
+    if (languageCode == 'es') {
+      title = '📍 Entrando a Zona de Alerta — $locationName';
+      body = 'Estás ingresando a un área con mala calidad del aire ($aqiText, $aqiEmoji AQI: $aqi). Se recomienda precaución.';
+    } else if (languageCode == 'en') {
+      title = '📍 Entering Alert Zone — $locationName';
+      body = 'You are entering an area with poor air quality ($aqiText, $aqiEmoji AQI: $aqi). Caution is advised.';
+    } else if (languageCode == 'pt') {
+      title = '📍 Entrando na Zona de Alerta — $locationName';
+      body = 'Você está entrando em uma área com qualidade do ar ruim ($aqiText, $aqiEmoji AQI: $aqi). Recomenda-se cautela.';
+    } else if (languageCode == 'fr') {
+      title = '📍 Entrée en Zone d\'Alerte — $locationName';
+      body = 'Vous entrez dans une zone où la qualité de l\'air est médiocre ($aqiText, $aqiEmoji AQI : $aqi). La prudence est de mise.';
+    } else if (languageCode == 'de') {
+      title = '📍 Betreten der Alarmzone — $locationName';
+      body = 'Sie betreten ein Gebiet mit schlechter Luftqualität ($aqiText, $aqiEmoji AQI: $aqi). Vorsicht ist geboten.';
+    } else {
+      title = '📍 Entering Alert Zone — $locationName';
+      body = 'You are entering an area with poor air quality ($aqiText, $aqiEmoji AQI: $aqi). Caution is advised.';
+    }
+
+    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      _geofenceChannel.id,
+      _geofenceChannel.name,
+      channelDescription: _geofenceChannel.description,
+      importance: Importance.high,
+      priority: Priority.high,
+      styleInformation: BigTextStyleInformation(body, contentTitle: title),
+      playSound: true,
+      enableVibration: true,
+      autoCancel: true,
+    );
+
+    final int notifId = 3000 + locationName.hashCode.abs() % 900;
+
+    await flutterLocalNotificationsPlugin.show(
+      notifId,
+      title,
+      body,
+      NotificationDetails(android: androidDetails),
+      payload: 'geofence_$locationName',
     );
   }
 

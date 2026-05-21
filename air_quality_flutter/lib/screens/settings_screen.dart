@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../core/notifiers/theme_notifier.dart';
+import '../core/notifiers/alert_notifier.dart';
 import '../widgets/option_tile.dart';
 import 'legal_screen.dart';
 import 'package:air_quality_flutter/l10n/app_localizations.dart';
@@ -31,10 +32,30 @@ class SettingsScreen extends StatelessWidget {
                 title: l10n.settingsThemeDark,
                 subtitle: l10n.settingsThemeDarkSubtitle,
                 value: themeNotifier.isDarkMode,
-              onChanged: (value) {
-                HapticFeedback.lightImpact();
-                themeNotifier.toggleTheme();
-              },
+                onChanged: (value) {
+                  HapticFeedback.lightImpact();
+                  themeNotifier.toggleTheme();
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.translate_outlined,
+                    color: Theme.of(context).colorScheme.primary),
+                title: Text(l10n.settingsLanguage),
+                subtitle: Text(l10n.settingsLanguageSubtitle),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _getLanguageName(themeNotifier.preferredLanguageCode, l10n),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const Icon(Icons.chevron_right),
+                  ],
+                ),
+                onTap: () => _showLanguageDialog(context, themeNotifier, l10n),
               ),
 
               const SizedBox(height: 24),
@@ -143,6 +164,87 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  String _getLanguageName(String? code, AppLocalizations l10n) {
+    switch (code) {
+      case 'es':
+        return 'Español';
+      case 'en':
+        return 'English';
+      case 'pt':
+        return 'Português';
+      case 'fr':
+        return 'Français';
+      case 'de':
+        return 'Deutsch';
+      default:
+        return l10n.langSystem;
+    }
+  }
+
+  void _showLanguageDialog(BuildContext context, ThemeNotifier themeNotifier, AppLocalizations l10n) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  l10n.settingsLanguage,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+              const Divider(),
+              _buildLanguageOption(context, themeNotifier, null, l10n.langSystem),
+              _buildLanguageOption(context, themeNotifier, 'es', 'Español'),
+              _buildLanguageOption(context, themeNotifier, 'en', 'English'),
+              _buildLanguageOption(context, themeNotifier, 'pt', 'Português'),
+              _buildLanguageOption(context, themeNotifier, 'fr', 'Français'),
+              _buildLanguageOption(context, themeNotifier, 'de', 'Deutsch'),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLanguageOption(
+      BuildContext context, ThemeNotifier themeNotifier, String? code, String name) {
+    final isSelected = themeNotifier.preferredLanguageCode == code;
+    return ListTile(
+      title: Text(
+        name,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected ? Theme.of(context).colorScheme.primary : null,
+        ),
+      ),
+      trailing: isSelected
+          ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+          : null,
+      onTap: () {
+        HapticFeedback.mediumImpact();
+        themeNotifier.setPreferredLanguage(code);
+        
+        try {
+          Provider.of<AlertNotifier>(context, listen: false).updateLanguageCode(
+            code ?? WidgetsBinding.instance.platformDispatcher.locale.languageCode
+          );
+        } catch (_) {}
+
+        Navigator.pop(context);
+      },
     );
   }
 }

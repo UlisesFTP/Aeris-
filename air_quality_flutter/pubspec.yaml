@@ -33,6 +33,7 @@ dependencies:
   workmanager: ^0.9.0+3
   flutter_iconly: ^1.0.2
   overlay_tooltip: ^0.2.4   # Para onboarding contextual
+  home_widget: ^0.6.0       # Para sincronización con widgets de pantalla de inicio
 
   # --- ARQUITECTURA (DI + Router + Persistencia) ---
   get_it: ^7.7.0              # Service locator

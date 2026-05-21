@@ -5,8 +5,11 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
+import 'app_localizations_fr.dart';
+import 'app_localizations_pt.dart';
 
 // ignore_for_file: type=lint
 
@@ -94,8 +97,11 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('de'),
     Locale('en'),
-    Locale('es')
+    Locale('es'),
+    Locale('fr'),
+    Locale('pt')
   ];
 
   /// No description provided for @appTitle.
@@ -361,6 +367,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Cambiar apariencia de la aplicación'**
   String get settingsThemeDarkSubtitle;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In es, this message translates to:
+  /// **'Idioma'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsLanguageSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona tu idioma preferido'**
+  String get settingsLanguageSubtitle;
+
+  /// No description provided for @langSystem.
+  ///
+  /// In es, this message translates to:
+  /// **'Predeterminado del Sistema'**
+  String get langSystem;
 
   /// No description provided for @settingsSectionSystem.
   ///
@@ -1021,6 +1045,108 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'**Términos de Servicio de Aeris**\\n\\n**1. Aceptación**\\nAl usar Aeris, aceptas estos términos. La aplicación es gratuita y se proporciona tal cual.\\n\\n**2. Uso de la Aplicación**\\nEres libre de usar la aplicación para fines personales e informativos. No está permitido realizar ingeniería inversa ni intentar dañar nuestros servicios.\\n\\n**3. Descargo de Responsabilidad**\\nLa información de salud y clima es generada por Inteligencia Artificial y proveedores externos.\\n- **No es un consejo médico:** Las recomendaciones son solo informativas. Consulta siempre a un profesional de la salud.\\n- **Precisión:** No garantizamos que los datos sean 100% exactos en todo momento.\\n\\n**4. Cambios**\\nPodemos actualizar estos términos en cualquier momento. El uso continuo implica la aceptación de los cambios.'**
   String get legalTermsContent;
+
+  /// No description provided for @aqiAdviceGood.
+  ///
+  /// In es, this message translates to:
+  /// **'✅ La calidad del aire es excelente. Ideal para hacer ejercicio al aire libre, salir a caminar o practicar deporte. Disfruta del día sin restricciones.'**
+  String get aqiAdviceGood;
+
+  /// No description provided for @aqiAdviceFair.
+  ///
+  /// In es, this message translates to:
+  /// **'🟡 La calidad del aire es aceptable. Personas con asma o enfermedades respiratorias crónicas deben moderar la actividad física intensa al exterior. El resto puede actuar con normalidad.'**
+  String get aqiAdviceFair;
+
+  /// No description provided for @aqiAdviceModerate.
+  ///
+  /// In es, this message translates to:
+  /// **'🟠 Calidad moderada. Grupos sensibles (niños, adultos mayores, embarazadas y personas con problemas cardíacos o respiratorios) deben limitar la actividad física prolongada al aire libre.'**
+  String get aqiAdviceModerate;
+
+  /// No description provided for @aqiAdvicePoor.
+  ///
+  /// In es, this message translates to:
+  /// **'🔴 Calidad del aire deficiente. Todos pueden empezar a sentir efectos. Reduce el tiempo al aire libre, especialmente en actividades de alto esfuerzo físico. Usa mascarilla si sales.'**
+  String get aqiAdvicePoor;
+
+  /// No description provided for @aqiAdviceVeryPoor.
+  ///
+  /// In es, this message translates to:
+  /// **'🟣 Calidad muy mala — alerta sanitaria. Evita salir al exterior si no es estrictamente necesario. Cierra ventanas, usa purificador de aire en interiores y porta mascarilla FFP2 si debes salir.'**
+  String get aqiAdviceVeryPoor;
+
+  /// No description provided for @aqiAdviceDangerous.
+  ///
+  /// In es, this message translates to:
+  /// **'⚫ Emergencia de salud pública. Toda la población está en riesgo. Permanece en interiores con ventanas y puertas selladas. Contacta a servicios de emergencia si sientes dificultad para respirar, dolor en el pecho o mareos.'**
+  String get aqiAdviceDangerous;
+
+  /// No description provided for @weatherAdviceVeryCold.
+  ///
+  /// In es, this message translates to:
+  /// **'🧥 Temperatura muy baja. Abrígate bien con capas de ropa, presta especial atención a proteger manos, pies y cabeza. Evita la exposición prolongada al frío y bebe líquidos calientes.'**
+  String get weatherAdviceVeryCold;
+
+  /// No description provided for @weatherAdviceCold.
+  ///
+  /// In es, this message translates to:
+  /// **'🌬️ Hace frío. Usa ropa de abrigo y lleva una chaqueta extra. Si eres propenso a catarros o tienes afecciones respiratorias, cubre nariz y boca al salir.'**
+  String get weatherAdviceCold;
+
+  /// No description provided for @weatherAdviceVeryHot.
+  ///
+  /// In es, this message translates to:
+  /// **'🥵 Calor extremo. Hidrátate constantemente, evita el sol directo entre las 11 h y las 17 h. Usa protector solar factor 50+, ropa ligera y permanece en lugares frescos. Presta atención a síntomas de golpe de calor (mareo, confusión, piel seca).'**
+  String get weatherAdviceVeryHot;
+
+  /// No description provided for @weatherAdviceHot.
+  ///
+  /// In es, this message translates to:
+  /// **'☀️ Día caluroso. Mantente hidratado bebiendo agua con regularidad, usa ropa ligera y aplica protector solar. Evita la actividad física intensa en las horas de mayor calor.'**
+  String get weatherAdviceHot;
+
+  /// No description provided for @weatherAdviceStorm.
+  ///
+  /// In es, this message translates to:
+  /// **'⛈️ Tormenta eléctrica prevista. Evita espacios abiertos, árboles y estructuras metálicas. Permanece en interiores y desconecta aparatos eléctricos innecesarios.'**
+  String get weatherAdviceStorm;
+
+  /// No description provided for @weatherAdviceRain.
+  ///
+  /// In es, this message translates to:
+  /// **'🌧️ Se esperan lluvias. Lleva paraguas o chubasquero. Conduce con precaución por posible pavimento mojado y reduce la velocidad en zonas inundables.'**
+  String get weatherAdviceRain;
+
+  /// No description provided for @weatherAdviceSnow.
+  ///
+  /// In es, this message translates to:
+  /// **'❄️ Nevadas. Usa calzado antideslizante, conduce con cadenas o neumáticos de invierno. Ten cuidado con el hielo en aceras y carreteras.'**
+  String get weatherAdviceSnow;
+
+  /// No description provided for @weatherAdviceFog.
+  ///
+  /// In es, this message translates to:
+  /// **'🌫️ Niebla o neblina. Visibilidad reducida en carreteras — usa luces antiniebla al conducir y reduce la velocidad. Personas con asma pueden notar irritación respiratoria.'**
+  String get weatherAdviceFog;
+
+  /// No description provided for @weatherAdviceWind.
+  ///
+  /// In es, this message translates to:
+  /// **'💨 Vientos fuertes. Asegura objetos en balcones y jardines. Ten precaución al conducir vehículos altos y evita actividades al aire libre que requieran equilibrio.'**
+  String get weatherAdviceWind;
+
+  /// No description provided for @weatherAdviceCloud.
+  ///
+  /// In es, this message translates to:
+  /// **'☁️ Cielo nublado. Temperatura agradable para actividades al aire libre. Aunque no haya sol directo, el UV puede seguir siendo moderado — considera protector solar.'**
+  String get weatherAdviceCloud;
+
+  /// No description provided for @weatherAdviceDefault.
+  ///
+  /// In es, this message translates to:
+  /// **'🌤️ Condiciones favorables. Buen día para actividades al exterior. Aplica protector solar si el índice UV es alto y mantente hidratado.'**
+  String get weatherAdviceDefault;
 }
 
 class _AppLocalizationsDelegate
@@ -1034,7 +1160,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'es'].contains(locale.languageCode);
+      <String>['de', 'en', 'es', 'fr', 'pt'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -1043,10 +1169,16 @@ class _AppLocalizationsDelegate
 AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'de':
+      return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
     case 'es':
       return AppLocalizationsEs();
+    case 'fr':
+      return AppLocalizationsFr();
+    case 'pt':
+      return AppLocalizationsPt();
   }
 
   throw FlutterError(

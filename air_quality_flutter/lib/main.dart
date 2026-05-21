@@ -190,6 +190,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: themeNotifier.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      locale: Locale(themeNotifier.currentLanguageCode),
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -197,10 +198,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('es'), // Español
-        Locale('en'), // English
-      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       home: widget.showWelcome ? const WelcomeScreen() : const MainShell(),
     );
   }

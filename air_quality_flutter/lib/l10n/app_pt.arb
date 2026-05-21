@@ -1,0 +1,287 @@
+{
+  "appTitle": "Aeris",
+  "welcomeTitle": "Bem-vindo ao Aeris",
+  "welcomeSubtitle": "Seu companheiro de ar limpo",
+  "welcomeFeature1Title": "Monitoramento em Tempo Real",
+  "welcomeFeature1Desc": "Consulte a qualidade do ar e o clima instantaneamente.",
+  "welcomeFeature2Title": "Alertas Inteligentes",
+  "welcomeFeature2Desc": "Receba notificações quando a qualidade do ar piorar.",
+  "welcomeFeature3Title": "Histórico Detalhado",
+  "welcomeFeature3Desc": "Analise tendências históricas de poluição.",
+  "welcomeButton": "Começar",
+  
+  "navMap": "Mapa",
+  "navHistory": "Histórico",
+  "navAlerts": "Alertas",
+  "navSettings": "Configurações",
+
+  "mapSearchPlaceholder": "Buscar cidade...",
+  "mapCurrentWeather": "Clima Atual",
+  "mapWeatherAdvice": "Conselho do Clima",
+  "mapHealthAdvice": "Recomendação (IA)",
+  "mapAirQuality": "Qualidade do Ar",
+  "mapPollutants": "Poluentes",
+  "mapHistoryChart": "Histórico (Últimas 24h)",
+  "mapViewFullHistory": "Ver histórico completo",
+
+  "historyTitle": "Histórico da Qualidade do Ar",
+  "historyLast7Days": "Últimos 7 dias",
+  "historyChartTitle": "Tendência de AQI",
+  "historyNoData": "Nenhum dado de histórico disponível.",
+
+  "alertsTitle": "Configuração de Alertas",
+  "alertsSubtitle": "Gerencie suas notificações",
+  "alertsSectionPollutants": "Tipos de Poluentes",
+  "alertsSwitchAirQuality": "Qualidade do Ar (AQI)",
+  "alertsSwitchAirQualitySubtitle": "Notificar quando o ar estiver ruim ou perigoso",
+  "alertsSwitchWeather": "Estado do Clima",
+  "alertsSwitchWeatherSubtitle": "Notificações diárias como o Google",
+  "alertsSectionLocations": "Locais Salvos",
+  "alertsAddLocation": "Adicionar Local",
+  "alertsCurrentLocation": "Localização Atual",
+  "alertsSavedLocation": "Local Salvo",
+  "alertsSectionPreferences": "Preferências de Notificação",
+  "alertsAiRecommendations": "Recomendações de IA",
+  "alertsAiRecommendationsSubtitle": "Receba conselhos personalizados combinando clima e qualidade do ar.",
+
+  "settingsTitle": "Configurações",
+  "settingsSectionGeneral": "Geral",
+  "settingsThemeDark": "Modo Escuro",
+  "settingsThemeDarkSubtitle": "Alterar a aparência do aplicativo",
+  "settingsLanguage": "Idioma",
+  "settingsLanguageSubtitle": "Selecione seu idioma preferido",
+  "langSystem": "Padrão do Sistema",
+  "settingsSectionSystem": "Sistema",
+  "settingsNotifications": "Notificações",
+  "settingsNotificationsSubtitle": "Gerenciar permissões do sistema",
+  "settingsLocation": "Localização",
+  "settingsLocationSubtitle": "Gerenciar permissões de localização",
+  "settingsSectionInfo": "Informações",
+  "settingsVersion": "Versão",
+  "settingsPrivacyPolicy": "Política de Privacidade",
+  "settingsTermsOfService": "Termos de Serviço",
+  "settingsFooter": "Aeris v1.0.0",
+
+  "legalPrivacyTitle": "Política de Privacidade",
+  "legalTermsTitle": "Termos de Serviço",
+  "legalFooter": "Aeris - Aplicativo Gratuito",
+
+  "aqiGood": "Bom",
+  "aqiFair": "Aceitável",
+  "aqiModerate": "Moderado",
+  "aqiPoor": "Ruim",
+  "aqiVeryPoor": "Muito Ruim",
+  "aqiDangerous": "Perigoso",
+
+  "errorLoading": "Erro ao carregar dados",
+  "retry": "Tentar novamente",
+  "cancel": "Cancelar",
+  "delete": "Excluir",
+  "next": "Próximo",
+  "historyTabDay": "Dia",
+  "historyTabWeek": "Semana",
+  "historyTabMonth": "Mês",
+  "historySectionSaved": "Locais Salvos",
+  "historyNoSavedLocations": "Nenhum local salvo",
+  "historySectionVisits": "Visitas Recentes",
+  "historyNoRecentHistory": "Nenhum histórico recente",
+  "historyDeleteTitle": "Excluir Local",
+  "historyDeleteConfirmation": "Tem certeza de que deseja excluir {name}?",
+  "@historyDeleteConfirmation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "historyDeleted": "Local {name} excluído",
+  "@historyDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alertsNewLocation": "Novo Local",
+  "alertsNewLocationHint": "Nome da cidade",
+  "alertsSelectLocation": "Selecionar Local para {name}",
+  "@alertsSelectLocation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alertsVerifying": "Verificando...",
+  "alertsVerified": "Verificado ({count})",
+  "@alertsVerified": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alertsCheckNow": "Verificar Agora",
+  "alertsCurrentLocationSubtitle": "Usar localização do dispositivo",
+  "alertsPollutantWeather": "Clima",
+  "alertsPollutantWeatherSubtitle": "Estado do tempo",
+  "alertsPollutantPM25": "PM2.5",
+  "alertsPollutantPM25Subtitle": "Partículas finas",
+  "alertsPollutantPM10": "PM10",
+  "alertsPollutantPM10Subtitle": "Partículas respiráveis",
+  "alertsPollutantO3": "Ozônio (O3)",
+  "alertsPollutantO3Subtitle": "Ozônio troposférico",
+  "alertsLocationHome": "Casa",
+  "alertsLocationWork": "Trabalho",
+  "alertsTapToConfigure": "Toque para configurar",
+  "alertsLocationOf": "Localização de {name}",
+  "@alertsLocationOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mapSearchResults": "Resultados da Busca",
+  "mapLocationOnMap": "Localização no mapa",
+  "mapSelectLocation": "Selecione uma localização",
+  "mapSaveLocationTooltip": "Salvar esta localização",
+  "mapSaveLocationHint": "Ex: Casa, Escritório...",
+  "mapCancel": "Cancelar",
+  "mapSave": "Salvar",
+  "mapLocationSaved": "\"{name}\" salvo.",
+  "@mapLocationSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWeeklyForecast": "Previsão Semanal",
+  "mapNoForecastAvailable": "Nenhuma previsão disponível.",
+  "mapSelectLocationPrompt": "Selecione uma localização.",
+  "mapErrorGeolocation": "Erro de Geolocalização: {error}",
+  "@mapErrorGeolocation": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "mapErrorSearching": "Erro ao buscar: {error}",
+  "@mapErrorSearching": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "mapErrorGettingData": "Erro ao obter dados: {error}",
+  "@mapErrorGettingData": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "notifAirQualityAlert": "Alerta de Qualidade do Ar",
+  "notifWeatherAt": "{temp}°C em {location}",
+  "@notifWeatherAt": {
+    "placeholders": {
+      "temp": {
+        "type": "int"
+      },
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "notifWeatherForecast": "{condition}. Máx: {maxTemp}° Mín: {minTemp}°",
+  "@notifWeatherForecast": {
+    "placeholders": {
+      "condition": {
+        "type": "String"
+      },
+      "maxTemp": {
+        "type": "int"
+      },
+      "minTemp": {
+        "type": "int"
+      }
+    }
+  },
+  "notifAirQualityBody": "{location}: {level} (AQI: {aqi})",
+  "@notifAirQualityBody": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      },
+      "aqi": {
+        "type": "int"
+      }
+    }
+  },
+  "mapHealthAdviceAI": "Conselho de Saúde (IA)",
+
+  "mapMainPollutants": "Poluentes principais",
+  "mapEnvironmentalConditions": "Condições ambientais",
+  "pollutantStatusLow": "Baixo",
+  "pollutantStatusModerate": "Moderado",
+  "pollutantStatusHigh": "Alto",
+  "metricHumidity": "Umidade",
+  "metricWind": "Vento",
+  "metricPressure": "Pressão",
+  "metricFeelsLike": "Sensação térmica",
+  "aqiDescGood": "Ar limpo. Perfeito para atividades ao ar livre.",
+  "aqiDescFair": "Qualidade aceitável. Pessoas muito sensíveis, atenção.",
+  "aqiDescModerate": "Grupos sensíveis podem sentir efeitos. Limite a exposição.",
+  "aqiDescPoor": "Efeitos na saúde de todos. Reduza atividades ao ar livre.",
+  "aqiDescVeryPoor": "Alerta de saúde. Evite sair se não for necessário.",
+  "aqiDescDangerous": "Emergência de saúde. Permaneça em ambientes fechados.",
+  "forecastToday": "Hoje",
+  "forecastTomorrow": "Amanhã",
+
+  "emptyHistoryTitle": "Ainda sem histórico",
+  "emptyHistorySubtitle": "Comece a explorar locais para criar seu histórico.",
+  "emptySavedLocationsTitle": "Nenhum local salvo",
+  "emptySavedLocationsSubtitle": "Salve seus lugares favoritos para monitorar a qualidade do ar.",
+  "emptyAlertsTitle": "Nenhum alerta ativo",
+  "emptyAlertsSubtitle": "Configure alertas para ser notificado sobre a qualidade do ar.",
+  "emptySearchTitle": "Nenhum resultado encontrado",
+  "emptySearchSubtitle": "Tente pesquisar por um nome de cidade diferente.",
+  "errorNetworkTitle": "Sem conexão com a internet",
+  "errorNetworkSubtitle": "Verifique sua conexão e tente novamente.",
+  "errorLocationTitle": "Acesso à localização negado",
+  "errorLocationSubtitle": "Permita o acesso à localização para ver a qualidade do ar local.",
+  "errorGenericTitle": "Algo deu errado",
+  "errorGenericSubtitle": "Ocorreu um erro inesperado. Por favor, tente novamente.",
+  "openSettings": "Abrir Configurações",
+  "onboardingMapTitle": "Arraste o painel para cima",
+  "onboardingMapSubtitle": "Deslize para cima para ver detalhes da qualidade do ar, clima e previsão.",
+  "onboardingAlertsTitle": "Defina locais de alerta",
+  "onboardingAlertsSubtitle": "Toque em um cartão de local para configurar onde monitorar a qualidade do ar.",
+
+  "legalPrivacyContent": "**Política de Privacidade do Aeris**\\n\\n**Última Atualização:** 21 de Novembro de 2024\\n\\n**1. Introdução**\\nO Aeris é um aplicativo gratuito desenvolvido para informar sobre a qualidade do ar e o clima. Não exibimos anúncios nem vendemos seus dados.\\n\\n**2. Coleta de Dados**\\nO Aeris NÃO coleta, armazena ou compartilha informações de identificação pessoal. Não solicitamos registro ou login.\\n\\n**3. Dados de Localização**\\nPara fornecer dados precisos do clima e qualidade do ar, o aplicativo precisa de acesso à sua localização.\\n- As coordenadas são enviadas aos nossos provedores de dados (OpenWeather) de forma anônima.\\n- Se você salvar um local, as coordenadas serão armazenadas de forma criptografada em nosso servidor seguro.\\n- Não rastreamos o histórico de seus movimentos fora das consultas feitas de forma ativa por você.\\n\\n**4. Serviços de Terceiros**\\nUsamos serviços confiáveis para obter dados:\\n- **OpenWeather:** Para dados meteorológicos e de qualidade do ar.\\n- **Google Gemini:** Para gerar recomendações de saúde e clima com base nos dados atuais.\\n\\n**5. Contato**\\nSe tiver dúvidas sobre esta política, entre em contato conosco através da loja de aplicativos.",
+  "legalTermsContent": "**Termos de Serviço do Aeris**\\n\\n**1. Aceitação**\\nAo usar o Aeris, você aceita estes termos. O aplicativo é gratuito e fornecido no estado em que se encontra.\\n\\n**2. Uso do Aplicativo**\\nVocê é livre para usar o aplicativo para fins pessoais e informativos. Não é permitido fazer engenharia reversa ou tentar prejudicar nossos serviços.\\n\\n**3. Isenção de Responsabilidade**\\nAs informações de saúde e clima são geradas por Inteligência Artificial e provedores externos.\\n- **Não é conselho médico:** As recomendações são apenas informativas. Sempre consulte um profissional de saúde.\\n- **Precisão:** Não garantimos que os dados sejam 100% precisos o tempo todo.\\n\\n**4. Alterações**\\nPodemos atualizar estes termos a qualquer momento. O uso contínuo implica na aceitação das alterações.",
+
+  "aqiAdviceGood": "✅ A qualidade do ar é excelente. Ideal para exercícios ao ar livre, caminhadas ou esportes. Aproveite o dia sem restrições.",
+  "aqiAdviceFair": "🟡 A qualidade do ar é aceitável. Pessoas com asma ou doenças respiratórias crônicas devem moderar a atividade física intensa ao ar livre. Outros podem agir normalmente.",
+  "aqiAdviceModerate": "🟠 Qualidade moderada. Grupos sensíveis (crianças, idosos, grávidas e pessoas com problemas cardíacos ou respiratórios) devem limitar a atividade física prolongada ao ar livre.",
+  "aqiAdvicePoor": "🔴 Qualidade do ar insatisfatória. Todos podem começar a sentir efeitos. Reduza o tempo ao ar livre, especialmente em atividades de alto esforço físico. Use máscara se sair.",
+  "aqiAdviceVeryPoor": "🟣 Qualidade muito ruim — alerta de saúde. Evite sair ao ar livre, a menos que seja estritamente necessário. Feche as janelas, use um purificador de ar interno e use uma máscara FFP2 se precisar sair.",
+  "aqiAdviceDangerous": "⚫ Emergência de saúde pública. Toda a população está em risco. Permaneça em ambientes fechados com janelas e portas seladas. Entre em contato com os serviços de emergência se sentir dificuldade para respirar, dor no peito ou tontura.",
+  "weatherAdviceVeryCold": "🧥 Temperatura muito baixa. Vista-se bem com camadas de roupas, prestando atenção especial à proteção de mãos, pés e cabeça. Evite exposição prolongada ao frio e beba líquidos quentes.",
+  "weatherAdviceCold": "🌬️ Está frio. Use roupas quentes e leve uma jaqueta extra. Se você é propenso a resfriados ou tem problemas respiratórios, cubra o nariz e a boca ao sair.",
+  "weatherAdviceVeryHot": "🥵 Calor extremo. Hidrate-se constantemente, evite o sol direto entre 11h e 17h. Use protetor solar FPS 50+, use roupas leves e permaneça em locais frescos. Fique atento aos sintomas de insolação (tontura, confusão, pele seca).",
+  "weatherAdviceHot": "☀️ Dia quente. Mantenha-se hidratado bebendo água regularmente, use roupas leves e aplique protetor solar. Evite atividades físicas intensas nas horas mais quentes.",
+  "weatherAdviceStorm": "⛈️ Previsão de tempestade elétrica. Evite espaços abertos, árvores e estruturas metálicas. Permaneça em ambientes fechados e desconecte aparelhos elétricos desnecessários.",
+  "weatherAdviceRain": "🌧️ Previsão de chuva. Leve um guarda-chuva ou capa de chuva. Dirija com cuidado devido ao asfalto molhado e reduza a velocidade em áreas propensas a alagamentos.",
+  "weatherAdviceSnow": "❄️ Queda de neve. Use calçados antiderrapantes, dirija com correntes ou pneus de neve. Cuidado com o gelo em calçadas e estradas.",
+  "weatherAdviceFog": "🌫️ Nevoeiro ou neblina. Visibilidade reduzia nas estradas — use faróis de neblina ao dirigir e reduza a velocidade. Pessoas com asma podem notar irritação respiratória.",
+  "weatherAdviceWind": "💨 Ventos fortes. Prenda objetos em varandas e jardins. Tenha cuidado ao dirigir veículos altos e evite atividades ao ar livre que exijam equilíbrio.",
+  "weatherAdviceCloud": "☁️ Céu nublado. Temperatura agradável para atividades ao ar livre. Embora não haja luz solar direta, o índice UV ainda pode ser moderado — considere o uso de protetor solar.",
+  "weatherAdviceDefault": "🌤️ Condições favoráveis. Bom dia para atividades ao ar livre. Aplique protetor solar se o índice UV estiver alto e mantenha-se hidratado."
+}

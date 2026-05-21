@@ -147,6 +147,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsThemeDarkSubtitle => 'Cambiar apariencia de la aplicación';
 
   @override
+  String get settingsLanguage => 'Idioma';
+
+  @override
+  String get settingsLanguageSubtitle => 'Selecciona tu idioma preferido';
+
+  @override
+  String get langSystem => 'Predeterminado del Sistema';
+
+  @override
   String get settingsSectionSystem => 'Sistema';
 
   @override
@@ -516,4 +525,72 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get legalTermsContent =>
       '**Términos de Servicio de Aeris**\\n\\n**1. Aceptación**\\nAl usar Aeris, aceptas estos términos. La aplicación es gratuita y se proporciona tal cual.\\n\\n**2. Uso de la Aplicación**\\nEres libre de usar la aplicación para fines personales e informativos. No está permitido realizar ingeniería inversa ni intentar dañar nuestros servicios.\\n\\n**3. Descargo de Responsabilidad**\\nLa información de salud y clima es generada por Inteligencia Artificial y proveedores externos.\\n- **No es un consejo médico:** Las recomendaciones son solo informativas. Consulta siempre a un profesional de la salud.\\n- **Precisión:** No garantizamos que los datos sean 100% exactos en todo momento.\\n\\n**4. Cambios**\\nPodemos actualizar estos términos en cualquier momento. El uso continuo implica la aceptación de los cambios.';
+
+  @override
+  String get aqiAdviceGood =>
+      '✅ La calidad del aire es excelente. Ideal para hacer ejercicio al aire libre, salir a caminar o practicar deporte. Disfruta del día sin restricciones.';
+
+  @override
+  String get aqiAdviceFair =>
+      '🟡 La calidad del aire es aceptable. Personas con asma o enfermedades respiratorias crónicas deben moderar la actividad física intensa al exterior. El resto puede actuar con normalidad.';
+
+  @override
+  String get aqiAdviceModerate =>
+      '🟠 Calidad moderada. Grupos sensibles (niños, adultos mayores, embarazadas y personas con problemas cardíacos o respiratorios) deben limitar la actividad física prolongada al aire libre.';
+
+  @override
+  String get aqiAdvicePoor =>
+      '🔴 Calidad del aire deficiente. Todos pueden empezar a sentir efectos. Reduce el tiempo al aire libre, especialmente en actividades de alto esfuerzo físico. Usa mascarilla si sales.';
+
+  @override
+  String get aqiAdviceVeryPoor =>
+      '🟣 Calidad muy mala — alerta sanitaria. Evita salir al exterior si no es estrictamente necesario. Cierra ventanas, usa purificador de aire en interiores y porta mascarilla FFP2 si debes salir.';
+
+  @override
+  String get aqiAdviceDangerous =>
+      '⚫ Emergencia de salud pública. Toda la población está en riesgo. Permanece en interiores con ventanas y puertas selladas. Contacta a servicios de emergencia si sientes dificultad para respirar, dolor en el pecho o mareos.';
+
+  @override
+  String get weatherAdviceVeryCold =>
+      '🧥 Temperatura muy baja. Abrígate bien con capas de ropa, presta especial atención a proteger manos, pies y cabeza. Evita la exposición prolongada al frío y bebe líquidos calientes.';
+
+  @override
+  String get weatherAdviceCold =>
+      '🌬️ Hace frío. Usa ropa de abrigo y lleva una chaqueta extra. Si eres propenso a catarros o tienes afecciones respiratorias, cubre nariz y boca al salir.';
+
+  @override
+  String get weatherAdviceVeryHot =>
+      '🥵 Calor extremo. Hidrátate constantemente, evita el sol directo entre las 11 h y las 17 h. Usa protector solar factor 50+, ropa ligera y permanece en lugares frescos. Presta atención a síntomas de golpe de calor (mareo, confusión, piel seca).';
+
+  @override
+  String get weatherAdviceHot =>
+      '☀️ Día caluroso. Mantente hidratado bebiendo agua con regularidad, usa ropa ligera y aplica protector solar. Evita la actividad física intensa en las horas de mayor calor.';
+
+  @override
+  String get weatherAdviceStorm =>
+      '⛈️ Tormenta eléctrica prevista. Evita espacios abiertos, árboles y estructuras metálicas. Permanece en interiores y desconecta aparatos eléctricos innecesarios.';
+
+  @override
+  String get weatherAdviceRain =>
+      '🌧️ Se esperan lluvias. Lleva paraguas o chubasquero. Conduce con precaución por posible pavimento mojado y reduce la velocidad en zonas inundables.';
+
+  @override
+  String get weatherAdviceSnow =>
+      '❄️ Nevadas. Usa calzado antideslizante, conduce con cadenas o neumáticos de invierno. Ten cuidado con el hielo en aceras y carreteras.';
+
+  @override
+  String get weatherAdviceFog =>
+      '🌫️ Niebla o neblina. Visibilidad reducida en carreteras — usa luces antiniebla al conducir y reduce la velocidad. Personas con asma pueden notar irritación respiratoria.';
+
+  @override
+  String get weatherAdviceWind =>
+      '💨 Vientos fuertes. Asegura objetos en balcones y jardines. Ten precaución al conducir vehículos altos y evita actividades al aire libre que requieran equilibrio.';
+
+  @override
+  String get weatherAdviceCloud =>
+      '☁️ Cielo nublado. Temperatura agradable para actividades al aire libre. Aunque no haya sol directo, el UV puede seguir siendo moderado — considera protector solar.';
+
+  @override
+  String get weatherAdviceDefault =>
+      '🌤️ Condiciones favorables. Buen día para actividades al exterior. Aplica protector solar si el índice UV es alto y mantente hidratado.';
 }

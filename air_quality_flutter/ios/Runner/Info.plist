@@ -29,14 +29,23 @@
     <key>UIMainStoryboardFile</key>
     <string>Main</string>
     <key>UISupportedInterfaceOrientations</key>
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>Esta app necesita tu ubicación para mostrar la calidad del aire local.</string>
-    <key>NSLocationAlwaysUsageDescription</key>
-    <string>Esta app necesita tu ubicación para enviar alertas sobre la calidad del aire.</string>
     <array>
       <string>UIInterfaceOrientationPortrait</string>
       <string>UIInterfaceOrientationLandscapeLeft</string>
       <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Esta app necesita tu ubicación para mostrar la calidad del aire local.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>Esta app necesita tu ubicación para enviar alertas sobre la calidad del aire de forma persistente.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Esta app necesita tu ubicación en segundo plano para alertarte sobre calidad del aire nociva cerca de ti de manera proactiva.</string>
+    <key>UIBackgroundModes</key>
+    <array>
+      <string>location</string>
+      <string>fetch</string>
+      <string>processing</string>
+      <string>remote-notification</string>
     </array>
     <key>UISupportedInterfaceOrientations~ipad</key>
     <array>
